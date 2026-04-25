@@ -346,8 +346,24 @@ header.bar {
   grid-template-columns: minmax(340px, 4fr) minmax(420px, 7fr);
   gap: var(--s-4);
 }
-@media (max-width: 1020px) {
+/* iPad Pro 12.9" portrait = 1024, iPad Pro 11" landscape = 1194 — beide brauchen Single-Column */
+@media (max-width: 1280px) {
   .split { grid-template-columns: 1fr; }
+}
+
+/* Tablet-Sweet-Spot (600-1280): Inputs 2-spaltig für kompaktes Eintippen */
+@media (min-width: 720px) and (max-width: 1280px) {
+  .input-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--s-3);
+  }
+  .panel { padding: var(--s-4) var(--s-5); }
+  /* Hero auf Tablet etwas kleiner */
+  .hero-strip { padding: 32px 36px; }
+  .hero-big { font-size: clamp(72px, 11vw, 120px); }
+  /* Result-Grid: auto-fit mit 220px minimum für angenehme Tablet-Density */
+  .results-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 }
 
 .panel { padding: var(--s-5); }
