@@ -1105,10 +1105,114 @@ footer.footer {
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (max-width: 600px) {
-  .shell { padding: var(--s-4) var(--s-3) var(--s-6); }
-  .input-row input { font-size: 19px; padding: 28px 76px 12px 14px; }
-  .hero-number { font-size: clamp(40px, 14vw, 64px); }
-  .actions .btn { min-width: 100%; }
+  /* === Mobile-Override: kompaktes Single-Column-Layout === */
+  .shell { padding: var(--s-3) var(--s-3) var(--s-5); max-width: 100%; }
+  .panel { padding: 16px 14px; }
+
+  /* Bar */
+  .brand-mark { width: 38px; height: 38px; }
+  .brand-mark svg { width: 22px; height: 22px; }
+  .brand-title { font-size: 17px; }
+  .brand-sub { font-size: 10px; }
+  .icon-btn { width: 38px; height: 38px; }
+
+  /* Hero strip */
+  .hero-strip { padding: 24px 18px; }
+  .hero-strip-inner { grid-template-columns: 1fr; gap: 18px; }
+  .hero-headline { font-size: clamp(18px, 5vw, 22px); margin-bottom: 12px; }
+  .hero-big { font-size: clamp(54px, 16vw, 88px); }
+  .hero-big-unit { font-size: clamp(20px, 6vw, 28px); }
+  .hero-aside { align-items: stretch; min-width: 0; }
+  .hero-cta { padding: 14px 18px; font-size: 14px; }
+  .hero-formula-block { font-size: 11px; padding: 8px 12px; }
+
+  /* Inputs — Icons WEG auf Mobile, kompaktere Geometrie */
+  .input-icon { display: none; }
+  .input-row input {
+    padding: 30px 96px 10px 16px;
+    font-size: 28px;
+    line-height: 1;
+  }
+  .input-row[data-field="mutter"] input,
+  .input-row[data-field="schmal"] input,
+  .input-row[data-field="lfm"] input,
+  .input-row[data-field="speed"] input,
+  .input-row[data-field="ruestBase"] input,
+  .input-row[data-field="ruestPerSatz"] input { padding-right: 132px; }
+
+  .input-row label {
+    left: 16px;
+    right: 100px;
+    top: 9px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+  .input-row[data-field="mutter"] label,
+  .input-row[data-field="schmal"] label,
+  .input-row[data-field="lfm"] label,
+  .input-row[data-field="speed"] label,
+  .input-row[data-field="ruestBase"] label,
+  .input-row[data-field="ruestPerSatz"] label { right: 134px; }
+
+  .input-row input::placeholder { font-size: 18px; }
+
+  .steppers { right: 52px; gap: 2px; }
+  .input-row[data-field="mutter"] .steppers,
+  .input-row[data-field="schmal"] .steppers,
+  .input-row[data-field="lfm"] .steppers,
+  .input-row[data-field="speed"] .steppers,
+  .input-row[data-field="ruestBase"] .steppers,
+  .input-row[data-field="ruestPerSatz"] .steppers { right: 92px; }
+  .stepper { width: 26px; height: 22px; }
+  .stepper svg { width: 11px; height: 11px; }
+
+  .input-unit-label { font-size: 17px; padding: 0 2px; }
+  .unit-toggle { padding: 7px 9px 7px 10px; min-width: 62px; border-radius: 8px; }
+  .unit-toggle .unit-text { font-size: 15px; }
+
+  /* Hint im Label auf Mobile sowieso aus */
+  .input-row label .label-hint { display: none; }
+
+  /* Action-Buttons */
+  .actions .btn { min-width: 100%; padding: 14px 18px; font-size: 14px; }
+
+  /* Result-Grid: 2-spaltig auf Mobile */
+  .results-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .result-card { padding: 14px 12px; }
+  .result-card .copy-btn { width: 28px; height: 28px; top: 8px; right: 8px; }
+  .result-icon { width: 28px; height: 28px; margin-bottom: 8px; }
+  .result-icon svg { width: 16px; height: 16px; }
+  .result-label { font-size: 10px; letter-spacing: 0.08em; padding-right: 32px; }
+  .result-value { font-size: clamp(1.5rem, 6.5vw, 2rem); }
+  .result-unit { font-size: clamp(0.85rem, 3.6vw, 1.1rem); }
+  .result-sub { font-size: 11px; }
+  .side-pill { font-size: 12px; padding: 4px 8px; }
+  .side-pill .side-tag { font-size: 9px; }
+
+  /* Viz */
+  .viz-stage { padding: 18px 14px; }
+  .viz-title { font-size: 12px; }
+  .viz-sub { font-size: 11px; }
+  .viz-legend { font-size: 11px; }
+
+  /* Warnings */
+  .warn { font-size: 13px; padding: 10px 12px; }
+
+  /* Footer */
+  footer.footer { font-size: 11px; flex-direction: column; gap: 4px; align-items: flex-start; }
+}
+
+/* Sehr schmale Geräte (iPhone SE etc) */
+@media (max-width: 380px) {
+  .input-row input { font-size: 24px; padding: 28px 90px 8px 14px; }
+  .input-row[data-field="mutter"] input,
+  .input-row[data-field="schmal"] input,
+  .input-row[data-field="lfm"] input,
+  .input-row[data-field="speed"] input,
+  .input-row[data-field="ruestBase"] input,
+  .input-row[data-field="ruestPerSatz"] input { padding-right: 124px; }
+  .input-row label { font-size: 10px; }
+  .results-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
