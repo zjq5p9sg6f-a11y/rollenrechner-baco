@@ -2579,7 +2579,7 @@ footer.footer {
       return;
     }
     const valNum = parseFloat(raw);
-    const out = isFinite(valNum) ? nf0.format(Math.round(valNum)) : display;
+    const out = isFinite(valNum) ? String(Math.round(valNum)) : display;
     const ok = await copyText(out);
     if (ok) toast(`${label} kopiert: ${out}`);
     else toast("Kopieren fehlgeschlagen", "err");
