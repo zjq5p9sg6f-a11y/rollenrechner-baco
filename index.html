@@ -2284,7 +2284,7 @@ footer.footer {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.3 · offline-fähig · localStorage</div>
+    <div>v1.10 · offline-fähig · localStorage</div>
   </footer>
 </div>
 
@@ -2778,13 +2778,30 @@ footer.footer {
   function renderFulfillment(o) {
     const card = document.getElementById("fulfillmentCard");
     const table = document.getElementById("fulfillmentTable");
-    if (!card || !table) return;
+    if (!card || !table) {
+      console.warn("[Rollenrechner] fulfillmentCard fehlt im DOM — Browser-Cache leeren! (Strg+Shift+Entf → Cache · Strg+F5)");
+      return;
+    }
     // Sichtbar nur wenn Hetero an UND mind. 1 Soll-Wert vorhanden
     if (!o.hasNeben || !o.hasAnySoll) {
       card.style.display = "none";
+      card._wasShown = false;
       return;
     }
+    const wasHidden = card.style.display === "none" || !card._wasShown;
     card.style.display = "";
+    // Beim ersten Erscheinen kurz auf-pulsieren + scroll ins Sichtfeld
+    if (wasHidden) {
+      card._wasShown = true;
+      card.style.transition = "box-shadow 0.4s, border-color 0.4s";
+      card.style.boxShadow = "0 0 0 2px var(--accent-primary), 0 0 32px var(--accent-glow)";
+      setTimeout(() => { card.style.boxShadow = ""; }, 800);
+      // Scroll nur wenn nicht eh sichtbar
+      const rect = card.getBoundingClientRect();
+      if (rect.top < 0 || rect.bottom > window.innerHeight) {
+        card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
     // Header behalten + Reihen rendern
     const headerHtml = `<div class="ft-header">Auftrag</div><div class="ft-header">Soll</div><div class="ft-header">Ist (bei ${o.totalSaetze} Sätzen)</div><div class="ft-header">Δ</div><div class="ft-header">Status</div>`;
 
