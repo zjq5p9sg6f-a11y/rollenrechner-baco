@@ -1380,6 +1380,51 @@ header.bar {
   border-color: #42a5f5;
   box-shadow: 0 0 0 1px rgba(66,165,245,0.5);
 }
+
+/* Live-Status pro Cluster-Auftrag · vom resolveCluster gesetzt
+   Rot = inkompatibel mit dem Master-Cluster, gemerged-Konflikt, Strict-Mode-Verletzung
+   Grün = kompatibel · Teil des aktuellen Master-Clusters */
+.cluster-job[data-cluster-status="conflict"] {
+  border-color: rgba(255,77,109,0.65);
+  box-shadow: 0 0 0 1px rgba(255,77,109,0.3), 0 0 14px rgba(255,77,109,0.15);
+  background: linear-gradient(180deg, rgba(255,77,109,0.06), rgba(255,77,109,0.01));
+  animation: clusterConflictPulse 2.4s ease-in-out infinite;
+}
+.cluster-job[data-cluster-status="conflict"] .cluster-job-num {
+  background: rgba(255,77,109,0.20);
+  border-color: rgba(255,77,109,0.55);
+  color: var(--danger-color);
+}
+.cluster-job[data-cluster-status="conflict"]::before {
+  content: "✗ NICHT KOMBINIERBAR";
+  position: absolute;
+  top: -9px;
+  right: 14px;
+  padding: 2px 9px;
+  background: var(--danger-color);
+  color: #fff;
+  font-size: 9px; font-weight: 800;
+  letter-spacing: 0.06em;
+  border-radius: 3px;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(255,77,109,0.4);
+}
+.cluster-job[data-cluster-status="ok"]:not(.cluster-job-primary) {
+  border-color: rgba(0, 230, 118, 0.45);
+  box-shadow: 0 0 0 1px rgba(0, 230, 118, 0.18);
+}
+.cluster-job[data-cluster-status="ok"]:not(.cluster-job-primary) .cluster-job-num {
+  background: rgba(0, 230, 118, 0.15);
+  border-color: rgba(0, 230, 118, 0.50);
+  color: var(--accent-primary);
+}
+@keyframes clusterConflictPulse {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255,77,109,0.3), 0 0 14px rgba(255,77,109,0.15); }
+  50%      { box-shadow: 0 0 0 1px rgba(255,77,109,0.5), 0 0 18px rgba(255,77,109,0.30); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cluster-job[data-cluster-status="conflict"] { animation: none; }
+}
 .cluster-job-num {
   width: 36px; height: 32px;
   display: grid; place-items: center;
@@ -5716,6 +5761,150 @@ footer.footer {
     return tips.length ? tips : null;
   }
 
+  // ============== Cluster-Resolver · iterative Konflikt-Auflösung ==============
+  // Statt globalem Lockdown bei einem inkompatiblen Auftrag: Wrapper baut den
+  // größtmöglichen kompatiblen Master-Cluster, markiert ausgeschlossene Aufträge
+  // als 'conflict' für die UI. Primary (Idx 0) wird nie ausgeschlossen.
+  function resolveCluster(allJobs) {
+    if (!Array.isArray(allJobs) || allJobs.length < 2) {
+      return { master: null, excluded: [], reached: allJobs.map((_, i) => i) };
+    }
+    let candidates = allJobs.map((j, i) => ({ ...j, _origIdx: i }));
+    const excluded = [];
+    const MAX_ITER = allJobs.length + 2;
+    let iter = 0;
+    while (candidates.length >= 2 && iter < MAX_ITER) {
+      iter++;
+      const subJobs = candidates.map(c => ({ mr: c.mr, haupt: c.haupt, nebenSlots: c.nebenSlots }));
+      const master = calcMasterWelle(subJobs);
+      if (master && master.ok) {
+        // idx → origIdx zurück mappen für Display
+        master.validJobs.forEach(vj => {
+          const c = candidates[vj.idx];
+          if (c) { vj.origIdx = c._origIdx; vj.idx = c._origIdx; }
+        });
+        return {
+          master,
+          excluded,
+          reached: candidates.map(c => c._origIdx)
+        };
+      }
+      // ok=false → finde am meisten konfligierenden Auftrag (außer Primary[0])
+      if (!master || !master.conflicts || master.conflicts.length === 0) break;
+      const hist = {};
+      for (const cf of master.conflicts) {
+        hist[cf.jobA] = (hist[cf.jobA] || 0) + 1;
+        hist[cf.jobB] = (hist[cf.jobB] || 0) + 1;
+      }
+      let worstSubIdx = -1, worstCount = -1;
+      for (const [k, v] of Object.entries(hist)) {
+        const i = parseInt(k);
+        if (i === 0) continue; // Primary nicht ausschließen
+        if (v > worstCount) { worstCount = v; worstSubIdx = i; }
+      }
+      if (worstSubIdx === -1) break; // Konflikt nur bei Primary → unauflösbar
+      const removed = candidates[worstSubIdx];
+      excluded.push({ origIdx: removed._origIdx, conflictCount: worstCount });
+      candidates.splice(worstSubIdx, 1);
+    }
+    // Cluster nicht aufgelöst — ggf. nur Primary übrig
+    return {
+      master: null,
+      excluded,
+      reached: candidates.map(c => c._origIdx)
+    };
+  }
+
+  function clearClusterJobStatus() {
+    const cont = document.getElementById("clusterJobs");
+    if (!cont) return;
+    cont.querySelectorAll(".cluster-job").forEach(div => div.removeAttribute("data-cluster-status"));
+  }
+
+  // Live-Status für die Cluster-Job-Reihe — läuft bei jedem calc(), unabhängig von welleSection-Open-State.
+  // Wird in renderWelle ÜBERSCHRIEBEN wenn welleSection offen (mit gleichem Ergebnis), das ist OK.
+  function syncClusterLiveStatus(out) {
+    const cont = document.getElementById("clusterJobs");
+    if (!cont) return;
+    const clusterToggle = document.getElementById("clusterToggle");
+    const clusterOn = clusterToggle && clusterToggle.getAttribute("aria-expanded") === "true";
+    if (!clusterOn || !out || !out.mutter) {
+      clearClusterJobStatus();
+      return;
+    }
+    // Sammle valide Folgeaufträge — origIdx = position in clusterJobs + 1 (Primary = 0)
+    const followJobs = [];
+    clusterJobs.forEach((j) => {
+      const mr = parseFloat((j.mr || "").replace(",", ".")) || 0;
+      const haupt = parseFloat((j.haupt || "").replace(",", ".")) || 0;
+      const nb = parseFloat((j.nebenBreite || "").replace(",", ".")) || 0;
+      const na = parseInt(j.nebenAnz || "0") || 0;
+      if (mr > 0 && haupt >= DCM.SCHNEIDEEINHEIT) {
+        followJobs.push({ mr, haupt, nebenSlots: nb > 0 && na > 0 ? [{ breite: nb, anz: na }] : [] });
+      } else {
+        followJobs.push(null); // invalid slot — bleibt neutral, kein Status
+      }
+    });
+    // Filter nur valid für Engine — aber tracke Slot-Idx fürs Mapping
+    const validIdxMap = []; // sub-idx → orig-slot-idx
+    const subJobs = [];
+    followJobs.forEach((fj, slotIdx) => {
+      if (fj) { validIdxMap.push(slotIdx); subJobs.push(fj); }
+    });
+    if (subJobs.length === 0) {
+      // Keine validen Folgeaufträge → Primary nur ok-markieren, Rest neutral
+      clearClusterJobStatus();
+      const primaryDiv = cont.querySelector(".cluster-job-primary");
+      if (primaryDiv) primaryDiv.setAttribute("data-cluster-status", "ok");
+      return;
+    }
+    const primaryJob = {
+      mr: out.mutter, haupt: out.schmal,
+      nebenSlots: (out.nebenSlots || []).map(s => ({ breite: s.breite, anz: s.anz }))
+    };
+    const allJobs = [primaryJob, ...subJobs];
+    const resolved = resolveCluster(allJobs);
+    // resolveCluster gibt origIdx (in allJobs) zurück → mappen auf cluster-job-slots
+    // origIdx 0 = Primary (cluster-job-primary div)
+    // origIdx 1..N = subJobs[i-1] → validIdxMap[i-1] = slot in clusterJobs
+    const reachedSlots = new Set();
+    const excludedSlots = new Set();
+    if (resolved.master) {
+      // Primary always reached if master exists (sub-idx 0 maps to origIdx 0)
+      // resolved.reached enthält origIdx-Werte aus allJobs
+      (resolved.reached || []).forEach(origIdx => {
+        if (origIdx === 0) reachedSlots.add(0); // Primary
+        else {
+          const subIdx = origIdx - 1;
+          const slotIdx = validIdxMap[subIdx];
+          if (slotIdx != null) reachedSlots.add(slotIdx + 1); // +1 because Primary is "slot 0"
+        }
+      });
+    } else {
+      // Kein Master gefunden → Primary trotzdem als reached markieren (er bleibt drin)
+      reachedSlots.add(0);
+    }
+    (resolved.excluded || []).forEach(ex => {
+      const origIdx = ex.origIdx;
+      if (origIdx === 0) return; // Primary nie excluded
+      const subIdx = origIdx - 1;
+      const slotIdx = validIdxMap[subIdx];
+      if (slotIdx != null) excludedSlots.add(slotIdx + 1);
+    });
+    // Status anwenden — Primary-Zeile + jeder cluster-job-slot
+    clearClusterJobStatus();
+    const primaryDiv = cont.querySelector(".cluster-job-primary");
+    if (primaryDiv && reachedSlots.has(0)) primaryDiv.setAttribute("data-cluster-status", "ok");
+    cont.querySelectorAll(".cluster-job:not(.cluster-job-primary)").forEach((div, slotIdx) => {
+      const mappedSlot = slotIdx + 1; // Primary = 0, A2 = 1, ...
+      if (excludedSlots.has(mappedSlot)) {
+        div.setAttribute("data-cluster-status", "conflict");
+      } else if (reachedSlots.has(mappedSlot)) {
+        div.setAttribute("data-cluster-status", "ok");
+      }
+    });
+  }
+
   // Quality-Score (vereinfacht, aus Wellenbestückungs-Engine inspiriert)
   function calcQualityScore(welle, out) {
     if (!welle || !welle.ok) return null;
@@ -5736,6 +5925,10 @@ footer.footer {
   }
 
   function renderWelle(out) {
+    // Cluster-Status (rote Kontur pro Auftrag) IMMER ZUERST setzen — unabhängig von welleSection-State,
+    // damit der Operator das visuelle Konflikt-Feedback in der Cluster-Section bekommt
+    // auch wenn er die Welle-Section eingeklappt hat
+    if (typeof syncClusterLiveStatus === "function") syncClusterLiveStatus(out);
     const section = document.getElementById("welleSection");
     if (!section || section.getAttribute("aria-hidden") === "true") return;
     // A1-Primary-Zeile-Werte updaten OHNE DOM zu zerstören (sonst verlieren A2/A3/A4 Focus)
@@ -5777,7 +5970,9 @@ footer.footer {
         };
       });
       const allJobs = [primaryJob, ...followJobs];
-      const master = calcMasterWelle(allJobs);
+      const resolved = resolveCluster(allJobs);
+      const master = resolved.master;
+      // (Status auf cluster-job divs wurde bereits via syncClusterLiveStatus(out) am Anfang gesetzt)
       if (master && master.ok) {
         const versatzTxt = master.validJobs.filter(j => j.versatz).map(j => `A${j.idx+1}: ${j.versatz>0?"+":""}${j.versatz}mm`).join(", ");
         const asymJobs = master.validJobs.filter(j => j.asymmetric);
@@ -5789,7 +5984,14 @@ footer.footer {
         const konfliktLevel = m === 0 ? "ok" : m <= 5 ? "leicht" : m <= 15 ? "mittel" : "kritisch";
         const konfliktBadge = m === 0 ? "✓" : m <= 5 ? "⚠" : m <= 15 ? "⚠⚠" : "✗";
         const mergeTxt = m > 0 ? ` · <strong style="color:${m<=5?'var(--warn-color)':'var(--danger-color)'}">${konfliktBadge} ${m} Cut-Konflikt${m>1?"e":""} gemerged (${konfliktLevel})</strong>` : "";
-        if (sub) sub.innerHTML = `<strong style="color:var(--accent-primary)">✓ MEHRFACH-BESTÜCKUNG MÖGLICH</strong> · Master-Welle für ${master.validJobs.length} Aufträge · ${master.cuts.length} SE total · innen ${master.innerLen.toFixed(0)} mm${versatzTxt ? " · MR-Versatz: " + versatzTxt : ""}${asymTxt}${mergeTxt}`;
+        const excludedTxt = (resolved.excluded && resolved.excluded.length > 0)
+          ? ` · <span style="color:var(--danger-color);font-weight:700">⚠ ${resolved.excluded.length} Auftr${resolved.excluded.length===1?"ag":"äge"} ausgeschlossen: ${resolved.excluded.map(e => `A${e.origIdx+1}`).join(", ")}</span>`
+          : "";
+        const headlineColor = resolved.excluded.length > 0 ? "var(--warn-color)" : "var(--accent-primary)";
+        const headlineText = resolved.excluded.length > 0
+          ? `△ TEIL-CLUSTER (${master.validJobs.length}/${allJobs.length} Aufträge)`
+          : `✓ MEHRFACH-BESTÜCKUNG MÖGLICH`;
+        if (sub) sub.innerHTML = `<strong style="color:${headlineColor}">${headlineText}</strong> · Master-Welle für ${master.validJobs.length} Aufträge · ${master.cuts.length} SE total · innen ${master.innerLen.toFixed(0)} mm${versatzTxt ? " · MR-Versatz: " + versatzTxt : ""}${asymTxt}${mergeTxt}${excludedTxt}`;
         renderWelleSvg(master);
         renderWelleSequenz(master);
         renderWelleHolliste(master);
@@ -5818,36 +6020,36 @@ footer.footer {
         renderWelleAlerts({...master, alerts, qScore });
         return;
       }
-      if (master && !master.ok) {
-        // Master nicht möglich — ABER: fallback auf Single-Auftrag-Welle (A1) damit Operator
-        // wenigstens seine Primary-Konstellation sieht. Konflikt-Alerts kommen ZUSÄTZLICH.
-        const singleResult = calcWelleJob(out);
-        if (singleResult.ok) {
-          if (sub) sub.innerHTML = `<span style="color:var(--danger-color)"><strong>✗ MEHRFACH-BESTÜCKUNG NICHT MÖGLICH</strong></span> · zeige Single-Welle für A1 · ${master.error}`;
-          renderWelleSvg(singleResult);
-          renderWelleSequenz(singleResult);
-          renderWelleHolliste(singleResult);
-        } else {
-          if (sub) sub.innerHTML = `<span style="color:var(--danger-color)"><strong>✗ MEHRFACH-BESTÜCKUNG NICHT MÖGLICH:</strong> ${master.error}</span>`;
-          renderWelleSvg(null); renderWelleHolliste(null); renderWelleSequenz(null);
-        }
-        const alerts = [
-          { type: "danger", msg: `<strong>✗ Aufträge nicht deckungsgleich auf einer Welle:</strong><br>&nbsp;&nbsp;${master.error}` }
-        ];
-        if (master.conflictDetails) {
-          alerts.push({ type: "danger", msg: `<strong>Konflikte:</strong> ${master.conflictDetails}` });
-        }
-        const ratioTips = detectRatioPattern(master.validJobs || []);
-        if (ratioTips) {
-          alerts.push({ type: "info",
-            msg: `<strong>💡 Lösungs-Vorschlag · Schmalrollen-Verhältnis anpassen:</strong><br>` + ratioTips.map(t => `&nbsp;&nbsp;• ${t.msg}`).join("<br>") });
-        }
-        alerts.push({ type: "warn",
-          msg: `<strong>Weitere Optionen:</strong> (1) Schmalrollen auf k×Haupt-Vielfaches umstellen für deckungsgleiche Cuts · (2) Auftrag mit MR-Versatz justieren · (3) inkompatiblen Auftrag auf separater Welle fahren.` });
-        renderWelleAlerts({ ok: false, alerts });
-        return;
+      // Cluster komplett unauflösbar — Primary alleine zeigen, Folgeaufträge alle als conflict markiert
+      // (durch resolveCluster bereits geschehen). Nur fallback-Visualisierung.
+      const excludedAll = resolved.excluded || [];
+      const singleResult = calcWelleJob(out);
+      const excludedListTxt = excludedAll.length > 0
+        ? excludedAll.map(e => `A${e.origIdx+1}`).join(", ")
+        : "alle Folgeaufträge";
+      if (singleResult.ok) {
+        if (sub) sub.innerHTML = `<span style="color:var(--warn-color)"><strong>△ KEIN GEMEINSAMER MASTER</strong></span> · zeige Single-Welle für A1 · <strong style="color:var(--danger-color)">ausgeschlossen: ${excludedListTxt}</strong>`;
+        renderWelleSvg(singleResult);
+        renderWelleSequenz(singleResult);
+        renderWelleHolliste(singleResult);
+      } else {
+        if (sub) sub.innerHTML = `<span style="color:var(--danger-color)"><strong>✗ Bestückung nicht möglich</strong></span>`;
+        renderWelleSvg(null); renderWelleHolliste(null); renderWelleSequenz(null);
       }
+      const alerts = [
+        { type: "warn", msg: `<strong>△ Folgeaufträge nicht mit Primär-Welle kombinierbar:</strong> ${excludedListTxt} sind rot markiert oben — entfernen oder Schmalrollen anpassen.` }
+      ];
+      // Pattern-Tipp falls hilfreich
+      const allValidJobs = (master && master.validJobs) || allJobs.map((j, i) => ({ idx: i, mr: j.mr, haupt: j.haupt }));
+      const ratioTips = detectRatioPattern(allValidJobs);
+      if (ratioTips) {
+        alerts.push({ type: "info",
+          msg: `<strong>💡 Lösungs-Vorschlag · Schmalrollen-Verhältnis anpassen:</strong><br>` + ratioTips.map(t => `&nbsp;&nbsp;• ${t.msg}`).join("<br>") });
+      }
+      renderWelleAlerts({ ok: false, alerts });
+      return;
     }
+    // (Default-Single-Mode: Status wurde bereits via syncClusterLiveStatus zurückgesetzt)
 
     // ============== Single-Auftrag-Mode (Default) ==============
     if (tracksSvg) { tracksSvg.style.display = "none"; tracksSvg.innerHTML = ""; }
