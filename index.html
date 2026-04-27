@@ -4900,37 +4900,85 @@ footer.footer {
     }
 
     const N = out.nutzen;
-    const distHaupt = haupt - DCM.SCHNEIDEEINHEIT;
+    const SE = DCM.SCHNEIDEEINHEIT;
+    const SCHNITT = DCM.SCHNITT_OFFSET; // 13mm asymmetrische Schnittkante v.l.
+    const distHaupt = haupt - SE;
     const innerSegs = [];
 
-    // Erste SE links (Besäumung-L)
-    innerSegs.push({ kind: "schneid", breite: DCM.SCHNEIDEEINHEIT, name: "Schneideeinheit Besäumung-L", short: "SE-L" });
+    // Trim-Logic: SE-L und SE-R sind nur nötig wenn echter Trim-Cut existiert.
+    // Bei Rest=0 (perfekt-aufgeteilt) entfallen die Außen-SEs — der Operator montiert dort nichts.
+    // restL/restR kommen aus Asym-Mode oder Default symmetrisch (restMM/2).
+    const TRIM_TOL = 0.5;
+    const trimL = (out.restL != null) ? out.restL : (out.restMM || 0) / 2;
+    const trimR = (out.restR != null) ? out.restR : (out.restMM || 0) / 2;
+    const haveSeL = trimL > TRIM_TOL;
+    const hasNeben = slots.length > 0;
+    // SE-R immer wenn Neben kommt (Übergang) oder Trim-R > 0
+    // Bei Hetero ohne Trim-R: letzte Neben-SE wird zur SE-Besäumung-R-Position
+    const haveSeR = hasNeben || trimR > TRIM_TOL;
+    // Verlängerung des ersten/letzten Distanzrings wenn die randständige SE entfällt:
+    // SE-Mitte sitzt 13mm vom SE-Linkrand → ohne SE-L verschiebt sich der Distanzring-Anfang
+    // um (SE - SCHNITT) = 7mm nach links (mehr Platz vor der ersten Innen-SE).
+    const distLExt = haveSeL ? 0 : (SE - SCHNITT); // = 0 oder 7mm
+    const distRExt = haveSeR ? 0 : (SE - SCHNITT);
+
+    // SE-L conditional
+    if (haveSeL) {
+      innerSegs.push({ kind: "schneid", breite: SE, name: "Schneideeinheit Besäumung-L", short: "SE-L" });
+    }
     // N Haupt-Cuts
     for (let i = 0; i < N; i++) {
-      if (distHaupt > 0.001)
-        innerSegs.push({ kind: "distanz", breite: distHaupt, name: "Distanzring Hauptschnitt", short: "D" });
-      const isLast = (i === N - 1);
-      innerSegs.push({
-        kind: "schneid",
-        breite: DCM.SCHNEIDEEINHEIT,
-        name: isLast ? (slots.length > 0 ? "SE Haupt/Neben-Übergang" : "SE Besäumung-R") : "Schneideeinheit innen",
-        short: "SE"
-      });
+      const isFirstHaupt = (i === 0);
+      // Erster Distanzring um distLExt verlängern (wenn keine SE-L davor)
+      const distBreite = distHaupt + (isFirstHaupt ? distLExt : 0);
+      if (distBreite > 0.001) {
+        innerSegs.push({ kind: "distanz", breite: distBreite, name: "Distanzring Hauptschnitt", short: "D" });
+      }
+      const isLastHaupt = (i === N - 1);
+      // SE nach dieser Schmalrolle:
+      // - immer wenn nicht-letzte Haupt-Schmalrolle
+      // - bei letzter: nur wenn weitere Cuts kommen (Neben oder SE-R)
+      let needSE = !isLastHaupt;
+      if (isLastHaupt) {
+        if (hasNeben) needSE = true;
+        else if (haveSeR) needSE = true;
+      }
+      if (needSE) {
+        innerSegs.push({
+          kind: "schneid",
+          breite: SE,
+          name: isLastHaupt ? (hasNeben ? "SE Haupt/Neben-Übergang" : "SE Besäumung-R") : "Schneideeinheit innen",
+          short: "SE"
+        });
+      } else if (isLastHaupt && !hasNeben && !haveSeR) {
+        // Letzte Haupt ohne SE-R: vorigen Distanzring um distRExt verlängern
+        const lastSeg = innerSegs[innerSegs.length - 1];
+        if (lastSeg && lastSeg.kind === "distanz") lastSeg.breite += distRExt;
+      }
     }
     // Neben-Slots am rechten Rand
     for (const slot of slots) {
-      const distNeben = slot.breite - DCM.SCHNEIDEEINHEIT;
+      const distNeben = slot.breite - SE;
       for (let n = 0; n < slot.anz; n++) {
         if (distNeben > 0.001)
           innerSegs.push({ kind: "distanz", breite: distNeben, name: `Distanzring Neben N${slot.slotIdx} ${n+1}/${slot.anz}`, short: "Dn" });
         const isLastNeben = (slot === slots[slots.length-1] && n === slot.anz - 1);
-        innerSegs.push({
-          kind: "neben",
-          slotIdx: slot.slotIdx,
-          breite: DCM.SCHNEIDEEINHEIT,
-          name: isLastNeben ? "Schneideeinheit Besäumung-R (Neben)" : `Schneideeinheit Neben N${slot.slotIdx}-${n+1}`,
-          short: "SE-N"
-        });
+        // Letzte Neben-SE entfällt wenn !haveSeR (= Trim-R=0)
+        let needNebenSE = true;
+        if (isLastNeben && !haveSeR) needNebenSE = false;
+        if (needNebenSE) {
+          innerSegs.push({
+            kind: "neben",
+            slotIdx: slot.slotIdx,
+            breite: SE,
+            name: isLastNeben ? "Schneideeinheit Besäumung-R (Neben)" : `Schneideeinheit Neben N${slot.slotIdx}-${n+1}`,
+            short: "SE-N"
+          });
+        } else if (isLastNeben) {
+          // Letzten Distanzring um distRExt verlängern
+          const lastSeg = innerSegs[innerSegs.length - 1];
+          if (lastSeg && lastSeg.kind === "distanz") lastSeg.breite += distRExt;
+        }
       }
     }
 
@@ -5262,8 +5310,15 @@ footer.footer {
     svgW(g, "text", { x: midX + (W - padX - midX) / 2, y: symY - 5, "text-anchor": "middle",
       fill: cMidStrong, "font-size": "10", "font-weight": "700", "letter-spacing": "0.06em", "font-family": "inherit" }, "R = 736");
 
-    // ⌖ MITTE Label
-    svgW(g, "text", { x: midX + 11, y: crossTopY - 7,
+    // ⌖ MITTE Label · mit Background-Box damit es nicht von MR-Bracket überdeckt wird
+    const mitteX = midX + 11;
+    const mitteY = crossTopY - 7;
+    svgW(g, "rect", {
+      x: mitteX - 2, y: mitteY - 8,
+      width: 46, height: 12, rx: 2,
+      fill: "var(--bg-base)", stroke: cMidStrong, "stroke-width": "0.6", opacity: "0.95"
+    });
+    svgW(g, "text", { x: mitteX + 1, y: mitteY + 2,
       fill: cMidStrong, "font-size": "8", "font-weight": "700", "letter-spacing": "0.12em", "font-family": "inherit" }, "⌖ MITTE");
 
     // ============ Bottom-Bemaßung: Park-L | Bestückungs-Bereich | Park-R ============
