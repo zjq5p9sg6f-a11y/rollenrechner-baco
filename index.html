@@ -1498,6 +1498,120 @@ header.bar {
 .cluster-add-btn:hover { background: rgba(66,165,245,0.06); border-style: solid; }
 .cluster-add-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
+/* Vorlagen-Bibliothek (Cluster-Templates · 1-Click-Reload) */
+.cluster-templates {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 230, 118, 0.20);
+  background: linear-gradient(180deg, rgba(0,230,118,0.03), rgba(0,230,118,0.01));
+  border-radius: var(--r-2);
+}
+.cluster-templates[hidden] { display: none !important; }
+.templates-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.templates-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+  opacity: 0.85;
+}
+.templates-count {
+  font-size: 10px; font-weight: 700;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+.templates-chips {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.template-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 10px 7px 12px;
+  background: rgba(0, 230, 118, 0.08);
+  border: 1px solid rgba(0, 230, 118, 0.30);
+  border-radius: 7px;
+  color: var(--accent-primary);
+  font-family: inherit;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.03em;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  position: relative;
+}
+.template-chip:hover {
+  background: rgba(0, 230, 118, 0.18);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px rgba(0, 230, 118, 0.20);
+}
+.template-chip-name {
+  pointer-events: none;
+}
+.template-chip-size {
+  display: inline-block;
+  padding: 1px 6px;
+  background: rgba(0, 230, 118, 0.20);
+  border-radius: 3px;
+  font-size: 10px; font-weight: 800;
+  pointer-events: none;
+}
+.template-chip-remove {
+  display: inline-grid; place-items: center;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: transparent;
+  border: 0;
+  color: var(--text-secondary);
+  font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: all var(--t-fast);
+  padding: 0;
+  margin-left: 2px;
+  line-height: 1;
+}
+.template-chip-remove:hover {
+  opacity: 1;
+  background: var(--danger-color);
+  color: #fff;
+}
+.template-chip-empty {
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  padding: 6px 0;
+}
+
+/* Save-Vorlage-Button (im cluster-actions-row) */
+.cluster-save-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  background: rgba(0, 230, 118, 0.06);
+  border: 1px dashed rgba(0, 230, 118, 0.4);
+  border-radius: var(--r-2);
+  color: var(--accent-primary);
+  font-family: inherit;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.cluster-save-btn:hover:not(:disabled) {
+  background: rgba(0, 230, 118, 0.14);
+  border-style: solid;
+}
+.cluster-save-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 /* Cluster-Actions-Row: Add + Bulk nebeneinander */
 .cluster-actions-row {
   display: flex; flex-wrap: wrap; gap: 8px;
@@ -3535,6 +3649,17 @@ footer.footer {
         <span class="cluster-toggle-hint">bis 8 Aufträge · Master-Welle-Cluster · Bulk-Paste aus Excel</span>
       </button>
       <div class="cluster-section" id="clusterSection" aria-hidden="true">
+        <!-- Vorlagen-Bibliothek (häufige Cluster · 1-Click-Reload) -->
+        <div class="cluster-templates" id="clusterTemplates" hidden>
+          <div class="templates-header">
+            <span class="templates-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+              Vorlagen
+            </span>
+            <span class="templates-count" id="templatesCount"></span>
+          </div>
+          <div class="templates-chips" id="templatesChips"></div>
+        </div>
         <div class="cluster-jobs" id="clusterJobs">
           <!-- Slots werden via JS gerendert -->
         </div>
@@ -3546,6 +3671,10 @@ footer.footer {
           <button type="button" class="cluster-bulk-toggle" id="clusterBulkToggle" tabindex="-1">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             <span>Mehrere aus Excel/CSV einfügen</span>
+          </button>
+          <button type="button" class="cluster-save-btn" id="saveTemplateBtn" tabindex="-1" disabled title="Aktuelle Konstellation als Vorlage speichern">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <span>Als Vorlage speichern</span>
           </button>
         </div>
         <div class="cluster-bulk-pane" id="clusterBulkPane" hidden>
@@ -5564,6 +5693,7 @@ footer.footer {
     if (!section || section.getAttribute("aria-hidden") === "true") return;
     // A1-Primary-Zeile-Werte updaten OHNE DOM zu zerstören (sonst verlieren A2/A3/A4 Focus)
     if (typeof updatePrimaryRow === "function") updatePrimaryRow();
+    if (typeof updateSaveTemplateBtn === "function") updateSaveTemplateBtn();
     const sub = document.getElementById("welleSubtitle");
     const tracksSvg = document.getElementById("tracksSvg");
     if (!out || !out.mutter) {
@@ -7208,6 +7338,162 @@ footer.footer {
   if (clusterBulkOptimize) {
     clusterBulkOptimize.addEventListener("click", renderAutoProposals);
   }
+
+  // ============== Vorlagen-Bibliothek (häufige Cluster · 1-Click-Reload) ==============
+  const TEMPLATES_KEY = "rr.clusterTemplates";
+  const MAX_TEMPLATES = 12;
+  let clusterTemplates = [];
+  function loadClusterTemplates() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(TEMPLATES_KEY) || "[]");
+      if (Array.isArray(saved)) clusterTemplates = saved.slice(0, MAX_TEMPLATES);
+    } catch(e) { clusterTemplates = []; }
+  }
+  function saveClusterTemplates() {
+    try { localStorage.setItem(TEMPLATES_KEY, JSON.stringify(clusterTemplates)); } catch(e) {}
+  }
+  function generateTemplateName(primary, followups) {
+    const mr = primary.mr || "?";
+    const haupt = primary.haupt || "?";
+    const nbSuffix = (primary.nebenBreite && primary.nebenAnz)
+      ? ` +${primary.nebenBreite}×${primary.nebenAnz}`
+      : "";
+    return `MR${mr}/${haupt}${nbSuffix}`;
+  }
+  function getCurrentClusterSnapshot() {
+    if (!lastValid || !lastValid.mutter) return null;
+    const primary = {
+      mr: String(lastValid.mutter),
+      haupt: String(lastValid.schmal),
+      nebenBreite: "",
+      nebenAnz: ""
+    };
+    if (lastValid.nebenSlots && lastValid.nebenSlots.length > 0) {
+      primary.nebenBreite = String(lastValid.nebenSlots[0].breite);
+      primary.nebenAnz = String(lastValid.nebenSlots[0].anz);
+    }
+    const followups = clusterJobs
+      .filter(j => parseFloat((j.mr || "").replace(",", ".")) > 0 && parseFloat((j.haupt || "").replace(",", ".")) > 0)
+      .map(j => ({
+        mr: j.mr || "",
+        haupt: j.haupt || "",
+        nebenBreite: j.nebenBreite || "",
+        nebenAnz: j.nebenAnz || ""
+      }));
+    if (followups.length === 0) return null;
+    return { primary, followups };
+  }
+  function templateSize(tpl) {
+    return 1 + (tpl.followups ? tpl.followups.length : 0);
+  }
+  function templateDetailText(tpl) {
+    const lines = [];
+    lines.push(`A1·Primär: ${tpl.primary.mr}|${tpl.primary.haupt}${tpl.primary.nebenBreite ? '|' + tpl.primary.nebenBreite + '×' + tpl.primary.nebenAnz : ''}`);
+    (tpl.followups || []).forEach((f, i) => {
+      lines.push(`A${i+2}: ${f.mr}|${f.haupt}${f.nebenBreite ? '|' + f.nebenBreite + '×' + f.nebenAnz : ''}`);
+    });
+    return lines.join('\n');
+  }
+  function renderClusterTemplates() {
+    const root = document.getElementById("clusterTemplates");
+    const chipsRoot = document.getElementById("templatesChips");
+    const countEl = document.getElementById("templatesCount");
+    if (!root || !chipsRoot) return;
+    if (clusterTemplates.length === 0) {
+      root.hidden = true;
+      chipsRoot.innerHTML = "";
+      return;
+    }
+    root.hidden = false;
+    if (countEl) countEl.textContent = `${clusterTemplates.length}/${MAX_TEMPLATES}`;
+    chipsRoot.innerHTML = clusterTemplates.map((tpl, idx) => `
+      <button type="button" class="template-chip" data-tid="${idx}" tabindex="-1" title="${escHtml(templateDetailText(tpl))}">
+        <span class="template-chip-name">${escHtml(tpl.name)}</span>
+        <span class="template-chip-size">${templateSize(tpl)}er</span>
+        <span class="template-chip-remove" data-tremove="${idx}" role="button" aria-label="Vorlage entfernen">×</span>
+      </button>
+    `).join("");
+    // Click-Listeners
+    chipsRoot.querySelectorAll(".template-chip").forEach(chip => {
+      chip.addEventListener("click", (e) => {
+        if (e.target.closest(".template-chip-remove")) return;
+        const idx = parseInt(chip.dataset.tid);
+        if (clusterTemplates[idx]) loadClusterTemplate(clusterTemplates[idx]);
+      });
+    });
+    chipsRoot.querySelectorAll(".template-chip-remove").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const idx = parseInt(btn.dataset.tremove);
+        clusterTemplates.splice(idx, 1);
+        saveClusterTemplates();
+        renderClusterTemplates();
+      });
+    });
+  }
+  function saveCurrentAsTemplate() {
+    const snap = getCurrentClusterSnapshot();
+    if (!snap) return;
+    const name = generateTemplateName(snap.primary, snap.followups);
+    // Dedupe: gleicher Name + gleiche Followup-Anzahl → ersetzen statt neu
+    const existing = clusterTemplates.findIndex(t => t.name === name && templateSize(t) === templateSize({primary: snap.primary, followups: snap.followups}));
+    const newTpl = {
+      name,
+      primary: snap.primary,
+      followups: snap.followups,
+      savedAt: new Date().toISOString()
+    };
+    if (existing >= 0) {
+      clusterTemplates[existing] = newTpl;
+    } else {
+      clusterTemplates.unshift(newTpl); // neueste oben
+      if (clusterTemplates.length > MAX_TEMPLATES) clusterTemplates = clusterTemplates.slice(0, MAX_TEMPLATES);
+    }
+    saveClusterTemplates();
+    renderClusterTemplates();
+  }
+  function loadClusterTemplate(tpl) {
+    if (!tpl || !tpl.primary) return;
+    // 1. Primary in Hauptfelder schreiben
+    const primaryJob = {
+      _mr: parseFloat((tpl.primary.mr || "").replace(",", ".")) || 0,
+      _haupt: parseFloat((tpl.primary.haupt || "").replace(",", ".")) || 0,
+      nebenBreite: tpl.primary.nebenBreite || "",
+      nebenAnz: tpl.primary.nebenAnz || ""
+    };
+    if (primaryJob._mr <= 0 || primaryJob._haupt <= 0) return;
+    loadJobIntoPrimary(primaryJob);
+    // 2. Folgeaufträge in clusterJobs
+    clusterJobs = (tpl.followups || []).map(f => ({
+      mr: f.mr || "",
+      haupt: f.haupt || "",
+      nebenBreite: f.nebenBreite || "",
+      nebenAnz: f.nebenAnz || ""
+    }));
+    saveClusterJobs();
+    renderClusterJobs();
+    // 3. Cluster-Section + Welle-Section öffnen
+    const ct = document.getElementById("clusterToggle");
+    if (ct && ct.getAttribute("aria-expanded") !== "true") ct.click();
+    if (typeof calc === "function") calc();
+    const wt = document.getElementById("welleToggle");
+    if (wt && wt.getAttribute("aria-expanded") !== "true") wt.click();
+    setTimeout(() => {
+      const ws = document.getElementById("welleSection");
+      if (ws) ws.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 250);
+  }
+  function updateSaveTemplateBtn() {
+    const btn = document.getElementById("saveTemplateBtn");
+    if (!btn) return;
+    btn.disabled = !getCurrentClusterSnapshot();
+  }
+  const saveTplBtn = document.getElementById("saveTemplateBtn");
+  if (saveTplBtn) {
+    saveTplBtn.addEventListener("click", saveCurrentAsTemplate);
+  }
+  loadClusterTemplates();
+  renderClusterTemplates();
   // Cluster auch closed by default beim Reload
 
   // ============== Auftrags-Meta-Eingaben (für Print-Header + Datei-Name) ==============
