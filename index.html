@@ -1023,6 +1023,93 @@ header.bar {
   display: flex; flex-direction: column; gap: 6px;
 }
 
+/* Bestückungs-Sequenz — Schritt-für-Schritt für Einrichter */
+.welle-sequenz-wrap {
+  margin-top: 18px;
+  padding: 16px 18px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.welle-sequenz-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap; gap: 8px;
+}
+.welle-sequenz-head h4 {
+  font-size: 13px; font-weight: 800;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent-primary);
+  margin: 0;
+}
+.welle-sequenz-head .seq-arrow {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 11px;
+  padding: 2px 8px;
+  background: rgba(0,230,118,0.12);
+  border: 1px solid rgba(0,230,118,0.4);
+  border-radius: 4px;
+  color: var(--accent-primary);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.welle-sequenz-sub {
+  font-size: 11px; color: var(--text-secondary);
+  font-style: italic;
+}
+.welle-sequenz {
+  display: flex; flex-direction: column;
+  font-variant-numeric: tabular-nums;
+}
+.stueck-row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.06);
+  font-size: 13px;
+}
+.stueck-row:last-child { border-bottom: none; }
+.stueck-nr {
+  width: 32px; height: 26px;
+  display: grid; place-items: center;
+  border-radius: 5px;
+  font-size: 12px; font-weight: 800;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+}
+.stueck-nr.park { background: rgba(60,60,60,0.5); border-color: rgba(180,180,180,0.3); color: rgba(220,220,220,0.85); }
+.stueck-nr.distanz { background: rgba(0,230,118,0.14); border-color: rgba(0,230,118,0.5); color: var(--accent-primary); }
+.stueck-nr.schneid { background: rgba(255,94,87,0.18); border-color: rgba(255,94,87,0.5); color: #ff8a7a; }
+.stueck-nr.neben { background: rgba(255,180,0,0.18); border-color: rgba(255,180,0,0.5); color: #ffd28a; }
+.stueck-name { font-weight: 600; color: var(--text-primary); }
+.stueck-name .icon {
+  display: inline-block; width: 11px; height: 11px;
+  border-radius: 2px; margin-right: 8px;
+  vertical-align: middle;
+  border: 1px solid rgba(0,0,0,0.4);
+}
+.stueck-detail {
+  color: var(--text-secondary);
+  font-size: 11px;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+.stueck-mass {
+  color: var(--accent-primary);
+  font-weight: 800;
+  font-size: 14px;
+}
+.stueck-pos {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 /* Tracks-SVG */
 #tracksSvg {
   width: 100%;
@@ -1262,6 +1349,20 @@ header.bar {
     background: white !important; color: black !important; border-color: #555 !important;
   }
   #welleSection .welle-alert { color: #555 !important; background: #f5f5f5 !important; border-color: #ccc !important; }
+  #welleSection .welle-sequenz-wrap { background: white !important; border-color: #999 !important; }
+  #welleSection .welle-sequenz-wrap h4 { color: black !important; }
+  #welleSection .stueck-row { border-color: #ccc !important; }
+  #welleSection .stueck-name, #welleSection .stueck-mass, #welleSection .stueck-pos, #welleSection .stueck-detail { color: black !important; }
+  #welleSection .stueck-mass { color: #007a3d !important; font-weight: 800 !important; }
+  #welleSection .stueck-nr.park { background: #eee !important; color: #333 !important; }
+  #welleSection .stueck-nr.distanz { background: #d0f0d0 !important; color: #007a3d !important; border-color: #007a3d !important; }
+  #welleSection .stueck-nr.schneid { background: #fdd !important; color: #a00 !important; border-color: #a00 !important; }
+  #welleSection .stueck-nr.neben { background: #fed !important; color: #a60 !important; border-color: #a60 !important; }
+  #welleSection .seq-arrow { background: white !important; color: #007a3d !important; border-color: #007a3d !important; }
+  #welleSection .welle-sequenz-sub { color: #666 !important; }
+  /* Page-break-Hinweis: Sequenz auf neue Seite, Stückliste am Ende */
+  #welleSection .welle-sequenz-wrap { page-break-before: auto; }
+  #welleSection .welle-holliste { page-break-before: auto; }
 }
 
 /* ============== Auftragserfüllungs-Tabelle (Bottleneck-View) ============== */
@@ -2703,7 +2804,50 @@ footer.footer {
           </button>
         </div>
       </div>
-      <svg id="welleSvg" viewBox="0 0 1500 280" preserveAspectRatio="xMidYMid meet" aria-label="Bestückte Welle DCM"></svg>
+      <svg id="welleSvg" viewBox="0 0 1500 460" preserveAspectRatio="xMidYMid meet" aria-label="Bestückte Welle DCM">
+        <defs>
+          <linearGradient id="gWelleBody" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2a2a2a"/>
+            <stop offset="50%" stop-color="#1a1a1a"/>
+            <stop offset="100%" stop-color="#0a0a0a"/>
+          </linearGradient>
+          <linearGradient id="gWelleHi" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(255,255,255,0.10)"/>
+            <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+          </linearGradient>
+          <linearGradient id="gPark" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#3a3a3a"/>
+            <stop offset="50%" stop-color="#2a2a2a"/>
+            <stop offset="100%" stop-color="#1a1a1a"/>
+          </linearGradient>
+          <linearGradient id="gSchneid" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ff8a7a"/>
+            <stop offset="50%" stop-color="#e34a3a"/>
+            <stop offset="100%" stop-color="#a01810"/>
+          </linearGradient>
+          <linearGradient id="gNeben" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffd370"/>
+            <stop offset="50%" stop-color="#ffb400"/>
+            <stop offset="100%" stop-color="#c08800"/>
+          </linearGradient>
+          <linearGradient id="gDistanz" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#00ff88"/>
+            <stop offset="50%" stop-color="#00e676"/>
+            <stop offset="100%" stop-color="#009d4f"/>
+          </linearGradient>
+          <pattern id="pRest" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+            <rect width="3" height="6" fill="rgba(0,230,118,0.30)"/>
+          </pattern>
+          <filter id="glowGreen" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="1.6" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <g id="welleVizGroup"></g>
+      </svg>
 
       <!-- Track-Projektion (bei Master-Welle): pro Folgeauftrag eigene Spur -->
       <svg id="tracksSvg" viewBox="0 0 1500 200" preserveAspectRatio="xMidYMid meet" aria-label="Auftrags-Tracks" style="display:none"></svg>
@@ -2724,6 +2868,14 @@ footer.footer {
         </button>
       </div>
 
+      <!-- Bestückungs-Sequenz: Schritt-für-Schritt-Anweisung für den Einrichter (Rechts → Links auf Welle) -->
+      <div class="welle-sequenz-wrap" id="welleSequenzWrap">
+        <div class="welle-sequenz-head">
+          <h4>● Bestückungs-Sequenz <span class="seq-arrow">RECHTS → LINKS</span></h4>
+          <span class="welle-sequenz-sub">auf Rüstdorn vorbereiten</span>
+        </div>
+        <div class="welle-sequenz" id="welleSequenz"></div>
+      </div>
       <div class="welle-holliste" id="welleHolliste"></div>
       <div class="welle-alerts" id="welleAlerts"></div>
     </section>
@@ -3441,134 +3593,373 @@ footer.footer {
     return el;
   }
 
-  function renderWelleSvg(result) {
-    const svg = document.getElementById("welleSvg");
-    if (!svg) return;
-    svg.innerHTML = "";
-    if (!result || !result.ok) return;
+  // Helper: fmt für Zahlen (DE-Locale)
+  function fmtW(n, d) { return Number(n).toLocaleString("de-DE", { maximumFractionDigits: d != null ? d : 1, minimumFractionDigits: 0 }); }
+  function fmtW0(n) { return fmtW(n, 0); }
+  function fmtW2(n) { return fmtW(n, 2); }
 
-    const W = 1500, H = 280;
-    const padX = 50, padY = 40;
+  // Helper: Dimension-Section unter der Welle (Bracket + Label)
+  function drawDimSection(g, x1, x2, y, label, color, prominent) {
+    if (x2 - x1 < 4) return;
+    svgW(g, "line", { x1: x1, y1: y, x2: x2, y2: y, stroke: color, "stroke-width": prominent ? "1.2" : "0.9" });
+    svgW(g, "path", { d: `M${x1} ${y} L${x1+7} ${y-4} L${x1+7} ${y+4} Z`, fill: color });
+    svgW(g, "path", { d: `M${x2} ${y} L${x2-7} ${y-4} L${x2-7} ${y+4} Z`, fill: color });
+    const w = label.length * (prominent ? 6.8 : 6) + 16;
+    svgW(g, "rect", { x: (x1+x2)/2 - w/2, y: y - 9, width: w, height: 18, rx: 4,
+      fill: "var(--bg-base)", stroke: color, "stroke-width": prominent ? "1.2" : "0.9" });
+    svgW(g, "text", { x: (x1+x2)/2, y: y + 4, "text-anchor": "middle",
+      fill: color, "font-size": prominent ? "11" : "10", "font-weight": "700", "letter-spacing": "0.04em", "font-family": "inherit" }, label);
+  }
+
+  function renderWelleSvg(d) {
+    const svgEl = document.getElementById("welleSvg");
+    if (!svgEl) return;
+    let g = document.getElementById("welleVizGroup");
+    if (!g) {
+      g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.id = "welleVizGroup";
+      svgEl.appendChild(g);
+    }
+    g.innerHTML = "";
+
+    const W = 1500;
+    const padX = 60;
     const innerW = W - padX * 2;
-    const pxPerMM = innerW / DCM.WELLE;
-    const barTop = 110;
-    const barH = 90;
+    const baseH = 460;
+    const isMaster = d && d.isMaster && d.validJobs && d.validJobs.length >= 2;
+    const trackH = 38, trackGap = 6, trackHeader = 22, scaleStripH = 22;
+    const tracksTotalH = 0; // tracks rendern wir separat in tracksSvg
+    const H = baseH + tracksTotalH;
+    svgEl.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+    // Layout-Zonen (1:1 aus Original)
+    const dimTop1Y = 50;
+    const dimTop2Y = 90;
+    const knifeY = 130;
+    const barTop = 158;
+    const barH = 110;
     const barBottom = barTop + barH;
-    const dimTopY = 36;
-    const dimBottomY = barBottom + 30;
+    const dimBotY = barBottom + 36;
+    const dimBot2Y = barBottom + 80;
+    const scaleY = barBottom + 110;
 
-    // Welle-Hintergrund (Industrial-Rahmen)
-    svgW(svg, "rect", {
-      x: padX - 4, y: barTop - 6,
-      width: innerW + 8, height: barH + 12,
-      rx: 8,
-      fill: "rgba(20,20,20,0.6)",
-      stroke: "rgba(255,255,255,0.08)", "stroke-width": "1"
-    });
+    // Empty-State
+    if (!d || !d.ok) {
+      svgW(g, "rect", { x: padX, y: barTop, width: innerW, height: barH, rx: 8,
+        fill: "rgba(0,230,118,0.02)", stroke: "rgba(0,230,118,0.18)",
+        "stroke-width": "1.5", "stroke-dasharray": "8 6" });
+      svgW(g, "text", { x: W/2, y: barTop + barH/2 + 5, "text-anchor": "middle",
+        fill: "rgba(240,240,240,0.4)", "font-size": "13", "font-weight": "500", "font-family": "inherit" },
+        "Werte oben eingeben — DCM-Wellenbestückung erscheint live");
+      return;
+    }
 
-    // Welle-Achse (1472 mm) — Top-Bemaßung
-    const dimColor = "rgba(220,220,220,0.65)";
-    svgW(svg, "line", { x1: padX, y1: dimTopY, x2: W - padX, y2: dimTopY, stroke: dimColor, "stroke-width": "1" });
-    svgW(svg, "path", { d: `M${padX} ${dimTopY} L${padX+8} ${dimTopY-5} L${padX+8} ${dimTopY+5} Z`, fill: dimColor });
-    svgW(svg, "path", { d: `M${W-padX} ${dimTopY} L${W-padX-8} ${dimTopY-5} L${W-padX-8} ${dimTopY+5} Z`, fill: dimColor });
-    // Anchor-Lines
-    svgW(svg, "line", { x1: padX, y1: dimTopY, x2: padX, y2: barTop-6, stroke: dimColor, "stroke-width": "0.6", "stroke-dasharray": "3 3" });
-    svgW(svg, "line", { x1: W-padX, y1: dimTopY, x2: W-padX, y2: barTop-6, stroke: dimColor, "stroke-width": "0.6", "stroke-dasharray": "3 3" });
-    // Label "Welle 1472 mm"
-    const wlbl = "Welle 1472 mm";
-    const wlW = wlbl.length * 7.5 + 24;
-    svgW(svg, "rect", { x: W/2 - wlW/2, y: dimTopY - 11, width: wlW, height: 22, rx: 5, fill: "rgba(8,8,8,0.95)", stroke: "var(--accent-primary)", "stroke-width": "1" });
-    svgW(svg, "text", { x: W/2, y: dimTopY + 5, "text-anchor": "middle", fill: "var(--accent-primary)", "font-size": "12", "font-weight": "700", "font-family": "inherit", "letter-spacing": "0.04em" }, wlbl);
+    const pxPerMM = innerW / DCM.WELLE;
+    const xAt = (mm) => padX + mm * pxPerMM;
+    const layoutLR = d.layoutLR || [];
 
-    // Layout segments (von links nach rechts)
-    let cursor = padX;
-    result.layoutLR.forEach((seg, i) => {
-      const w = seg.breite * pxPerMM;
-      let fill, stroke, strokeColor;
-      switch (seg.kind) {
-        case "park":
-          fill = "rgba(140,140,140,0.18)";
-          stroke = "rgba(180,180,180,0.5)";
-          break;
-        case "rest":
-          fill = "url(#welleRestPattern)";
-          stroke = "rgba(180,180,180,0.4)";
-          break;
-        case "schneid":
-          fill = "url(#welleSchneidGrad)";
-          stroke = "#ff5e57";
-          break;
-        case "neben":
-          fill = "url(#welleNebenGrad)";
-          stroke = "#ffb400";
-          break;
-        case "distanz":
-          fill = "url(#welleDistanzGrad)";
-          stroke = "rgba(0,230,118,0.5)";
-          break;
-        default:
-          fill = "#333"; stroke = "#666";
-      }
-      svgW(svg, "rect", {
-        x: cursor, y: barTop, width: Math.max(0.5, w), height: barH,
-        fill, stroke, "stroke-width": "0.6"
+    // ============ Welle-Träger 3D-Look ============
+    svgW(g, "rect", { x: padX - 6, y: barTop + barH * 0.15,
+      width: innerW + 12, height: barH * 0.7, rx: 6,
+      fill: "url(#gWelleBody)", stroke: "#3a3a3a", "stroke-width": "1" });
+    svgW(g, "ellipse", { cx: padX - 6, cy: barTop + barH/2, rx: 4, ry: barH * 0.35,
+      fill: "#1a1a1a", stroke: "#444", "stroke-width": "1" });
+    svgW(g, "ellipse", { cx: W - padX + 6, cy: barTop + barH/2, rx: 4, ry: barH * 0.35,
+      fill: "#1a1a1a", stroke: "#444", "stroke-width": "1" });
+    svgW(g, "rect", { x: padX - 6, y: barTop + barH * 0.15,
+      width: innerW + 12, height: barH * 0.18, rx: 6, fill: "url(#gWelleHi)" });
+
+    // ============ TOP-Bemaßung 1: Welle 1472 mm ============
+    const dimColor = "rgba(240,240,240,0.55)";
+    svgW(g, "line", { x1: padX, y1: dimTop1Y, x2: W - padX, y2: dimTop1Y, stroke: dimColor, "stroke-width": "1" });
+    svgW(g, "path", { d: `M${padX} ${dimTop1Y} L${padX+8} ${dimTop1Y-5} L${padX+8} ${dimTop1Y+5} Z`, fill: dimColor });
+    svgW(g, "path", { d: `M${W-padX} ${dimTop1Y} L${W-padX-8} ${dimTop1Y-5} L${W-padX-8} ${dimTop1Y+5} Z`, fill: dimColor });
+    svgW(g, "line", { x1: padX, y1: dimTop1Y - 6, x2: padX, y2: barTop + barH + 6, stroke: dimColor, "stroke-width": "0.8", "stroke-dasharray": "3 4" });
+    svgW(g, "line", { x1: W - padX, y1: dimTop1Y - 6, x2: W - padX, y2: barTop + barH + 6, stroke: dimColor, "stroke-width": "0.8", "stroke-dasharray": "3 4" });
+    const lblTxt1 = "Welle 1472 mm";
+    const lblW1 = lblTxt1.length * 7.5 + 24;
+    svgW(g, "rect", { x: W/2 - lblW1/2, y: dimTop1Y - 12, width: lblW1, height: 24, rx: 6,
+      fill: "var(--bg-base)", stroke: "var(--accent-primary)", "stroke-width": "1.5" });
+    svgW(g, "text", { x: W/2, y: dimTop1Y + 5, "text-anchor": "middle",
+      fill: "var(--accent-primary)", "font-size": "12", "font-weight": "700", "letter-spacing": "0.06em", "font-family": "inherit" }, lblTxt1);
+
+    // ============ TOP-Bemaßung 2: MR-Bereich ============
+    if (isMaster) {
+      const jobColors = ["#00e676", "#ffb74d", "#42a5f5", "#ec407a"];
+      d.validJobs.forEach((jw, i) => {
+        const color = jobColors[jw.idx % jobColors.length];
+        const yOff = dimTop2Y + i * 14;
+        const lX = xAt(jw.mrLeft), rX = xAt(jw.mrRight);
+        svgW(g, "line", { x1: lX, y1: yOff, x2: rX, y2: yOff, stroke: color, "stroke-width": "1", opacity: "0.85" });
+        svgW(g, "path", { d: `M${lX} ${yOff} L${lX+7} ${yOff-3} L${lX+7} ${yOff+3} Z`, fill: color, opacity: "0.85" });
+        svgW(g, "path", { d: `M${rX} ${yOff} L${rX-7} ${yOff-3} L${rX-7} ${yOff+3} Z`, fill: color, opacity: "0.85" });
+        const lbl = `A${jw.idx + 1} · MR ${jw.mr}`;
+        const lblW = lbl.length * 6.2 + 12;
+        svgW(g, "rect", { x: lX - lblW - 6, y: yOff - 8, width: lblW, height: 16, rx: 4,
+          fill: "var(--bg-base)", stroke: color, "stroke-width": "0.8" });
+        svgW(g, "text", { x: lX - 6 - lblW/2, y: yOff + 4, "text-anchor": "middle",
+          fill: color, "font-size": "9.5", "font-weight": "700", "font-family": "inherit" }, lbl);
       });
-      // Park-Markierung mit "P"
-      if (seg.kind === "park" && w > 14) {
-        svgW(svg, "text", { x: cursor + w/2, y: barBottom - 8, "text-anchor": "middle", fill: "rgba(220,220,220,0.7)", "font-size": "10", "font-weight": "700", "font-family": "inherit" }, seg.short);
+    } else if (d.mr) {
+      // Single-Mode: MR-Bemaßung
+      const mrLeftX = xAt(d.mrStart || (d.innerStart != null ? d.innerStart + DCM.SCHNITT_OFFSET : DCM.PARK_TOTAL));
+      const mrRightX = xAt(d.mrEnd || (d.innerEnd != null ? d.innerEnd : DCM.PARK_TOTAL + DCM.BESTUECKUNGS_BREITE));
+      svgW(g, "line", { x1: mrLeftX, y1: dimTop2Y, x2: mrRightX, y2: dimTop2Y, stroke: "var(--warn-color)", "stroke-width": "1", opacity: "0.85" });
+      svgW(g, "path", { d: `M${mrLeftX} ${dimTop2Y} L${mrLeftX+8} ${dimTop2Y-5} L${mrLeftX+8} ${dimTop2Y+5} Z`, fill: "var(--warn-color)", opacity: "0.85" });
+      svgW(g, "path", { d: `M${mrRightX} ${dimTop2Y} L${mrRightX-8} ${dimTop2Y-5} L${mrRightX-8} ${dimTop2Y+5} Z`, fill: "var(--warn-color)", opacity: "0.85" });
+      svgW(g, "line", { x1: mrLeftX, y1: dimTop2Y - 4, x2: mrLeftX, y2: barTop, stroke: "var(--warn-color)", "stroke-width": "0.7", "stroke-dasharray": "2 3", opacity: "0.6" });
+      svgW(g, "line", { x1: mrRightX, y1: dimTop2Y - 4, x2: mrRightX, y2: barTop, stroke: "var(--warn-color)", "stroke-width": "0.7", "stroke-dasharray": "2 3", opacity: "0.6" });
+      const lblTxt2 = `MR ${fmtW0(d.mr)} mm`;
+      const lblW2 = lblTxt2.length * 7 + 18;
+      const mrCenterX = (mrLeftX + mrRightX) / 2;
+      svgW(g, "rect", { x: mrCenterX - lblW2/2, y: dimTop2Y - 10, width: lblW2, height: 20, rx: 5,
+        fill: "var(--bg-base)", stroke: "var(--warn-color)", "stroke-width": "1" });
+      svgW(g, "text", { x: mrCenterX, y: dimTop2Y + 4, "text-anchor": "middle",
+        fill: "var(--warn-color)", "font-size": "10.5", "font-weight": "700", "letter-spacing": "0.04em", "font-family": "inherit" }, lblTxt2);
+    }
+
+    // ============ Schneide-Marker (rotierte Position-Labels + Triangles + Guide-Linien) ============
+    let cur = 0;
+    for (const seg of layoutLR) {
+      if (seg.kind === "schneid" || seg.kind === "neben") {
+        const cutX = xAt(cur + DCM.SCHNITT_OFFSET);
+        const cutMm = cur + DCM.SCHNITT_OFFSET;
+        // Position-Label rotiert
+        svgW(g, "text", { x: cutX, y: knifeY - 2, "text-anchor": "end",
+          fill: "rgba(220,220,220,0.85)", "font-size": "8.5", "font-weight": "600",
+          "font-family": "ui-monospace, SF Mono, monospace",
+          transform: `rotate(-65 ${cutX} ${knifeY - 2})` }, fmtW0(cutMm));
+        // Triangle Schnittkante-Marker
+        svgW(g, "path", { d: `M${cutX} ${knifeY+10} L${cutX-4} ${knifeY+2} L${cutX+4} ${knifeY+2} Z`,
+          fill: seg.kind === "neben" ? "var(--warn-color)" : "var(--accent-primary)", opacity: "0.95" });
+        // Guide-Linie nach unten in die Bar
+        svgW(g, "line", { x1: cutX, y1: knifeY + 10, x2: cutX, y2: barTop,
+          stroke: seg.kind === "neben" ? "var(--warn-color)" : "var(--accent-primary)",
+          "stroke-width": "1", opacity: "0.4", "stroke-dasharray": "2 3" });
       }
-      // Schneideeinheit-Markierung: kleine Linie
-      if ((seg.kind === "schneid" || seg.kind === "neben") && w >= 6) {
-        svgW(svg, "line", { x1: cursor + w/2, y1: barTop - 8, x2: cursor + w/2, y2: barTop, stroke: seg.kind === "neben" ? "#ffb400" : "#ff5e57", "stroke-width": "1.2" });
-        svgW(svg, "circle", { cx: cursor + w/2, cy: barTop - 11, r: 2.5, fill: seg.kind === "neben" ? "#ffb400" : "#ff5e57" });
+      cur += seg.breite;
+    }
+
+    // ============ Komponenten-Bar ============
+    cur = 0;
+    for (const seg of layoutLR) {
+      const x = xAt(cur);
+      const w = seg.breite * pxPerMM;
+
+      if (seg.kind === "rest") {
+        svgW(g, "rect", { x: x, y: barTop, width: w, height: barH, rx: 0,
+          fill: "url(#pRest)", opacity: "0.7" });
+        if (w > 30) {
+          svgW(g, "text", { x: x + w/2, y: barTop + barH/2 + 4, "text-anchor": "middle",
+            fill: "rgba(180,180,180,0.85)", "font-size": "10", "font-weight": "600", "font-family": "inherit" },
+            `Rest ${fmtW2(seg.breite)}`);
+        }
+      } else if (seg.kind === "park") {
+        svgW(g, "rect", { x: x + 0.5, y: barTop, width: Math.max(0, w - 1), height: barH, rx: 3,
+          fill: "url(#gPark)", stroke: "#3a3a3a", "stroke-width": "1" });
+        if (w > 18) {
+          svgW(g, "text", { x: x + w/2, y: barTop + barH/2 - 4, "text-anchor": "middle",
+            fill: "rgba(255,255,255,0.4)", "font-size": "11", "font-weight": "700", "font-family": "inherit" }, "⬛");
+          svgW(g, "text", { x: x + w/2, y: barTop + barH/2 + 12, "text-anchor": "middle",
+            fill: "rgba(180,180,180,0.85)", "font-size": "9", "font-weight": "600", "font-family": "inherit" }, "59");
+        }
+      } else if (seg.kind === "distanz") {
+        if (w > 0.5) {
+          svgW(g, "rect", { x: x, y: barTop + 8, width: w, height: barH - 16, rx: 2,
+            fill: "url(#gDistanz)", stroke: "rgba(0,255,138,0.6)", "stroke-width": "0.5" });
+          if (w > 22) {
+            svgW(g, "text", { x: x + w/2, y: barTop + barH/2 + 4, "text-anchor": "middle",
+              fill: "rgba(6,43,20,0.85)", "font-size": "10", "font-weight": "700", "font-family": "inherit" },
+              fmtW2(seg.breite));
+          }
+        } else {
+          svgW(g, "rect", { x: x, y: barTop + 4, width: Math.max(1, w), height: barH - 8,
+            fill: "var(--accent-primary)", opacity: "0.7" });
+        }
+      } else if (seg.kind === "schneid" || seg.kind === "neben") {
+        // Schneideeinheit: links Schneidring (rot), rechts Nutmesser (gelb)
+        const isNeben = seg.kind === "neben";
+        const ringFill = isNeben ? "url(#gNeben)" : "url(#gSchneid)";
+        const ringStroke = isNeben ? "rgba(255,180,0,0.7)" : "rgba(255,94,87,0.7)";
+        const halfW = w / 2;
+        // Schneidring (10 mm)
+        svgW(g, "rect", { x: x + 0.3, y: barTop + 4, width: Math.max(0, halfW - 0.3), height: barH - 8, rx: 2,
+          fill: ringFill, stroke: ringStroke, "stroke-width": "0.7" });
+        // Nutmesser (10 mm) — gelb
+        const nutFill = isNeben ? "#ffe082" : "#ffd54f";
+        const nutStroke = isNeben ? "#ffeaa3" : "#ffe066";
+        svgW(g, "rect", { x: x + halfW, y: barTop + 4, width: Math.max(0, halfW - 0.3), height: barH - 8, rx: 2,
+          fill: nutFill, stroke: nutStroke, "stroke-width": "0.6" });
+        // Trennstrich
+        svgW(g, "line", { x1: x + halfW, y1: barTop + 4, x2: x + halfW, y2: barTop + barH - 4,
+          stroke: "rgba(0,0,0,0.6)", "stroke-width": "0.8" });
+        // Zwischensteg im Nutmesser (3 mm)
+        const stegW = (3 / DCM.SCHNEIDEEINHEIT) * w;
+        svgW(g, "rect", { x: x + halfW, y: barTop + 4 + (barH - 8) * 0.3,
+          width: stegW, height: (barH - 8) * 0.4,
+          fill: "rgba(0,0,0,0.18)" });
+        // Schnittkante 13 mm v.l. (weiße Linie)
+        const cutOffsetPx = (DCM.SCHNITT_OFFSET / DCM.SCHNEIDEEINHEIT) * w;
+        svgW(g, "line", { x1: x + cutOffsetPx, y1: barTop + 2, x2: x + cutOffsetPx, y2: barTop + barH - 2,
+          stroke: "white", "stroke-width": "0.9", opacity: "0.85" });
       }
-      cursor += w;
-    });
+      cur += seg.breite;
+    }
 
-    // Defs (Gradienten + Pattern) — nur einmal definieren
-    const defs = svgW(svg, "defs", {});
-    const gSchneid = svgW(defs, "linearGradient", { id: "welleSchneidGrad", x1: 0, y1: 0, x2: 0, y2: 1 });
-    svgW(gSchneid, "stop", { offset: "0%", "stop-color": "#ff8a7a" });
-    svgW(gSchneid, "stop", { offset: "100%", "stop-color": "#a01810" });
-    const gNeben = svgW(defs, "linearGradient", { id: "welleNebenGrad", x1: 0, y1: 0, x2: 0, y2: 1 });
-    svgW(gNeben, "stop", { offset: "0%", "stop-color": "#ffd370" });
-    svgW(gNeben, "stop", { offset: "100%", "stop-color": "#c08800" });
-    const gDist = svgW(defs, "linearGradient", { id: "welleDistanzGrad", x1: 0, y1: 0, x2: 0, y2: 1 });
-    svgW(gDist, "stop", { offset: "0%", "stop-color": "#00ff8a" });
-    svgW(gDist, "stop", { offset: "100%", "stop-color": "#009d4f" });
-    const restPat = svgW(defs, "pattern", { id: "welleRestPattern", patternUnits: "userSpaceOnUse", width: 6, height: 6, patternTransform: "rotate(45)" });
-    svgW(restPat, "rect", { width: 3, height: 6, fill: "rgba(0,230,118,0.4)" });
+    // ============ Welle-Mitte: DIN-Mittellinie + ⊕ Cross-Marks + L=R=736 Symmetrie ============
+    const midX = xAt(DCM.WELLE_MITTE);
+    const cMid = "rgba(0,230,118,0.55)";
+    const cMidStrong = "var(--accent-primary)";
 
-    // MR-Bracket OBEN über dem Bestückungsbereich (zeigt MR-Position auf Welle)
-    const mrPxStart = padX + result.mrStart * pxPerMM;
-    const mrPxEnd = padX + result.mrEnd * pxPerMM;
-    const mrY = dimTopY + 28;
-    svgW(svg, "line", { x1: mrPxStart, y1: mrY, x2: mrPxEnd, y2: mrY, stroke: "var(--warn-color)", "stroke-width": "1.5" });
-    svgW(svg, "line", { x1: mrPxStart, y1: mrY-5, x2: mrPxStart, y2: mrY+5, stroke: "var(--warn-color)", "stroke-width": "1.5" });
-    svgW(svg, "line", { x1: mrPxEnd, y1: mrY-5, x2: mrPxEnd, y2: mrY+5, stroke: "var(--warn-color)", "stroke-width": "1.5" });
-    const mrTxt = `MR ${result.mr} mm`;
-    const mrW = mrTxt.length * 7.5 + 16;
-    svgW(svg, "rect", { x: (mrPxStart+mrPxEnd)/2 - mrW/2, y: mrY - 10, width: mrW, height: 18, rx: 4, fill: "rgba(8,8,8,0.92)", stroke: "var(--warn-color)", "stroke-width": "1" });
-    svgW(svg, "text", { x: (mrPxStart+mrPxEnd)/2, y: mrY + 4, "text-anchor": "middle", fill: "var(--warn-color)", "font-size": "11", "font-weight": "700", "font-family": "inherit" }, mrTxt);
+    // Mittellinie OBEN
+    svgW(g, "line", { x1: midX, y1: dimTop2Y + 14, x2: midX, y2: barTop - 8,
+      stroke: cMidStrong, "stroke-width": "1.1",
+      "stroke-dasharray": "10 3 1 3", opacity: "0.85" });
+    // Mittellinie UNTEN
+    svgW(g, "line", { x1: midX, y1: barBottom + 8, x2: midX, y2: dimBot2Y - 14,
+      stroke: cMidStrong, "stroke-width": "1.1",
+      "stroke-dasharray": "10 3 1 3", opacity: "0.85" });
 
-    // Bestückungs-Bereich Bemaßung BOTTOM "1000 mm" + L=R=736
-    const bestStartPx = padX + DCM.PARK_TOTAL * pxPerMM;
-    const bestEndPx = padX + (DCM.PARK_TOTAL + DCM.BESTUECKUNGS_BREITE) * pxPerMM;
-    svgW(svg, "line", { x1: bestStartPx, y1: dimBottomY, x2: bestEndPx, y2: dimBottomY, stroke: "var(--accent-primary)", "stroke-width": "1" });
-    svgW(svg, "path", { d: `M${bestStartPx} ${dimBottomY} L${bestStartPx+8} ${dimBottomY-5} L${bestStartPx+8} ${dimBottomY+5} Z`, fill: "var(--accent-primary)" });
-    svgW(svg, "path", { d: `M${bestEndPx} ${dimBottomY} L${bestEndPx-8} ${dimBottomY-5} L${bestEndPx-8} ${dimBottomY+5} Z`, fill: "var(--accent-primary)" });
-    svgW(svg, "line", { x1: bestStartPx, y1: barBottom + 4, x2: bestStartPx, y2: dimBottomY, stroke: "var(--accent-primary)", "stroke-width": "0.6", "stroke-dasharray": "3 3" });
-    svgW(svg, "line", { x1: bestEndPx, y1: barBottom + 4, x2: bestEndPx, y2: dimBottomY, stroke: "var(--accent-primary)", "stroke-width": "0.6", "stroke-dasharray": "3 3" });
-    const bestLbl = "Bestückungs-Bereich 1000 mm";
-    const bestW = bestLbl.length * 6.5 + 18;
-    svgW(svg, "rect", { x: (bestStartPx+bestEndPx)/2 - bestW/2, y: dimBottomY - 10, width: bestW, height: 18, rx: 4, fill: "rgba(8,8,8,0.95)", stroke: "var(--accent-primary)", "stroke-width": "1" });
-    svgW(svg, "text", { x: (bestStartPx+bestEndPx)/2, y: dimBottomY + 4, "text-anchor": "middle", fill: "var(--accent-primary)", "font-size": "11", "font-weight": "700", "font-family": "inherit" }, bestLbl);
+    // ⊕ Cross-Mark TOP
+    const crossTopY = dimTop2Y + 14;
+    svgW(g, "circle", { cx: midX, cy: crossTopY, r: 6.5, fill: "var(--bg-base)", stroke: cMidStrong, "stroke-width": "1.2", filter: "url(#glowGreen)" });
+    svgW(g, "line", { x1: midX - 4.5, y1: crossTopY, x2: midX + 4.5, y2: crossTopY, stroke: cMidStrong, "stroke-width": "1.2" });
+    svgW(g, "line", { x1: midX, y1: crossTopY - 4.5, x2: midX, y2: crossTopY + 4.5, stroke: cMidStrong, "stroke-width": "1.2" });
 
-    // Welle-Mitte ⊕ Cross-Mark
-    const mittePx = padX + DCM.WELLE_MITTE * pxPerMM;
-    svgW(svg, "circle", { cx: mittePx, cy: barTop + barH/2, r: 7, fill: "none", stroke: "var(--accent-primary)", "stroke-width": "1.4" });
-    svgW(svg, "line", { x1: mittePx-9, y1: barTop + barH/2, x2: mittePx+9, y2: barTop + barH/2, stroke: "var(--accent-primary)", "stroke-width": "1.4" });
-    svgW(svg, "line", { x1: mittePx, y1: barTop + barH/2 - 9, x2: mittePx, y2: barTop + barH/2 + 9, stroke: "var(--accent-primary)", "stroke-width": "1.4" });
+    // ⊕ Cross-Mark BOTTOM
+    const crossBotY = dimBot2Y - 14;
+    svgW(g, "circle", { cx: midX, cy: crossBotY, r: 6.5, fill: "var(--bg-base)", stroke: cMidStrong, "stroke-width": "1.2", filter: "url(#glowGreen)" });
+    svgW(g, "line", { x1: midX - 4.5, y1: crossBotY, x2: midX + 4.5, y2: crossBotY, stroke: cMidStrong, "stroke-width": "1.2" });
+    svgW(g, "line", { x1: midX, y1: crossBotY - 4.5, x2: midX, y2: crossBotY + 4.5, stroke: cMidStrong, "stroke-width": "1.2" });
+
+    // L=736 / R=736 Symmetrie-Bemaßung
+    const symY = dimBot2Y;
+    svgW(g, "line", { x1: padX + 8, y1: symY, x2: midX - 12, y2: symY, stroke: cMid, "stroke-width": "0.9" });
+    svgW(g, "path", { d: `M${padX} ${symY} L${padX+8} ${symY-4} L${padX+8} ${symY+4} Z`, fill: cMid });
+    svgW(g, "path", { d: `M${midX-6} ${symY} L${midX-12} ${symY-4} L${midX-12} ${symY+4} Z`, fill: cMid });
+    svgW(g, "text", { x: padX + (midX - padX) / 2, y: symY - 5, "text-anchor": "middle",
+      fill: cMidStrong, "font-size": "10", "font-weight": "700", "letter-spacing": "0.06em", "font-family": "inherit" }, "L = 736");
+    svgW(g, "line", { x1: midX + 12, y1: symY, x2: W - padX - 8, y2: symY, stroke: cMid, "stroke-width": "0.9" });
+    svgW(g, "path", { d: `M${midX+6} ${symY} L${midX+12} ${symY-4} L${midX+12} ${symY+4} Z`, fill: cMid });
+    svgW(g, "path", { d: `M${W-padX} ${symY} L${W-padX-8} ${symY-4} L${W-padX-8} ${symY+4} Z`, fill: cMid });
+    svgW(g, "text", { x: midX + (W - padX - midX) / 2, y: symY - 5, "text-anchor": "middle",
+      fill: cMidStrong, "font-size": "10", "font-weight": "700", "letter-spacing": "0.06em", "font-family": "inherit" }, "R = 736");
+
+    // ⌖ MITTE Label
+    svgW(g, "text", { x: midX + 11, y: crossTopY - 7,
+      fill: cMidStrong, "font-size": "8", "font-weight": "700", "letter-spacing": "0.12em", "font-family": "inherit" }, "⌖ MITTE");
+
+    // ============ Bottom-Bemaßung: Park-L | Bestückungs-Bereich | Park-R ============
+    const parkLEnd = DCM.PARK_TOTAL;
+    const bestueckEnd = parkLEnd + DCM.BESTUECKUNGS_BREITE;
+    drawDimSection(g, padX, xAt(parkLEnd), dimBotY, "Park L 236", "rgba(180,180,180,0.6)");
+    drawDimSection(g, xAt(parkLEnd), xAt(bestueckEnd), dimBotY, `Bestückungs-Bereich ${DCM.BESTUECKUNGS_BREITE}`, "var(--accent-primary)", true);
+    drawDimSection(g, xAt(bestueckEnd), W - padX, dimBotY, "Park R 236", "rgba(180,180,180,0.6)");
+
+    // ============ Mass-Skala alle 100 mm ============
+    svgW(g, "line", { x1: padX, y1: scaleY, x2: W - padX, y2: scaleY,
+      stroke: "rgba(255,255,255,0.15)", "stroke-width": "0.5" });
+    for (let mm = 0; mm <= DCM.WELLE; mm += 100) {
+      const x = xAt(mm);
+      svgW(g, "line", { x1: x, y1: scaleY - 3, x2: x, y2: scaleY + 3,
+        stroke: "rgba(255,255,255,0.3)", "stroke-width": "0.7" });
+      svgW(g, "text", { x: x, y: scaleY + 14, "text-anchor": "middle",
+        fill: "rgba(180,180,180,0.5)", "font-size": "8", "font-weight": "500", "font-family": "inherit" }, String(mm));
+    }
+    // 1472-Endmarke
+    const xEnd = xAt(DCM.WELLE);
+    svgW(g, "line", { x1: xEnd, y1: scaleY - 4, x2: xEnd, y2: scaleY + 4, stroke: "var(--accent-primary)", "stroke-width": "1" });
+    svgW(g, "text", { x: xEnd, y: scaleY + 14, "text-anchor": "middle",
+      fill: "var(--accent-primary)", "font-size": "8.5", "font-weight": "700", "font-family": "inherit" }, "1472");
+  }
+
+  // Helper: Distanzring-Stack-Aufschlüsselung für Sequenz-Detail
+  function stackBreakdown(mm) {
+    const f = distanzringeForDCM(mm);
+    return Object.entries(f.rings).map(([k, v]) => `${v}× ${k}`).join(" + ") || "—";
+  }
+
+  // Bestückungs-Sequenz: Rechts → Links Reihenfolge auf Rüstdorn
+  function renderWelleSequenz(result) {
+    const seqEl = document.getElementById("welleSequenz");
+    const wrap = document.getElementById("welleSequenzWrap");
+    if (!seqEl || !wrap) return;
+    if (!result || !result.ok || !result.layoutLR) {
+      seqEl.innerHTML = '<div style="color:var(--text-secondary);font-size:12px;padding:8px 0">— Werte oben eingeben für Schritt-für-Schritt-Sequenz</div>';
+      return;
+    }
+    seqEl.innerHTML = "";
+    const sequenz = [...result.layoutLR].reverse();  // Rechts → Links
+    let kumPos = 0;
+    let nr = 1;
+    for (const seg of sequenz) {
+      // Rest-Auffüllung als einzelne Distanzringe pro Stack-Größe
+      if (seg.kind === "rest" && seg.fill) {
+        const fillEntries = Object.entries(seg.fill).map(([k,v]) => [parseFloat(k), v]).sort((a,b) => b[0] - a[0]);
+        for (const [size, count] of fillEntries) {
+          for (let i = 0; i < count; i++) {
+            const row = document.createElement("div");
+            row.className = "stueck-row";
+            row.innerHTML = `
+              <div class="stueck-nr distanz">${nr++}</div>
+              <div>
+                <div class="stueck-name"><span class="icon" style="background:linear-gradient(180deg,#00e676,#00b85e)"></span>Distanzring (Rest)</div>
+                <div class="stueck-detail">aus ${size} mm Stack</div>
+              </div>
+              <div class="stueck-mass">${size} mm</div>
+              <div class="stueck-pos">@ ${Math.round(kumPos)}</div>
+            `;
+            seqEl.appendChild(row);
+            kumPos += size;
+          }
+        }
+        continue;
+      }
+      // Schneideeinheit (oder Neben-SE) als EIN Bauteil 20mm
+      if (seg.kind === "schneid" || seg.kind === "neben") {
+        const isNeben = seg.kind === "neben";
+        const cls = isNeben ? "neben" : "schneid";
+        const swatch = isNeben
+          ? "linear-gradient(90deg,#ffb74d 0%,#ffb74d 50%,#ffd54f 50%,#ffd54f 100%)"
+          : "linear-gradient(90deg,#ff5544 0%,#ff5544 50%,#ffd54f 50%,#ffd54f 100%)";
+        const cutPosLocal = DCM.SCHNITT_OFFSET;
+        const r = document.createElement("div");
+        r.className = "stueck-row";
+        r.innerHTML = `
+          <div class="stueck-nr ${cls}">${nr++}</div>
+          <div>
+            <div class="stueck-name"><span class="icon" style="background:${swatch}"></span>Schneideeinheit${isNeben ? ' <span style="color:#ffb400">(Neben)</span>' : ''}</div>
+            <div class="stueck-detail">Schnittkante asymmetrisch @ ${DCM.SCHNITT_OFFSET} mm v. links · Position auf Welle ${Math.round(kumPos + cutPosLocal)} mm</div>
+          </div>
+          <div class="stueck-mass">20 mm</div>
+          <div class="stueck-pos">@ ${Math.round(kumPos)}</div>
+        `;
+        seqEl.appendChild(r);
+        kumPos += DCM.SCHNEIDEEINHEIT;
+        continue;
+      }
+      // Park-Ring oder Distanzring (innen)
+      const cls = seg.kind === "park" ? "park" : "distanz";
+      const swatch =
+        seg.kind === "park" ? "linear-gradient(180deg,#3a3a3a,#161616)" :
+        "linear-gradient(180deg,#00e676,#00b85e)";
+      const detail = seg.kind === "distanz" && seg.breite > 0
+        ? `<div class="stueck-detail">↳ Stack: ${stackBreakdown(seg.breite)}</div>`
+        : "";
+      const row = document.createElement("div");
+      row.className = "stueck-row";
+      row.innerHTML = `
+        <div class="stueck-nr ${cls}">${nr++}</div>
+        <div>
+          <div class="stueck-name"><span class="icon" style="background:${swatch}"></span>${seg.name}</div>
+          ${detail}
+        </div>
+        <div class="stueck-mass">${seg.breite < 1 ? seg.breite.toFixed(2) : Math.round(seg.breite * 100) / 100} mm</div>
+        <div class="stueck-pos">@ ${Math.round(kumPos)}</div>
+      `;
+      seqEl.appendChild(row);
+      kumPos += seg.breite;
+    }
   }
 
   function renderWelleHolliste(result) {
@@ -3958,19 +4349,30 @@ footer.footer {
       if (master && master.ok) {
         const versatzTxt = master.validJobs.filter(j => j.versatz).map(j => `A${j.idx+1}: ${j.versatz>0?"+":""}${j.versatz}mm`).join(", ");
         const mergeTxt = master.mergedCount > 0 ? ` · ⚠ ${master.mergedCount} Cut-Konflikt${master.mergedCount>1?"e":""} gemerged` : "";
-        if (sub) sub.innerHTML = `<strong style="color:var(--accent-primary)">MASTER-WELLE für ${master.validJobs.length} Aufträge</strong> · ${master.cuts.length} SE total · innen ${master.innerLen.toFixed(0)} mm${versatzTxt ? " · MR-Versatz: " + versatzTxt : ""}${mergeTxt}`;
+        if (sub) sub.innerHTML = `<strong style="color:var(--accent-primary)">✓ MEHRFACH-BESTÜCKUNG MÖGLICH</strong> · Master-Welle für ${master.validJobs.length} Aufträge · ${master.cuts.length} SE total · innen ${master.innerLen.toFixed(0)} mm${versatzTxt ? " · MR-Versatz: " + versatzTxt : ""}${mergeTxt}`;
         renderWelleSvg(master);
         renderTracksSvg(master);
+        renderWelleSequenz(master);
         renderWelleHolliste(master);
         const qScore = calcQualityScore(master, out);
-        renderWelleAlerts({...master, qScore });
+        const alerts = master.alerts || [];
+        // Klare Mehrfach-Bestückungs-Bestätigung als prominenter Alert
+        alerts.unshift({
+          type: master.mergedCount > 0 ? "warn" : "info",
+          msg: `<strong>✓ Alle ${master.validJobs.length} Aufträge passen auf EINE Welle</strong> — Master-Setup einmal rüsten, alle Aufträge fahren${master.mergedCount > 0 ? ` (mit ${master.mergedCount} MR-Versatz-Anpassungen — siehe Tracks)` : ""}.`
+        });
+        renderWelleAlerts({...master, alerts, qScore });
         return;
       }
       if (master && !master.ok) {
-        if (sub) sub.innerHTML = `<span style="color:var(--danger-color)"><strong>Master nicht möglich:</strong> ${master.error}</span>`;
+        if (sub) sub.innerHTML = `<span style="color:var(--danger-color)"><strong>✗ MEHRFACH-BESTÜCKUNG NICHT MÖGLICH:</strong> ${master.error}</span>`;
         renderWelleSvg(null); renderWelleHolliste(null);
+        renderWelleSequenz(null);
         if (tracksSvg) { tracksSvg.style.display = "none"; tracksSvg.innerHTML = ""; }
-        renderWelleAlerts({ ok: false, alerts: [{type:"danger", msg: master.error + ". Aufträge inkompatibel — Reihenfolge/MR-Versatz/Park-Strategie nötig."}] });
+        renderWelleAlerts({ ok: false, alerts: [
+          { type: "danger", msg: `<strong>✗ Aufträge inkompatibel auf einer Welle</strong> — ${master.error}.` },
+          { type: "warn", msg: `Lösungsoptionen: <strong>(1)</strong> Auftrags-Reihenfolge ändern · <strong>(2)</strong> MR-Versatz manuell prüfen · <strong>(3)</strong> Klingen-Park-Strategie · <strong>(4)</strong> separate Welle für inkompatiblen Auftrag.` }
+        ] });
         return;
       }
     }
@@ -3980,12 +4382,13 @@ footer.footer {
     const result = calcWelleJob(out);
     if (!result.ok) {
       if (sub) sub.innerHTML = `<span style="color:var(--danger-color)">${(result.alerts[0] && result.alerts[0].msg) || 'Bestückung nicht möglich'}</span>`;
-      renderWelleSvg(null); renderWelleHolliste(null); renderWelleAlerts(result);
+      renderWelleSvg(null); renderWelleHolliste(null); renderWelleSequenz(null); renderWelleAlerts(result);
       return;
     }
     const slotsTxt = result.slots.length ? ` + ${result.slots.map(s=>`${s.anz}× ${s.breite} mm`).join(" + ")} Neben` : "";
     if (sub) sub.textContent = `MR ${result.mr} mm → ${result.N}× ${result.haupt} mm${slotsTxt} · innen ${result.innerLen.toFixed(1)} mm · Rest ${result.restProSeite.toFixed(2)} mm/Seite`;
     renderWelleSvg(result);
+    renderWelleSequenz(result);
     renderWelleHolliste(result);
     const qScore = calcQualityScore(result, out);
     renderWelleAlerts({...result, qScore });
