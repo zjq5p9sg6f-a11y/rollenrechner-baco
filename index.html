@@ -5066,7 +5066,7 @@ footer.footer {
     const v = parseInt(localStorage.getItem(SLOTS_VISIBLE_KEY)) || 1;
     return Math.min(4, Math.max(1, v));
   }
-  function applySlotVisibility(n) {
+  function applySlotVisibility(n, skipRebuild) {
     n = Math.min(4, Math.max(1, n));
     for (let i = 1; i <= 4; i++) {
       const slot = document.querySelector(`.neben-slot[data-slot="${i}"]`);
@@ -5077,7 +5077,10 @@ footer.footer {
       els.addNebenBtn.style.display = n >= 4 ? "none" : "";
     }
     localStorage.setItem(SLOTS_VISIBLE_KEY, String(n));
-    rebuildTabOrder();
+    // skipRebuild bei initialem Setup-Aufruf — order ist noch in TDZ
+    if (!skipRebuild && typeof rebuildTabOrder === "function") {
+      try { rebuildTabOrder(); } catch(e) { /* TDZ — ignore */ }
+    }
   }
   if (els.addNebenBtn) {
     els.addNebenBtn.addEventListener("click", () => {
@@ -5114,7 +5117,7 @@ footer.footer {
 
   // Restore Toggle-State bei Page-Load
   if (localStorage.getItem(HETERO_KEY) === "1") setHeteroState(true, false);
-  applySlotVisibility(getSlotsVisible());
+  applySlotVisibility(getSlotsVisible(), true);
 
   // ============== Asymmetrische Besäumung — Sub-Toggle ==============
   const ASYM_KEY = "rr.asym";
