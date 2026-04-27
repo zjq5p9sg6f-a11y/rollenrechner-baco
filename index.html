@@ -1069,6 +1069,52 @@ header.bar {
 }
 .info-btn:hover { background: var(--accent-primary); color: #062b14; box-shadow: 0 0 12px var(--accent-glow); }
 
+/* Großer prominenter Open-Button für Modal */
+.info-btn-large {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  gap: 2px 12px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px 18px;
+  background: linear-gradient(180deg, rgba(0,230,118,0.08), rgba(0,230,118,0.02));
+  border: 1px dashed var(--accent-primary);
+  border-radius: 8px;
+  color: var(--accent-primary);
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: all var(--t-fast);
+}
+.info-btn-large:hover {
+  border-style: solid;
+  background: linear-gradient(180deg, rgba(0,230,118,0.14), rgba(0,230,118,0.04));
+  box-shadow: 0 0 18px var(--accent-glow);
+}
+.info-btn-large .info-btn-icon {
+  grid-row: 1 / span 2; grid-column: 1;
+  display: grid; place-items: center;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-size: 16px; font-weight: 800;
+}
+.info-btn-large > span:nth-child(2) {
+  grid-row: 1; grid-column: 2;
+  font-size: 14px; font-weight: 800;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  align-self: end;
+}
+.info-btn-large .info-btn-sub {
+  grid-row: 2; grid-column: 2;
+  font-size: 11px; font-weight: 500;
+  opacity: 0.7;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-style: italic;
+}
+
 .se-summary { display: flex; flex-direction: column; gap: 5px; margin: 8px 0; }
 .se-row {
   display: flex; align-items: center; gap: 8px;
@@ -3231,16 +3277,15 @@ footer.footer {
           <div class="info-row"><span>Distanzringe</span><strong>0,3 / 0,5 / 1 / 2 / 5 / 10 / 20 / 30 / 50 / 100 / 200 / 300 mm</strong></div>
         </div>
         <div class="welle-info-box">
-          <h4>Schneideeinheit · 20 mm <button type="button" class="info-btn" id="seCadOpenBtn" tabindex="-1" title="CAD-Detail vergrößert anzeigen">ℹ CAD-Detail</button></h4>
-          <div class="se-summary">
-            <div class="se-row"><span class="se-pos" style="background:#ff8a7a;color:#0a0a0a">1</span><strong>Schneidring</strong> <em>10 mm · Ø 105 / 79,7</em></div>
-            <div class="se-row"><span class="se-pos" style="background:#ffd54f;color:#0a0a0a">2</span><strong>Nutmesser-Steg</strong> <em>3 mm · Ø 91 / 79,7</em></div>
-            <div class="se-row"><span class="se-pos" style="background:#ffd54f;color:#0a0a0a">3</span><strong>Nutmesser-Restring</strong> <em>7 mm · Ø 105 / 79,7</em></div>
-            <div class="se-row"><span class="se-pos" style="background:#fff;color:#0a0a0a">4</span><strong>Schnittkante</strong> <em>13 mm v. l. (asymmetrisch)</em></div>
-          </div>
-          <div class="se-cad-note">
-            Klick auf <strong>ℹ CAD-Detail</strong> öffnet die volle DIN ISO 128 Werkstattzeichnung
-          </div>
+          <h4>Schneideeinheit</h4>
+          <div class="info-row"><span>Gesamt-Länge</span><strong>20 mm</strong></div>
+          <div class="info-row"><span>Schnittkante</span><strong>13 mm v. l. (asymmetrisch)</strong></div>
+          <div class="info-row"><span>Anzahl je Welle</span><strong>N + 1 (für N Nutzen)</strong></div>
+          <button type="button" class="info-btn-large" id="seCadOpenBtn" tabindex="-1">
+            <span class="info-btn-icon">ℹ</span>
+            <span>CAD-Detail anzeigen</span>
+            <span class="info-btn-sub">Schneidring · Nutmesser · DIN ISO 128 Werkstattzeichnung</span>
+          </button>
         </div>
       </div>
 
@@ -3483,6 +3528,8 @@ footer.footer {
       els.statusBadge.textContent = "Werte fehlen";
       els.statusBadge.style.color = "var(--text-secondary)";
       setSubtitle("Werte eingeben, um die Aufteilung zu sehen");
+      renderFulfillment({ hasNeben: false, hasAnySoll: false });
+      renderWelle(null);
       return;
     }
 
@@ -3493,6 +3540,8 @@ footer.footer {
       els.statusBadge.textContent = "Geometrie unmöglich";
       els.statusBadge.style.color = "var(--danger-color)";
       setSubtitle("Schmalrolle ≥ Mutterrolle — bitte korrigieren");
+      renderFulfillment({ hasNeben: false, hasAnySoll: false });
+      renderWelle(null);
       return;
     }
 
@@ -3511,6 +3560,8 @@ footer.footer {
       els.statusBadge.textContent = `MR ${nf0.format(mutter)} mm prüfen`;
       els.statusBadge.style.color = "var(--danger-color)";
       setSubtitle("Wert plausibilisieren — über 5 m Mutterrolle?");
+      renderFulfillment({ hasNeben: false, hasAnySoll: false });
+      renderWelle(null);
       return;
     }
 
@@ -3557,6 +3608,8 @@ footer.footer {
       els.statusBadge.textContent = "Neben-Schnitte zu breit";
       els.statusBadge.style.color = "var(--danger-color)";
       setSubtitle(`Σ Neben ${nf0.format(nebenSpace)} mm passt nicht in Mutterrolle ${nf0.format(mutter)} mm`);
+      renderFulfillment({ hasNeben: false, hasAnySoll: false });
+      renderWelle(null);
       return;
     }
 
@@ -3571,6 +3624,8 @@ footer.footer {
       els.statusBadge.style.color = "var(--danger-color)";
       const slotsTxt = nebenSlots.map(s => `${s.anz}× ${nf0.format(s.breite)} mm`).join(" + ");
       setSubtitle(`Neben-Schnitte (${slotsTxt}) lassen keinen Platz für Haupt — Werte prüfen`);
+      renderFulfillment({ hasNeben: false, hasAnySoll: false });
+      renderWelle(null);
       return;
     }
     const restMM    = mutter - (nutzen * schmal) - nebenSpace;
@@ -5239,16 +5294,24 @@ footer.footer {
         return;
       }
       if (master && !master.ok) {
-        if (sub) sub.innerHTML = `<span style="color:var(--danger-color)"><strong>✗ MEHRFACH-BESTÜCKUNG NICHT MÖGLICH:</strong> ${master.error}</span>`;
-        renderWelleSvg(null); renderWelleHolliste(null);
-        renderWelleSequenz(null);
+        // Master nicht möglich — ABER: fallback auf Single-Auftrag-Welle (A1) damit Operator
+        // wenigstens seine Primary-Konstellation sieht. Konflikt-Alerts kommen ZUSÄTZLICH.
+        const singleResult = calcWelleJob(out);
+        if (singleResult.ok) {
+          if (sub) sub.innerHTML = `<span style="color:var(--danger-color)"><strong>✗ MEHRFACH-BESTÜCKUNG NICHT MÖGLICH</strong></span> · zeige Single-Welle für A1 · ${master.error}`;
+          renderWelleSvg(singleResult);
+          renderWelleSequenz(singleResult);
+          renderWelleHolliste(singleResult);
+        } else {
+          if (sub) sub.innerHTML = `<span style="color:var(--danger-color)"><strong>✗ MEHRFACH-BESTÜCKUNG NICHT MÖGLICH:</strong> ${master.error}</span>`;
+          renderWelleSvg(null); renderWelleHolliste(null); renderWelleSequenz(null);
+        }
         const alerts = [
           { type: "danger", msg: `<strong>✗ Aufträge nicht deckungsgleich auf einer Welle:</strong><br>&nbsp;&nbsp;${master.error}` }
         ];
         if (master.conflictDetails) {
           alerts.push({ type: "danger", msg: `<strong>Konflikte:</strong> ${master.conflictDetails}` });
         }
-        // Pattern-Tipps falls erkannt — könnten Operator zeigen wie er die Konflikte auflösen kann
         const ratioTips = detectRatioPattern(master.validJobs || []);
         if (ratioTips) {
           alerts.push({ type: "info",
