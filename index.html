@@ -1617,6 +1617,148 @@ header.bar {
 }
 #clusterBulkCancel:hover { background: rgba(255,255,255,0.05); }
 
+/* Auto-Optimizer-Button — purple/magenta für strategischen Akzent */
+#clusterBulkOptimize {
+  background: rgba(180, 145, 255, 0.14);
+  border-color: rgba(180, 145, 255, 0.5);
+  color: #b491ff;
+}
+#clusterBulkOptimize:hover {
+  background: #b491ff;
+  color: #1a0d33;
+  box-shadow: 0 0 14px rgba(180, 145, 255, 0.4);
+}
+
+/* Auto-Cluster-Vorschläge */
+.cluster-auto-results {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(180, 145, 255, 0.30);
+  background: rgba(180, 145, 255, 0.04);
+  border-radius: var(--r-2);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.cluster-auto-results[hidden] { display: none !important; }
+.auto-results-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  flex-wrap: wrap; gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(180, 145, 255, 0.20);
+}
+.auto-results-header strong {
+  color: #b491ff;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.auto-results-saving {
+  font-size: 12px; font-weight: 700;
+  color: var(--accent-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}
+.auto-proposal {
+  padding: 12px;
+  border: 1px solid rgba(180, 145, 255, 0.30);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.20);
+  display: flex; flex-direction: column; gap: 10px;
+  transition: all var(--t-fast);
+}
+.auto-proposal:hover {
+  border-color: rgba(180, 145, 255, 0.55);
+  background: rgba(0, 0, 0, 0.30);
+}
+.proposal-head {
+  display: grid;
+  grid-template-columns: auto auto auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.proposal-rank {
+  font-size: 11px; font-weight: 800;
+  background: #b491ff; color: #1a0d33;
+  padding: 3px 9px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.proposal-mr, .proposal-size {
+  font-size: 12px; font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}
+.proposal-mr { color: #42a5f5; }
+.proposal-size { color: #ffb400; }
+.proposal-saving {
+  font-size: 12px; font-weight: 800;
+  color: var(--accent-primary);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.proposal-apply-btn {
+  padding: 8px 14px;
+  border: 1px solid rgba(0,230,118,0.5);
+  background: rgba(0,230,118,0.14);
+  border-radius: 7px;
+  color: var(--accent-primary);
+  font-family: inherit;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  white-space: nowrap;
+}
+.proposal-apply-btn:hover {
+  background: var(--accent-primary);
+  color: #062b14;
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+.proposal-jobs {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.proposal-job {
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  font-size: 11px;
+  padding: 4px 9px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 5px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+.proposal-job.primary {
+  background: rgba(0,230,118,0.10);
+  border-color: rgba(0,230,118,0.4);
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+.proposal-singletons {
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  letter-spacing: 0.03em;
+  padding: 6px 0;
+}
+@media (max-width: 700px) {
+  .proposal-head {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "rank mr"
+      "size saving"
+      "apply apply";
+    row-gap: 6px;
+  }
+  .proposal-rank { grid-area: rank; }
+  .proposal-mr { grid-area: mr; }
+  .proposal-size { grid-area: size; }
+  .proposal-saving { grid-area: saving; text-align: right; }
+  .proposal-apply-btn { grid-area: apply; width: 100%; padding: 10px; }
+}
+
 /* Mobile: cluster-job auf 2 Spalten kollabieren */
 @media (max-width: 800px) {
   .cluster-job {
@@ -3413,10 +3555,12 @@ footer.footer {
           <textarea id="clusterBulkText" rows="6" spellcheck="false" tabindex="-1" placeholder="MR	Haupt	Neben	Anz&#10;620	29	60	2&#10;620	35		&#10;540	29		&#10;..."></textarea>
           <div class="cluster-bulk-status" id="clusterBulkStatus"></div>
           <div class="cluster-bulk-actions">
+            <button type="button" id="clusterBulkOptimize" tabindex="-1">🔮 Auto-Cluster vorschlagen</button>
             <button type="button" id="clusterBulkApply" tabindex="-1">Übernehmen</button>
             <button type="button" id="clusterBulkAppend" tabindex="-1">Anhängen</button>
             <button type="button" id="clusterBulkCancel" tabindex="-1">Abbrechen</button>
           </div>
+          <div class="cluster-auto-results" id="clusterAutoResults" hidden></div>
         </div>
       </div>
 
@@ -6846,8 +6990,223 @@ footer.footer {
       if (clusterBulkText) clusterBulkText.value = "";
       if (clusterBulkPane) clusterBulkPane.hidden = true;
       if (clusterBulkToggle) clusterBulkToggle.classList.remove("active");
+      const car = document.getElementById("clusterAutoResults");
+      if (car) { car.hidden = true; car.innerHTML = ""; }
       setBulkStatus("");
     });
+  }
+
+  // ============== Master-Welle-Auto-Optimizer · Greedy Material-Cluster ==============
+  // Engine analysiert Tagesliste, gruppiert nach MR, baut maximale Strict-Mode-Cluster.
+  // Setup-Saving: (cluster.size - 1) × Grund-Rüst — jeder gemerged Auftrag spart 1 Welle-Wechsel.
+  function clusterToMasterCalc(jobsList) {
+    const allJobs = jobsList.map(j => {
+      const nb = parseFloat((j.nebenBreite || "").replace(",", ".")) || 0;
+      const na = parseInt(j.nebenAnz || "0") || 0;
+      return {
+        mr: j._mr,
+        haupt: j._haupt,
+        nebenSlots: nb > 0 && na > 0 ? [{ breite: nb, anz: na }] : []
+      };
+    });
+    return calcMasterWelle(allJobs);
+  }
+  function buildAutoClusterProposals(parsedOrders) {
+    // 1. Filter: nur Aufträge mit gültigen MR + Haupt
+    const valid = [];
+    parsedOrders.forEach((o, idx) => {
+      const mr = parseFloat((o.mr || "").replace(",", ".")) || 0;
+      const haupt = parseFloat((o.haupt || "").replace(",", ".")) || 0;
+      if (mr > 0 && haupt >= DCM.SCHNEIDEEINHEIT) {
+        valid.push({ ...o, _idx: idx, _mr: mr, _haupt: haupt });
+      }
+    });
+    // 2. Gruppe nach MR (gerundet auf 0.5 mm Toleranz)
+    const groups = {};
+    valid.forEach(o => {
+      const key = (Math.round(o._mr * 2) / 2).toFixed(1);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(o);
+    });
+    // 3. Pro Gruppe: greedy maximalen Cluster bauen, dann nächsten aus Rest, etc.
+    const grundEl = document.getElementById("ruestBase");
+    const grundRuest = parseFloat((grundEl && grundEl.value) || "20") || 20;
+    const proposals = [];
+    const singletons = [];
+    for (const mrKey of Object.keys(groups)) {
+      const remaining = [...groups[mrKey]];
+      while (remaining.length >= 1) {
+        if (remaining.length === 1) {
+          singletons.push(remaining[0]);
+          remaining.splice(0, 1);
+          break;
+        }
+        const cluster = [remaining[0]];
+        remaining.splice(0, 1);
+        // Greedy: jeden weiteren Auftrag testweise dazunehmen, behalten falls Master ok
+        let i = 0;
+        while (i < remaining.length && cluster.length < MAX_CLUSTER + 1) {
+          const candidate = remaining[i];
+          const testCluster = [...cluster, candidate];
+          const masterTest = clusterToMasterCalc(testCluster);
+          if (masterTest && masterTest.ok) {
+            cluster.push(candidate);
+            remaining.splice(i, 1);
+          } else {
+            i++;
+          }
+        }
+        if (cluster.length >= 2) {
+          const master = clusterToMasterCalc(cluster);
+          proposals.push({
+            jobs: cluster,
+            mr: cluster[0]._mr,
+            size: cluster.length,
+            setupSavingMin: (cluster.length - 1) * grundRuest,
+            master
+          });
+        } else {
+          singletons.push(cluster[0]);
+        }
+      }
+    }
+    return {
+      proposals: proposals.sort((a, b) => b.setupSavingMin - a.setupSavingMin),
+      singletons,
+      total: valid.length
+    };
+  }
+
+  function escHtml(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  // Setzt Hauptfelder (mutter/schmal/hetero) auf einen Auftrag — verwendet vom Auto-Apply
+  function loadJobIntoPrimary(job) {
+    const mutterEl = document.getElementById("mutter");
+    const schmalEl = document.getElementById("schmal");
+    if (mutterEl) mutterEl.value = String(job._mr);
+    if (schmalEl) schmalEl.value = String(job._haupt);
+    const heteroToggle = document.getElementById("heteroToggle");
+    const heteroOpen = heteroToggle && heteroToggle.getAttribute("aria-expanded") === "true";
+    const nb = parseFloat((job.nebenBreite || "").replace(",", ".")) || 0;
+    const na = parseInt(job.nebenAnz || "0") || 0;
+    if (nb > 0 && na > 0) {
+      if (!heteroOpen && typeof setHeteroState === "function") setHeteroState(true, true);
+      const n1B = document.getElementById("neben1Breite");
+      const n1A = document.getElementById("neben1Anz");
+      if (n1B) n1B.value = String(nb);
+      if (n1A) n1A.value = String(na);
+      // Nur N1 sichtbar (höhere Slots leeren)
+      ["neben2Breite","neben2Anz","neben2Soll","neben3Breite","neben3Anz","neben3Soll","neben4Breite","neben4Anz","neben4Soll"]
+        .forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+      if (typeof applySlotVisibility === "function") applySlotVisibility(1);
+    } else {
+      if (heteroOpen && typeof setHeteroState === "function") setHeteroState(false, true);
+    }
+  }
+
+  function applyAutoProposal(proposal) {
+    if (!proposal || !proposal.jobs || proposal.jobs.length < 2) return;
+    const primary = proposal.jobs[0];
+    const follows = proposal.jobs.slice(1);
+    // 1. Primary in Hauptfelder
+    loadJobIntoPrimary(primary);
+    // 2. Folgeaufträge in clusterJobs
+    clusterJobs = follows.map(f => ({
+      mr: String(f._mr),
+      haupt: String(f._haupt),
+      nebenBreite: f.nebenBreite || "",
+      nebenAnz: f.nebenAnz || ""
+    }));
+    saveClusterJobs();
+    renderClusterJobs();
+    // 3. Cluster-Section öffnen falls geschlossen
+    const clusterToggleEl = document.getElementById("clusterToggle");
+    if (clusterToggleEl && clusterToggleEl.getAttribute("aria-expanded") !== "true") {
+      clusterToggleEl.click();
+    }
+    // 4. Bulk-Pane schließen + Auto-Results clearen
+    if (clusterBulkText) clusterBulkText.value = "";
+    if (clusterBulkPane) clusterBulkPane.hidden = true;
+    if (clusterBulkToggle) clusterBulkToggle.classList.remove("active");
+    const car = document.getElementById("clusterAutoResults");
+    if (car) { car.hidden = true; car.innerHTML = ""; }
+    setBulkStatus("");
+    // 5. Calc + Welle-Section öffnen
+    if (typeof calc === "function") calc();
+    const welleToggleEl = document.getElementById("welleToggle");
+    if (welleToggleEl && welleToggleEl.getAttribute("aria-expanded") !== "true") {
+      welleToggleEl.click();
+    }
+    // 6. Scroll zur Welle-Visualisierung
+    setTimeout(() => {
+      const welleSec = document.getElementById("welleSection");
+      if (welleSec) welleSec.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 250);
+  }
+
+  function renderAutoProposals() {
+    const container = document.getElementById("clusterAutoResults");
+    if (!container || !clusterBulkText) return;
+    const { jobs } = parseBulkClusterText(clusterBulkText.value);
+    if (jobs.length < 2) {
+      setBulkStatus("Auto-Optimizer braucht ≥ 2 Aufträge in der Liste", "err");
+      container.hidden = true; container.innerHTML = "";
+      return;
+    }
+    const { proposals, singletons, total } = buildAutoClusterProposals(jobs);
+    if (proposals.length === 0) {
+      setBulkStatus(`Keine cluster-fähigen Kombinationen — alle ${total} Aufträge laufen einzeln`, "warn");
+      container.hidden = true; container.innerHTML = "";
+      return;
+    }
+    const totalSaving = proposals.reduce((s, p) => s + p.setupSavingMin, 0);
+    const totalClusteredJobs = proposals.reduce((s, p) => s + p.size, 0);
+    const singletonsTxt = singletons.length > 0
+      ? `<div class="proposal-singletons">+ ${singletons.length} Aufträge laufen einzeln (nicht cluster-fähig): ${singletons.map(s => `MR ${s._mr}/${s._haupt}`).join(", ")}</div>`
+      : "";
+    container.innerHTML = `
+      <div class="auto-results-header">
+        <strong>🔮 ${proposals.length} Cluster-Vorschlag${proposals.length === 1 ? "" : "e"} · ${totalClusteredJobs}/${total} Aufträge geclustert</strong>
+        <span class="auto-results-saving">Σ ${totalSaving} min Setup-Saving</span>
+      </div>
+      ${proposals.map((p, idx) => `
+        <div class="auto-proposal" data-pidx="${idx}">
+          <div class="proposal-head">
+            <span class="proposal-rank">#${idx + 1}</span>
+            <span class="proposal-mr">MR ${p.mr} mm</span>
+            <span class="proposal-size">${p.size} Aufträge</span>
+            <span class="proposal-saving">⏱ ${p.setupSavingMin} min</span>
+            <button type="button" class="proposal-apply-btn" data-pidx="${idx}" tabindex="-1">→ In Welle laden</button>
+          </div>
+          <div class="proposal-jobs">
+            ${p.jobs.map((j, ji) => `
+              <span class="proposal-job ${ji === 0 ? 'primary' : ''}">
+                ${ji === 0 ? 'A1·Primär' : 'A' + (ji + 1)}: ${escHtml(String(j._mr))} | ${escHtml(String(j._haupt))}${j.nebenBreite ? ' | ' + escHtml(j.nebenBreite) + '×' + escHtml(j.nebenAnz) : ''}
+              </span>
+            `).join("")}
+          </div>
+        </div>
+      `).join("")}
+      ${singletonsTxt}
+    `;
+    container.hidden = false;
+    // Apply-Listeners
+    container.querySelectorAll(".proposal-apply-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const pidx = parseInt(btn.dataset.pidx);
+        applyAutoProposal(proposals[pidx]);
+      });
+    });
+    setBulkStatus(`${proposals.length} Cluster-Vorschlag${proposals.length === 1 ? "" : "e"} berechnet`, "ok");
+  }
+
+  const clusterBulkOptimize = document.getElementById("clusterBulkOptimize");
+  if (clusterBulkOptimize) {
+    clusterBulkOptimize.addEventListener("click", renderAutoProposals);
   }
   // Cluster auch closed by default beim Reload
 
