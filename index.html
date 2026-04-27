@@ -4912,23 +4912,70 @@ footer.footer {
       }
     }
 
-    // Union aller Cuts
-    const rawCuts = [];
-    for (const j of validJobs) for (const c of j.cuts) {
-      if (!rawCuts.some(x => Math.abs(x - c) < tol)) rawCuts.push(c);
-    }
-    rawCuts.sort((a, b) => a - b);
+    // Union aller Cuts (mit Toleranz für deckungsgleiche Positionen)
+    // sameTol = 0.5mm: Cuts darunter gelten als IDENTISCHE Master-Position (geteilte SE).
+    // SE = 20mm: Cuts mit Abstand >=20mm sind zwei SEPARATE physische SEs (kein Konflikt).
+    // Cuts dazwischen (0.5–20mm) = KONFLIKT — beide SEs würden überlappen, aber sind
+    // nicht deckungsgleich → Master physisch unmöglich.
+    const sameTol = 0.5;
+    const SE = DCM.SCHNEIDEEINHEIT;
+    const allRaw = [];
+    for (const j of validJobs) for (const c of j.cuts) allRaw.push({ pos: c, jobIdx: j.idx });
+    allRaw.sort((a, b) => a.pos - b.pos);
 
-    // Konflikt-Resolution: <SE-Breite Cuts mergen
-    const allCuts = [];
-    let mergedCount = 0;
-    for (const c of rawCuts) {
-      if (allCuts.length === 0 || (c - allCuts[allCuts.length - 1]) >= DCM.SCHNEIDEEINHEIT - 0.001) {
-        allCuts.push(c);
-      } else {
-        allCuts[allCuts.length - 1] = (allCuts[allCuts.length - 1] + c) / 2;
-        mergedCount++;
+    // Konflikt-Erkennung: Paare mit Abstand 0.5..20mm
+    const conflicts = [];
+    for (let i = 0; i < allRaw.length; i++) {
+      for (let j = i + 1; j < allRaw.length; j++) {
+        const dist = allRaw[j].pos - allRaw[i].pos;
+        if (dist >= SE) break;
+        if (dist > sameTol) {
+          conflicts.push({
+            posA: allRaw[i].pos, jobA: allRaw[i].jobIdx,
+            posB: allRaw[j].pos, jobB: allRaw[j].jobIdx,
+            distance: dist
+          });
+        }
       }
+    }
+
+    if (conflicts.length > 0) {
+      // STRICT MODE: nicht deckungsgleich → Master physisch unmöglich
+      const conflictTxt = conflicts.slice(0, 4).map(c =>
+        `A${c.jobA + 1}@${c.posA.toFixed(0)}mm ↔ A${c.jobB + 1}@${c.posB.toFixed(0)}mm (Abstand ${c.distance.toFixed(1)}mm)`
+      ).join(", ") + (conflicts.length > 4 ? ` ... +${conflicts.length - 4} weitere` : "");
+      return {
+        ok: false,
+        error: `${conflicts.length} Cut-Position${conflicts.length > 1 ? "en" : ""} nicht deckungsgleich — beide SEs (je 20 mm) würden physisch überlappen.`,
+        conflictDetails: conflictTxt,
+        conflicts,
+        validJobs
+      };
+    }
+
+    // Deckungsgleiche Cuts vereinen → 1 SE pro identischer Position
+    const allCuts = [];
+    for (const item of allRaw) {
+      if (allCuts.length === 0 || (item.pos - allCuts[allCuts.length - 1]) > sameTol) {
+        allCuts.push(item.pos);
+      } else {
+        // Mittelwert für stabile Position (alle 3+ Cuts an gleicher Stelle)
+        allCuts[allCuts.length - 1] = (allCuts[allCuts.length - 1] + item.pos) / 2;
+      }
+    }
+    const mergedCount = 0; // Im Strict-Mode keine forced merges
+
+    // Pro Auftrag: welche Master-Cuts nutzt er?
+    for (const j of validJobs) {
+      const masterCutsForJob = [];
+      for (const origCut of j.cuts) {
+        const mc = allCuts.find(x => Math.abs(x - origCut) <= sameTol);
+        if (mc != null && !masterCutsForJob.some(x => Math.abs(x - mc) < sameTol)) {
+          masterCutsForJob.push(mc);
+        }
+      }
+      j.originalCuts = j.cuts;
+      j.cuts = masterCutsForJob.sort((a, b) => a - b);
     }
 
     // Inner-Layout: SE pro Cut + Distanzring zwischen
@@ -5195,11 +5242,21 @@ footer.footer {
         if (sub) sub.innerHTML = `<span style="color:var(--danger-color)"><strong>✗ MEHRFACH-BESTÜCKUNG NICHT MÖGLICH:</strong> ${master.error}</span>`;
         renderWelleSvg(null); renderWelleHolliste(null);
         renderWelleSequenz(null);
-        if (tracksSvg) { tracksSvg.style.display = "none"; tracksSvg.innerHTML = ""; }
-        renderWelleAlerts({ ok: false, alerts: [
-          { type: "danger", msg: `<strong>✗ Aufträge inkompatibel auf einer Welle</strong> — ${master.error}.` },
-          { type: "warn", msg: `Lösungsoptionen: <strong>(1)</strong> Auftrags-Reihenfolge ändern · <strong>(2)</strong> MR-Versatz manuell prüfen · <strong>(3)</strong> Klingen-Park-Strategie · <strong>(4)</strong> separate Welle für inkompatiblen Auftrag.` }
-        ] });
+        const alerts = [
+          { type: "danger", msg: `<strong>✗ Aufträge nicht deckungsgleich auf einer Welle:</strong><br>&nbsp;&nbsp;${master.error}` }
+        ];
+        if (master.conflictDetails) {
+          alerts.push({ type: "danger", msg: `<strong>Konflikte:</strong> ${master.conflictDetails}` });
+        }
+        // Pattern-Tipps falls erkannt — könnten Operator zeigen wie er die Konflikte auflösen kann
+        const ratioTips = detectRatioPattern(master.validJobs || []);
+        if (ratioTips) {
+          alerts.push({ type: "info",
+            msg: `<strong>💡 Lösungs-Vorschlag · Schmalrollen-Verhältnis anpassen:</strong><br>` + ratioTips.map(t => `&nbsp;&nbsp;• ${t.msg}`).join("<br>") });
+        }
+        alerts.push({ type: "warn",
+          msg: `<strong>Weitere Optionen:</strong> (1) Schmalrollen auf k×Haupt-Vielfaches umstellen für deckungsgleiche Cuts · (2) Auftrag mit MR-Versatz justieren · (3) inkompatiblen Auftrag auf separater Welle fahren.` });
+        renderWelleAlerts({ ok: false, alerts });
         return;
       }
     }
