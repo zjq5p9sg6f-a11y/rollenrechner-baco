@@ -921,7 +921,7 @@ header.bar {
   border-color: transparent;
 }
 .welle-section[aria-hidden="false"] {
-  max-height: 3000px;
+  max-height: 99999px;
   opacity: 1;
   padding: 24px;
   margin-top: var(--s-2);
@@ -1051,13 +1051,43 @@ header.bar {
 .welle-info-box .info-row:last-child { border-bottom: 0; }
 .welle-info-box .info-row span { color: var(--text-secondary); }
 .welle-info-box .info-row strong { color: var(--text-primary); font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
-.se-cad {
-  width: 100%;
-  height: auto;
-  background: rgba(0,0,0,0.4);
-  border-radius: 6px;
-  margin: 8px 0;
+.info-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-left: 10px;
+  padding: 3px 10px;
+  border: 1px solid var(--accent-primary);
+  background: transparent;
+  color: var(--accent-primary);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--t-fast);
 }
+.info-btn:hover { background: var(--accent-primary); color: #062b14; box-shadow: 0 0 12px var(--accent-glow); }
+
+.se-summary { display: flex; flex-direction: column; gap: 5px; margin: 8px 0; }
+.se-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12.5px;
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.05);
+}
+.se-row:last-child { border-bottom: 0; }
+.se-row strong { color: var(--text-primary); font-weight: 700; }
+.se-row em { color: var(--text-secondary); font-style: normal; font-size: 11px; margin-left: auto; font-feature-settings: "tnum"; }
+.se-pos {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 11px; font-weight: 800;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+
 .se-cad-note {
   font-size: 11px;
   color: var(--text-secondary);
@@ -1066,6 +1096,63 @@ header.bar {
   font-style: italic;
 }
 .se-cad-note strong { color: var(--accent-primary); font-style: normal; }
+
+/* Modal-Overlay für CAD-Detail */
+.se-cad-modal {
+  position: fixed; inset: 0;
+  z-index: 10000;
+  display: none;
+}
+.se-cad-modal[aria-hidden="false"] { display: block; }
+.se-cad-modal-bg {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.se-cad-modal-content {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(96vw, 1500px);
+  height: min(92vh, 1000px);
+  background: var(--bg-card);
+  border: 1px solid var(--accent-primary);
+  border-radius: 12px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 60px var(--accent-glow);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.se-cad-modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(0,230,118,0.06), transparent);
+}
+.se-cad-modal-head h3 {
+  font-size: 14px; font-weight: 800;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--accent-primary);
+  margin: 0;
+}
+.se-cad-close {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 22px; font-weight: 700;
+  line-height: 0.9;
+  cursor: pointer;
+  display: grid; place-items: center;
+  transition: all var(--t-fast);
+}
+.se-cad-close:hover { background: var(--danger-color); color: #fff; border-color: var(--danger-color); }
+#seCadSvg {
+  flex: 1;
+  width: 100%;
+  background: var(--bg-base);
+}
 @media (max-width: 800px) {
   .welle-info-grid { grid-template-columns: 1fr; }
 }
@@ -3104,54 +3191,28 @@ footer.footer {
           <div class="info-row"><span>Distanzringe</span><strong>0,3 / 0,5 / 1 / 2 / 5 / 10 / 20 / 30 / 50 / 100 / 200 / 300 mm</strong></div>
         </div>
         <div class="welle-info-box">
-          <h4>Schneideeinheit · CAD-Detail</h4>
-          <svg class="se-cad" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet" aria-label="Schneideeinheit CAD-Detail">
-            <defs>
-              <linearGradient id="seCadSchneidring" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#ff8a7a"/>
-                <stop offset="50%" stop-color="#e34a3a"/>
-                <stop offset="100%" stop-color="#a01810"/>
-              </linearGradient>
-              <linearGradient id="seCadNutmesser" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#ffe082"/>
-                <stop offset="100%" stop-color="#ffc107"/>
-              </linearGradient>
-            </defs>
-            <!-- Bemaßung TOP: Gesamt 20mm -->
-            <line x1="60" y1="30" x2="340" y2="30" stroke="#999" stroke-width="0.8"/>
-            <path d="M60 30 L68 26 L68 34 Z" fill="#999"/>
-            <path d="M340 30 L332 26 L332 34 Z" fill="#999"/>
-            <line x1="60" y1="30" x2="60" y2="60" stroke="#999" stroke-width="0.6" stroke-dasharray="3 3"/>
-            <line x1="340" y1="30" x2="340" y2="60" stroke="#999" stroke-width="0.6" stroke-dasharray="3 3"/>
-            <rect x="170" y="20" width="60" height="20" rx="4" fill="#0a0a0a" stroke="#00e676" stroke-width="1"/>
-            <text x="200" y="34" text-anchor="middle" fill="#00e676" font-size="11" font-weight="700" font-family="inherit">20 mm</text>
-            <!-- Schneidring links 10mm + Nutmesser rechts 10mm -->
-            <rect x="60" y="60" width="140" height="100" fill="url(#seCadSchneidring)" stroke="#a01810" stroke-width="1.5"/>
-            <rect x="200" y="60" width="140" height="100" fill="url(#seCadNutmesser)" stroke="#c08800" stroke-width="1.5"/>
-            <line x1="200" y1="60" x2="200" y2="160" stroke="#000" stroke-width="1.5"/>
-            <!-- Steg im Nutmesser (3mm) -->
-            <rect x="200" y="92" width="21" height="36" fill="rgba(0,0,0,0.25)"/>
-            <!-- Schnittkante 13mm v.l. (weiße Linie) -->
-            <line x1="60" y1="60" x2="60" y2="160" stroke="white" stroke-width="0.5" stroke-dasharray="2 2" opacity="0.6"/>
-            <line x1="242" y1="50" x2="242" y2="170" stroke="#fff" stroke-width="2.5"/>
-            <text x="242" y="44" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" font-family="inherit">SCHNITT</text>
-            <!-- Beschriftung -->
-            <text x="130" y="115" text-anchor="middle" fill="#0a0a0a" font-size="13" font-weight="800" font-family="inherit">Schneidring</text>
-            <text x="130" y="132" text-anchor="middle" fill="#0a0a0a" font-size="10" font-weight="600" font-family="inherit">10 mm</text>
-            <text x="270" y="115" text-anchor="middle" fill="#0a0a0a" font-size="13" font-weight="800" font-family="inherit">Nutmesser</text>
-            <text x="270" y="132" text-anchor="middle" fill="#0a0a0a" font-size="10" font-weight="600" font-family="inherit">10 mm</text>
-            <!-- Bemaßung BOTTOM: 13mm v.l. -->
-            <line x1="60" y1="180" x2="242" y2="180" stroke="#fff" stroke-width="0.8"/>
-            <path d="M60 180 L68 176 L68 184 Z" fill="#fff"/>
-            <path d="M242 180 L234 176 L234 184 Z" fill="#fff"/>
-            <line x1="60" y1="160" x2="60" y2="190" stroke="#fff" stroke-width="0.5" stroke-dasharray="3 3"/>
-            <line x1="242" y1="160" x2="242" y2="190" stroke="#fff" stroke-width="0.5" stroke-dasharray="3 3"/>
-            <rect x="135" y="170" width="32" height="20" rx="4" fill="#0a0a0a" stroke="#fff" stroke-width="1"/>
-            <text x="151" y="184" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="inherit">13 mm</text>
-          </svg>
-          <div class="se-cad-note">
-            <strong>Schnittkante asymmetrisch</strong> · 13 mm vom linken Rand der Schneideeinheit
+          <h4>Schneideeinheit · 20 mm <button type="button" class="info-btn" id="seCadOpenBtn" tabindex="-1" title="CAD-Detail vergrößert anzeigen">ℹ CAD-Detail</button></h4>
+          <div class="se-summary">
+            <div class="se-row"><span class="se-pos" style="background:#ff8a7a;color:#0a0a0a">1</span><strong>Schneidring</strong> <em>10 mm · Ø 105 / 79,7</em></div>
+            <div class="se-row"><span class="se-pos" style="background:#ffd54f;color:#0a0a0a">2</span><strong>Nutmesser-Steg</strong> <em>3 mm · Ø 91 / 79,7</em></div>
+            <div class="se-row"><span class="se-pos" style="background:#ffd54f;color:#0a0a0a">3</span><strong>Nutmesser-Restring</strong> <em>7 mm · Ø 105 / 79,7</em></div>
+            <div class="se-row"><span class="se-pos" style="background:#fff;color:#0a0a0a">4</span><strong>Schnittkante</strong> <em>13 mm v. l. (asymmetrisch)</em></div>
           </div>
+          <div class="se-cad-note">
+            Klick auf <strong>ℹ CAD-Detail</strong> öffnet die volle DIN ISO 128 Werkstattzeichnung
+          </div>
+        </div>
+      </div>
+
+      <!-- CAD-Detail-Modal (volle Werkstattzeichnung nach DIN ISO 128) -->
+      <div class="se-cad-modal" id="seCadModal" aria-hidden="true">
+        <div class="se-cad-modal-bg" id="seCadModalBg"></div>
+        <div class="se-cad-modal-content">
+          <div class="se-cad-modal-head">
+            <h3>Schneideeinheit · CAD-Detail · DIN ISO 128 · Maßstab 5:1</h3>
+            <button type="button" class="se-cad-close" id="seCadCloseBtn" aria-label="Schließen" tabindex="-1">×</button>
+          </div>
+          <svg id="seCadSvg" viewBox="0 0 1500 920" preserveAspectRatio="xMidYMid meet" aria-label="Schneideeinheit CAD-Detail Voll-Zeichnung"></svg>
         </div>
       </div>
 
@@ -3740,6 +3801,219 @@ footer.footer {
         : `<strong>${fulfilled + (hauptOk ? 1 : 0)} / ${total + 1} Aufträge erfüllt</strong> · Untererfüllte in nächstem Cluster nachholen oder Anzahl anpassen`;
     }
     if (saetzeEl) saetzeEl.textContent = `${o.totalSaetze} Sätze`;
+  }
+
+  // ============== Schneideeinheit-CAD-Voll-Detail (port aus Wellenbestückungs-Tool, DIN ISO 128) ==============
+  function renderSeCadSvg() {
+    const root = document.getElementById("seCadSvg");
+    if (!root) return;
+    root.innerHTML = "";
+    const ns = "http://www.w3.org/2000/svg";
+    const make = (parent, tag, attrs, text) => {
+      const el = document.createElementNS(ns, tag);
+      for (const [k, v] of Object.entries(attrs || {})) el.setAttribute(k, v);
+      if (text != null) el.textContent = text;
+      parent.appendChild(el);
+      return el;
+    };
+    // Schraffuren
+    const defs = make(root, "defs", {});
+    const addHatch = (id, color, angle, density = 5) => {
+      const pat = make(defs, "pattern", { id, patternUnits: "userSpaceOnUse", width: density, height: density, patternTransform: `rotate(${angle})` });
+      make(pat, "rect", { width: density, height: density, fill: color, "fill-opacity": "0.85" });
+      make(pat, "line", { x1: 0, y1: 0, x2: 0, y2: density, stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.8" });
+    };
+    addHatch("hatchSchneidring", "#cc2a1f", 45, 5);
+    addHatch("hatchNutmesser", "#d4a019", 135, 5);
+
+    const PX = 5;
+    const SE_LEN_MM = 20;
+    const SE_AD_MM = 105;
+    const SE_AD_STEG_MM = 91;
+    const SE_ID_MM = 79.7;
+
+    // HEADER
+    const headerBg = make(root, "g", {});
+    make(headerBg, "rect", { x: 40, y: 20, width: 1420, height: 50, rx: 6, fill: "rgba(255,255,255,0.02)", stroke: "rgba(255,255,255,0.15)", "stroke-width": "0.7" });
+    make(headerBg, "text", { x: 60, y: 50, fill: "rgba(240,240,240,0.95)", "font-size": "14", "font-weight": "700", "letter-spacing": "0.04em", "font-family": "inherit" }, "Schneideeinheit · DCM Untermesserwellen-Bestückung");
+    make(headerBg, "text", { x: 60, y: 64, fill: "rgba(160,160,160,0.7)", "font-size": "10", "font-weight": "500", "font-family": "inherit" }, "20 mm Schiebe-Länge · Ø 105 / Ø 79,7 mm · CAD-Detail nach DCM Untermesserwelle · Konstr. Oliver Krebs · 2019-03-22 — Maßstab 5 : 1 (vergrößert)");
+    make(headerBg, "text", { x: 1440, y: 50, "text-anchor": "end", fill: "rgba(0,230,118,0.85)", "font-size": "11", "font-weight": "700", "letter-spacing": "0.06em", "font-family": "inherit" }, "DIN ISO 128 · 1. WINKEL");
+    make(headerBg, "text", { x: 1440, y: 64, "text-anchor": "end", fill: "rgba(160,160,160,0.6)", "font-size": "10", "font-family": "inherit" }, "alle Maße in mm");
+
+    // VORDERANSICHT (Längsschnitt)
+    const vfX = 200, vfY = 130;
+    const vfW = SE_LEN_MM * PX;
+    const vfH = SE_AD_MM * PX;
+    const vfMidY = vfY + vfH / 2;
+    const vfIdHalf = SE_ID_MM * PX / 2;
+    const vfAdHalf = SE_AD_MM * PX / 2;
+    const vfStegHalf = SE_AD_STEG_MM * PX / 2;
+
+    const gVf = make(root, "g", {});
+    make(gVf, "text", { x: vfX, y: vfY - 14, fill: "rgba(220,220,220,0.95)", "font-size": "11", "font-weight": "700", "letter-spacing": "0.1em", "font-family": "inherit" }, "VORDERANSICHT · LÄNGSSCHNITT");
+    make(gVf, "text", { x: vfX, y: vfY - 2, fill: "rgba(140,140,140,0.7)", "font-size": "9.5", "font-family": "inherit" }, "Welle horizontal in der Mitte (Achse: ⌖ Strich-Punkt)");
+    // Welle-Achse
+    make(gVf, "line", { x1: vfX - 30, y1: vfMidY, x2: vfX + vfW + 30, y2: vfMidY,
+      stroke: "rgba(0,230,118,0.65)", "stroke-width": "0.9", "stroke-dasharray": "12 3 1.5 3" });
+    // Bohrung
+    make(gVf, "rect", { x: vfX, y: vfMidY - vfIdHalf, width: vfW, height: vfIdHalf * 2,
+      fill: "rgba(255,255,255,0.025)", stroke: "rgba(255,255,255,0.18)", "stroke-width": "0.6", "stroke-dasharray": "5 3" });
+    // Schneidring (Pos 1)
+    const srLen = 10 * PX;
+    const srX0 = vfX, srX1 = vfX + srLen;
+    const abfRad = 2 * PX;
+    const drawSchneidring = (sign) => {
+      const yIn = vfMidY + sign * vfIdHalf;
+      const yOut = vfMidY + sign * vfAdHalf;
+      const dirCorner = sign > 0 ? -1 : 1;
+      const path = `M ${srX0} ${yIn} L ${srX0} ${yOut} L ${srX1 - abfRad} ${yOut} Q ${srX1} ${yOut} ${srX1} ${yOut + dirCorner * abfRad} L ${srX1} ${yIn} Z`;
+      make(gVf, "path", { d: path, fill: "url(#hatchSchneidring)", stroke: "#ff8a7a", "stroke-width": "1.4", "stroke-linejoin": "miter" });
+    };
+    drawSchneidring(-1); drawSchneidring(+1);
+    // Nutmesser
+    const stegX0 = srX1, stegX1 = srX1 + 3 * PX;
+    const restX0 = stegX1, restX1 = vfX + vfW;
+    const drawNutmesser = (sign) => {
+      const yIn = vfMidY + sign * vfIdHalf;
+      const yOutSteg = vfMidY + sign * vfStegHalf;
+      const yOutFull = vfMidY + sign * vfAdHalf;
+      make(gVf, "rect", { x: stegX0, y: sign > 0 ? yIn : yOutSteg, width: 3 * PX, height: Math.abs(yOutSteg - yIn),
+        fill: "url(#hatchNutmesser)", stroke: "#ffd54f", "stroke-width": "1.2" });
+      make(gVf, "line", { x1: stegX1, y1: yOutSteg, x2: stegX1, y2: yOutFull, stroke: "#ffd54f", "stroke-width": "1.2" });
+      make(gVf, "rect", { x: restX0, y: sign > 0 ? yIn : yOutFull, width: 7 * PX, height: Math.abs(yOutFull - yIn),
+        fill: "url(#hatchNutmesser)", stroke: "#ffd54f", "stroke-width": "1.4" });
+    };
+    drawNutmesser(-1); drawNutmesser(+1);
+    // Schnittkante
+    make(gVf, "line", { x1: stegX1, y1: vfY - 12, x2: stegX1, y2: vfY + vfH + 12, stroke: "#fff", "stroke-width": "1.4", opacity: "0.9" });
+    make(gVf, "circle", { cx: stegX1, cy: vfY - 18, r: 7, fill: "var(--bg-base)", stroke: "#fff", "stroke-width": "1.4" });
+    make(gVf, "text", { x: stegX1, y: vfY - 14, "text-anchor": "middle", fill: "#fff", "font-size": "10", "font-weight": "800", "font-family": "inherit" }, "✁");
+
+    // Bemaßungen
+    const dimY1 = vfY + vfH + 30, dimY2 = dimY1 + 26;
+    const drawHDim = (x1, x2, y, label, color) => {
+      make(gVf, "line", { x1, y1: y - 10, x2: x1, y2: y + 5, stroke: color, "stroke-width": "0.7" });
+      make(gVf, "line", { x1: x2, y1: y - 10, x2: x2, y2: y + 5, stroke: color, "stroke-width": "0.7" });
+      make(gVf, "line", { x1: x1, y1: y, x2: x2, y2: y, stroke: color, "stroke-width": "0.9" });
+      make(gVf, "path", { d: `M${x1} ${y} L${x1+7} ${y-3} L${x1+7} ${y+3} Z`, fill: color });
+      make(gVf, "path", { d: `M${x2} ${y} L${x2-7} ${y-3} L${x2-7} ${y+3} Z`, fill: color });
+      make(gVf, "text", { x: (x1+x2)/2, y: y - 4, "text-anchor": "middle", fill: color, "font-size": "11", "font-weight": "700", "font-family": "inherit" }, label);
+    };
+    drawHDim(srX0, srX1, dimY1, "10", "rgba(255,138,122,0.95)");
+    drawHDim(stegX0, stegX1, dimY1, "3", "rgba(255,213,79,0.95)");
+    drawHDim(restX0, restX1, dimY1, "7", "rgba(255,213,79,0.95)");
+    drawHDim(srX0, restX1, dimY2, "20 (gesamt)", "rgba(0,230,118,0.95)");
+    drawHDim(srX0, stegX1, dimY2 + 26, "13 (Schnittkante v. links)", "#fff");
+
+    // Vertikale Bemaßung
+    const drawVDim = (y1, y2, x, label, color) => {
+      make(gVf, "line", { x1: x - 5, y1: y1, x2: x + 5, y2: y1, stroke: color, "stroke-width": "0.7" });
+      make(gVf, "line", { x1: x - 5, y1: y2, x2: x + 5, y2: y2, stroke: color, "stroke-width": "0.7" });
+      make(gVf, "line", { x1: x, y1: y1, x2: x, y2: y2, stroke: color, "stroke-width": "0.9" });
+      make(gVf, "path", { d: `M${x} ${y1} L${x-3} ${y1+7} L${x+3} ${y1+7} Z`, fill: color });
+      make(gVf, "path", { d: `M${x} ${y2} L${x-3} ${y2-7} L${x+3} ${y2-7} Z`, fill: color });
+      const lblW = label.length * 7 + 14;
+      make(gVf, "rect", { x: x - lblW/2, y: (y1+y2)/2 - 9, width: lblW, height: 18, rx: 4, fill: "var(--bg-base)", stroke: color, "stroke-width": "0.7" });
+      make(gVf, "text", { x: x, y: (y1+y2)/2 + 4, "text-anchor": "middle", fill: color, "font-size": "10", "font-weight": "700", "font-family": "inherit" }, label);
+    };
+    drawVDim(vfMidY - vfAdHalf, vfMidY + vfAdHalf, vfX - 50, "Ø 105", "rgba(220,220,220,0.95)");
+    drawVDim(vfMidY - vfIdHalf, vfMidY + vfIdHalf, vfX - 25, "Ø 79,7", "rgba(140,140,140,0.85)");
+    drawVDim(vfMidY - vfStegHalf, vfMidY + vfStegHalf, restX1 + 25, "Ø 91", "rgba(255,213,79,0.85)");
+
+    // Pos-Ballons
+    const drawBalloon = (x, y, num, anchorX, anchorY) => {
+      make(gVf, "line", { x1: anchorX, y1: anchorY, x2: x, y2: y, stroke: "rgba(255,255,255,0.5)", "stroke-width": "0.6" });
+      make(gVf, "circle", { cx: x, cy: y, r: 12, fill: "var(--bg-base)", stroke: "var(--accent-primary)", "stroke-width": "1.4" });
+      make(gVf, "text", { x: x, y: y + 4, "text-anchor": "middle", fill: "var(--accent-primary)", "font-size": "11", "font-weight": "800", "font-family": "inherit" }, num);
+    };
+    drawBalloon(srX0 - 30, vfMidY - vfAdHalf - 35, "1", srX0 + 5*PX, vfMidY - vfAdHalf + 10);
+    drawBalloon(stegX0 + 1.5*PX, vfMidY - vfStegHalf - 35, "2", stegX0 + 1.5*PX, vfMidY - vfStegHalf + 5);
+    drawBalloon(restX0 + 3.5*PX, vfMidY - vfAdHalf - 35, "3", restX0 + 3.5*PX, vfMidY - vfAdHalf + 5);
+    drawBalloon(restX1 + 30, vfMidY + vfAdHalf - 50, "4", restX1 - 5, vfMidY + vfAdHalf - 15);
+
+    // SEITENANSICHT (Querschnitt)
+    const ssX = 870, ssY = vfMidY;
+    const ssR_AD = vfAdHalf, ssR_Steg = vfStegHalf, ssR_ID = vfIdHalf;
+    const gSs = make(root, "g", {});
+    make(gSs, "text", { x: ssX - ssR_AD, y: vfY - 14, fill: "rgba(220,220,220,0.95)", "font-size": "11", "font-weight": "700", "letter-spacing": "0.1em", "font-family": "inherit" }, "SEITENANSICHT · QUERSCHNITT");
+    make(gSs, "text", { x: ssX - ssR_AD, y: vfY - 2, fill: "rgba(140,140,140,0.7)", "font-size": "9.5", "font-family": "inherit" }, "Stirnseite · konzentrische Kreise");
+    make(gSs, "circle", { cx: ssX, cy: ssY, r: ssR_AD, fill: "rgba(255,138,122,0.06)", stroke: "rgba(255,138,122,0.95)", "stroke-width": "1.6" });
+    make(gSs, "circle", { cx: ssX, cy: ssY, r: ssR_Steg, fill: "none", stroke: "rgba(255,213,79,0.85)", "stroke-width": "1.2", "stroke-dasharray": "8 4" });
+    make(gSs, "circle", { cx: ssX, cy: ssY, r: ssR_ID, fill: "var(--bg-base)", stroke: "rgba(160,160,160,0.85)", "stroke-width": "1.2" });
+    for (let a = 0; a < 360; a += 30) {
+      const rad = a * Math.PI / 180;
+      make(gSs, "line", {
+        x1: ssX + (ssR_ID + 2) * Math.cos(rad), y1: ssY + (ssR_ID + 2) * Math.sin(rad),
+        x2: ssX + (ssR_AD - 2) * Math.cos(rad), y2: ssY + (ssR_AD - 2) * Math.sin(rad),
+        stroke: "rgba(255,138,122,0.18)", "stroke-width": "0.5"
+      });
+    }
+    make(gSs, "line", { x1: ssX - ssR_AD - 15, y1: ssY, x2: ssX + ssR_AD + 15, y2: ssY, stroke: "rgba(0,230,118,0.6)", "stroke-width": "0.9", "stroke-dasharray": "12 3 1.5 3" });
+    make(gSs, "line", { x1: ssX, y1: ssY - ssR_AD - 15, x2: ssX, y2: ssY + ssR_AD + 15, stroke: "rgba(0,230,118,0.6)", "stroke-width": "0.9", "stroke-dasharray": "12 3 1.5 3" });
+    const ssDimX = ssX + ssR_AD + 70;
+    const drawDiaDim = (radius, label, color, offsetX) => {
+      make(gSs, "line", { x1: ssX, y1: ssY - radius, x2: ssDimX + offsetX, y2: ssY - radius, stroke: color, "stroke-width": "0.6", "stroke-dasharray": "3 3" });
+      make(gSs, "line", { x1: ssX, y1: ssY + radius, x2: ssDimX + offsetX, y2: ssY + radius, stroke: color, "stroke-width": "0.6", "stroke-dasharray": "3 3" });
+      const tx = ssDimX + offsetX;
+      make(gSs, "line", { x1: tx, y1: ssY - radius, x2: tx, y2: ssY + radius, stroke: color, "stroke-width": "0.9" });
+      make(gSs, "path", { d: `M${tx} ${ssY - radius} L${tx-3} ${ssY-radius+7} L${tx+3} ${ssY-radius+7} Z`, fill: color });
+      make(gSs, "path", { d: `M${tx} ${ssY + radius} L${tx-3} ${ssY+radius-7} L${tx+3} ${ssY+radius-7} Z`, fill: color });
+      const lblW = label.length * 7 + 14;
+      make(gSs, "rect", { x: tx + 4, y: ssY - 10, width: lblW, height: 20, rx: 4, fill: "var(--bg-base)", stroke: color, "stroke-width": "0.7" });
+      make(gSs, "text", { x: tx + 4 + lblW/2, y: ssY + 4, "text-anchor": "middle", fill: color, "font-size": "10.5", "font-weight": "700", "font-family": "inherit" }, label);
+    };
+    drawDiaDim(ssR_AD, "Ø 105", "rgba(255,138,122,0.95)", 0);
+    drawDiaDim(ssR_Steg, "Ø 91", "rgba(255,213,79,0.85)", 80);
+    drawDiaDim(ssR_ID, "Ø 79,7", "rgba(180,180,180,0.85)", 160);
+    const stegDiff = ssR_AD - ssR_Steg;
+    make(gSs, "line", { x1: ssX + ssR_Steg, y1: ssY - 8, x2: ssX + ssR_AD, y2: ssY - 8, stroke: "rgba(255,213,79,0.9)", "stroke-width": "1.2" });
+    make(gSs, "text", { x: ssX + ssR_Steg + stegDiff/2, y: ssY - 14, "text-anchor": "middle", fill: "rgba(255,213,79,0.95)", "font-size": "9", "font-weight": "700", "font-family": "inherit" }, "Δ7");
+
+    // STÜCKLISTEN-TABELLE
+    const tabX = 1180, tabY = 130, tabW = 290, rowH = 32;
+    const gTab = make(root, "g", {});
+    make(gTab, "rect", { x: tabX, y: tabY, width: tabW, height: rowH, fill: "rgba(0,230,118,0.12)", stroke: "rgba(0,230,118,0.5)", "stroke-width": "1" });
+    make(gTab, "text", { x: tabX + 12, y: tabY + 20, fill: "var(--accent-primary)", "font-size": "10", "font-weight": "700", "letter-spacing": "0.08em", "font-family": "inherit" }, "POS");
+    make(gTab, "text", { x: tabX + 50, y: tabY + 20, fill: "var(--accent-primary)", "font-size": "10", "font-weight": "700", "letter-spacing": "0.08em", "font-family": "inherit" }, "BEZEICHNUNG");
+    make(gTab, "text", { x: tabX + tabW - 12, y: tabY + 20, "text-anchor": "end", fill: "var(--accent-primary)", "font-size": "10", "font-weight": "700", "letter-spacing": "0.08em", "font-family": "inherit" }, "MASS");
+    const rows = [
+      { pos: 1, name: "Schneidring", detail: "10 mm · Ø 105 / 79,7", color: "rgba(255,138,122,0.95)", swatch: "url(#hatchSchneidring)" },
+      { pos: 2, name: "Nutmesser-Steg", detail: "3 mm · Ø 91 / 79,7", color: "rgba(255,213,79,0.95)", swatch: "url(#hatchNutmesser)" },
+      { pos: 3, name: "Nutmesser-Restring", detail: "7 mm · Ø 105 / 79,7", color: "rgba(255,213,79,0.95)", swatch: "url(#hatchNutmesser)" },
+      { pos: 4, name: "Schnittkante (am Steg→Restring)", detail: "13 mm v. l. (asymmetrisch)", color: "#fff", swatch: "#fff" }
+    ];
+    rows.forEach((r, i) => {
+      const y = tabY + rowH * (i + 1);
+      make(gTab, "rect", { x: tabX, y, width: tabW, height: rowH, fill: i % 2 ? "rgba(255,255,255,0.02)" : "transparent", stroke: "rgba(255,255,255,0.1)", "stroke-width": "0.5" });
+      make(gTab, "circle", { cx: tabX + 22, cy: y + 16, r: 11, fill: "var(--bg-base)", stroke: r.color, "stroke-width": "1.3" });
+      make(gTab, "text", { x: tabX + 22, y: y + 20, "text-anchor": "middle", fill: r.color, "font-size": "11", "font-weight": "800", "font-family": "inherit" }, r.pos);
+      make(gTab, "rect", { x: tabX + 42, y: y + 8, width: 16, height: 16, fill: r.swatch, stroke: r.color, "stroke-width": "0.8", rx: 2 });
+      make(gTab, "text", { x: tabX + 66, y: y + 14, fill: "rgba(240,240,240,0.95)", "font-size": "10.5", "font-weight": "600", "font-family": "inherit" }, r.name);
+      make(gTab, "text", { x: tabX + 66, y: y + 26, fill: "rgba(160,160,160,0.7)", "font-size": "9", "font-weight": "400", "font-family": "inherit" }, r.detail);
+    });
+
+    // SCHRIFTFELD
+    const sfY = 760, sfW = 1420, sfH = 130;
+    const gSf = make(root, "g", {});
+    make(gSf, "rect", { x: 40, y: sfY, width: sfW, height: sfH, fill: "rgba(255,255,255,0.02)", stroke: "rgba(255,255,255,0.4)", "stroke-width": "1.2" });
+    [350, 700, 1050].forEach(x => make(gSf, "line", { x1: 40 + x, y1: sfY, x2: 40 + x, y2: sfY + sfH, stroke: "rgba(255,255,255,0.25)", "stroke-width": "0.6" }));
+    [40, 80].forEach(d => make(gSf, "line", { x1: 40, y1: sfY + d, x2: 40 + sfW, y2: sfY + d, stroke: "rgba(255,255,255,0.18)", "stroke-width": "0.5" }));
+    const sfCell = (x, y, label, value, valBig) => {
+      make(gSf, "text", { x: 40 + x + 10, y: sfY + y + 14, fill: "rgba(140,140,140,0.7)", "font-size": "8.5", "font-weight": "600", "letter-spacing": "0.08em", "font-family": "inherit" }, label);
+      make(gSf, "text", { x: 40 + x + 10, y: sfY + y + 32, fill: "rgba(240,240,240,0.95)", "font-size": valBig ? "13" : "11", "font-weight": valBig ? "700" : "500", "font-family": "inherit" }, value);
+    };
+    sfCell(0, 0, "BAUTEIL", "Schneideeinheit", true);
+    sfCell(350, 0, "WERKSTOFF", "Werkzeugstahl, gehärtet (HRC 60+)", false);
+    sfCell(700, 0, "ANZAHL JE WELLE", "N + 1 (für N Nutzen)", false);
+    sfCell(1050, 0, "MASSSTAB", "5 : 1 (vergrößert)", true);
+    sfCell(0, 40, "GESAMTLÄNGE", "20 mm", true);
+    sfCell(350, 40, "AUSSEN-Ø", "105 mm (Steg: 91)", false);
+    sfCell(700, 40, "INNEN-Ø", "79,7 mm (Welle-Sitz)", false);
+    sfCell(1050, 40, "SCHNITT v. l.", "13 mm (asymmetrisch)", false);
+    sfCell(0, 80, "QUELLE", "DCM Untermesserwelle · Konstr. Oliver Krebs · 2019-03-22", false);
+    sfCell(350, 80, "ZEICHNUNG", "Rollenrechner · CAD-Detail v1.0", false);
+    sfCell(700, 80, "STAND", "DIN ISO 128", false);
+    sfCell(1050, 80, "MASS-EINHEIT", "alle in mm", false);
   }
 
   // ============== DCM-Wellenbestückungs-Engine (portiert aus Wellenbestückungs-Tool) ==============
@@ -5831,7 +6105,7 @@ footer.footer {
   }
 
   // Tab-Order säubern: Lean-Flow — alle Hilfs-Buttons aus dem Tab-Pfad raus.
-  document.querySelectorAll(".stepper, .copy-btn, .unit-toggle, .icon-btn, .hero-cta, #exampleBtn, #calcBtn, #heteroToggle, #asymToggle, #welleToggle, #printWelleBtn, #clusterToggle, #clusterAddBtn, .cluster-job-remove, .ml-copy")
+  document.querySelectorAll(".stepper, .copy-btn, .unit-toggle, .icon-btn, .hero-cta, #exampleBtn, #calcBtn, #heteroToggle, #asymToggle, #welleToggle, #printWelleBtn, #clusterToggle, #clusterAddBtn, .cluster-job-remove, .ml-copy, #seCadOpenBtn, #seCadCloseBtn, .info-btn")
     .forEach(b => b.setAttribute("tabindex", "-1"));
 
   // ============== Heterogene Einteilung — Toggle-Logik ==============
@@ -6078,6 +6352,38 @@ footer.footer {
   function restoreTitle() {
     document.title = "Rollenrechner · Ballerstaedt";
   }
+
+  // ============== SE-CAD-Modal Open/Close ==============
+  let seCadRendered = false;
+  function openSeCadModal() {
+    const modal = document.getElementById("seCadModal");
+    if (!modal) return;
+    modal.setAttribute("aria-hidden", "false");
+    if (!seCadRendered) {
+      renderSeCadSvg();
+      seCadRendered = true;
+    }
+    document.body.style.overflow = "hidden";
+  }
+  function closeSeCadModal() {
+    const modal = document.getElementById("seCadModal");
+    if (!modal) return;
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+  }
+  const seCadOpenBtn = document.getElementById("seCadOpenBtn");
+  if (seCadOpenBtn) seCadOpenBtn.addEventListener("click", openSeCadModal);
+  const seCadCloseBtn = document.getElementById("seCadCloseBtn");
+  if (seCadCloseBtn) seCadCloseBtn.addEventListener("click", closeSeCadModal);
+  const seCadModalBg = document.getElementById("seCadModalBg");
+  if (seCadModalBg) seCadModalBg.addEventListener("click", closeSeCadModal);
+  // ESC schließt Modal
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const modal = document.getElementById("seCadModal");
+      if (modal && modal.getAttribute("aria-hidden") === "false") closeSeCadModal();
+    }
+  });
 
   // Print-Handler
   const printBtnEl = document.getElementById("printWelleBtn");
