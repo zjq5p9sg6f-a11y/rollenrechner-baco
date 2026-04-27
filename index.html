@@ -912,15 +912,20 @@ header.bar {
   max-height: 0;
   overflow: hidden;
   opacity: 0;
-  transition: max-height 320ms var(--ease-out-expo), opacity 200ms ease, padding 320ms var(--ease-out-expo), margin-top 320ms var(--ease-out-expo);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-4);
+  transition: max-height 320ms var(--ease-out-expo), opacity 200ms ease, padding 320ms var(--ease-out-expo), margin-top 320ms var(--ease-out-expo), border-color 320ms ease;
   padding: 0 24px;
   margin-top: 0;
+  border-color: transparent;
 }
 .welle-section[aria-hidden="false"] {
-  max-height: 2400px;
+  max-height: 3000px;
   opacity: 1;
   padding: 24px;
   margin-top: var(--s-2);
+  border-color: rgba(0,230,118,0.20);
 }
 .welle-head {
   display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
@@ -2489,7 +2494,7 @@ footer.footer {
       <span class="welle-toggle-text">Wellenbestückung anzeigen</span>
       <span class="welle-toggle-beta">BETA · nur DCM</span>
     </button>
-    <section class="panel glass welle-section" id="welleSection" aria-hidden="true" aria-labelledby="welle-title">
+    <section class="welle-section" id="welleSection" aria-hidden="true" aria-labelledby="welle-title">
       <div class="welle-head">
         <div class="welle-head-left">
           <div class="welle-title" id="welle-title">
@@ -2518,7 +2523,7 @@ footer.footer {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.10 · offline-fähig · localStorage</div>
+    <div>v1.11 · offline-fähig · localStorage</div>
   </footer>
 </div>
 
@@ -4563,7 +4568,10 @@ footer.footer {
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
     section.setAttribute("aria-hidden", open ? "false" : "true");
     if (persist) localStorage.setItem(WELLE_KEY, open ? "1" : "0");
-    if (open && lastValid) renderWelle(lastValid);
+    if (open) {
+      // Render auch bei fehlendem lastValid — zeigt Header + "Werte eingeben"-Hinweis
+      renderWelle(lastValid);
+    }
   }
   const welleToggleEl = document.getElementById("welleToggle");
   if (welleToggleEl) {
