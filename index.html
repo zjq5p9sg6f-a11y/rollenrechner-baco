@@ -1498,6 +1498,125 @@ header.bar {
 .cluster-add-btn:hover { background: rgba(66,165,245,0.06); border-style: solid; }
 .cluster-add-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
+/* Cluster-Actions-Row: Add + Bulk nebeneinander */
+.cluster-actions-row {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: 10px;
+}
+.cluster-actions-row .cluster-add-btn { margin-top: 0; flex: 1 1 auto; min-width: 180px; }
+
+/* Bulk-Paste-Toggle */
+.cluster-bulk-toggle {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  background: rgba(255,180,0,0.06);
+  border: 1px dashed rgba(255,180,0,0.4);
+  border-radius: var(--r-2);
+  color: #ffb400;
+  font-family: inherit;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.cluster-bulk-toggle:hover { background: rgba(255,180,0,0.10); border-style: solid; }
+.cluster-bulk-toggle.active {
+  background: rgba(255,180,0,0.14);
+  border-style: solid;
+  border-color: #ffb400;
+}
+
+/* Bulk-Paste-Pane */
+.cluster-bulk-pane {
+  margin-top: 10px;
+  padding: 14px;
+  border: 1px solid rgba(255,180,0,0.30);
+  background: rgba(255,180,0,0.03);
+  border-radius: var(--r-2);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.cluster-bulk-pane[hidden] { display: none !important; }
+.cluster-bulk-help {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+}
+.cluster-bulk-help code {
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  font-size: 11px;
+  background: rgba(255,255,255,0.06);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: #ffb400;
+}
+.cluster-bulk-help em { font-style: normal; color: #ffb400; }
+.cluster-bulk-help strong { color: var(--text-primary); }
+.cluster-bulk-pane textarea {
+  width: 100%;
+  min-height: 110px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-primary);
+  font-family: 'SF Mono', Monaco, 'Courier New', monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  padding: 10px 12px;
+  resize: vertical;
+  outline: 0;
+}
+.cluster-bulk-pane textarea:focus {
+  border-color: #ffb400;
+  box-shadow: 0 0 0 1px rgba(255,180,0,0.4);
+}
+.cluster-bulk-status {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  min-height: 14px;
+}
+.cluster-bulk-status.ok { color: var(--accent-primary); }
+.cluster-bulk-status.warn { color: #ffb400; }
+.cluster-bulk-status.err { color: var(--danger-color); }
+.cluster-bulk-actions {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.cluster-bulk-actions button {
+  padding: 9px 16px;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid;
+  transition: all var(--t-fast);
+}
+#clusterBulkApply {
+  background: rgba(0,230,118,0.14);
+  border-color: rgba(0,230,118,0.5);
+  color: var(--accent-primary);
+}
+#clusterBulkApply:hover {
+  background: var(--accent-primary);
+  color: #062b14;
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+#clusterBulkAppend {
+  background: rgba(66,165,245,0.10);
+  border-color: rgba(66,165,245,0.5);
+  color: #42a5f5;
+}
+#clusterBulkAppend:hover { background: rgba(66,165,245,0.20); }
+#clusterBulkCancel {
+  background: transparent;
+  border-color: rgba(255,255,255,0.18);
+  color: var(--text-secondary);
+}
+#clusterBulkCancel:hover { background: rgba(255,255,255,0.05); }
+
 /* Mobile: cluster-job auf 2 Spalten kollabieren */
 @media (max-width: 800px) {
   .cluster-job {
@@ -3271,16 +3390,34 @@ footer.footer {
       <button type="button" class="cluster-toggle" id="clusterToggle" aria-expanded="false" aria-controls="clusterSection" tabindex="-1">
         <span class="cluster-toggle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
         <span>Folgeauftrag prüfen — auf gleicher Welle bestücken?</span>
-        <span class="cluster-toggle-hint">max 3 zusätzlich · Master-Welle-Cluster</span>
+        <span class="cluster-toggle-hint">bis 8 Aufträge · Master-Welle-Cluster · Bulk-Paste aus Excel</span>
       </button>
       <div class="cluster-section" id="clusterSection" aria-hidden="true">
         <div class="cluster-jobs" id="clusterJobs">
           <!-- Slots werden via JS gerendert -->
         </div>
-        <button type="button" class="cluster-add-btn" id="clusterAddBtn" tabindex="-1">
-          <span class="cluster-add-icon">+</span>
-          <span>Weiteren Auftrag hinzufügen</span>
-        </button>
+        <div class="cluster-actions-row">
+          <button type="button" class="cluster-add-btn" id="clusterAddBtn" tabindex="-1">
+            <span class="cluster-add-icon">+</span>
+            <span>Weiteren Auftrag hinzufügen</span>
+          </button>
+          <button type="button" class="cluster-bulk-toggle" id="clusterBulkToggle" tabindex="-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Mehrere aus Excel/CSV einfügen</span>
+          </button>
+        </div>
+        <div class="cluster-bulk-pane" id="clusterBulkPane" hidden>
+          <div class="cluster-bulk-help">
+            <strong>Format:</strong> 1 Zeile pro Auftrag · Spalten getrennt durch <em>Tab</em> oder <em>Semikolon</em> · Reihenfolge: <code>MR&nbsp;·&nbsp;Haupt&nbsp;·&nbsp;Neben&nbsp;·&nbsp;Anz</code> · Header-Zeile wird automatisch übersprungen.
+          </div>
+          <textarea id="clusterBulkText" rows="6" spellcheck="false" tabindex="-1" placeholder="MR	Haupt	Neben	Anz&#10;620	29	60	2&#10;620	35		&#10;540	29		&#10;..."></textarea>
+          <div class="cluster-bulk-status" id="clusterBulkStatus"></div>
+          <div class="cluster-bulk-actions">
+            <button type="button" id="clusterBulkApply" tabindex="-1">Übernehmen</button>
+            <button type="button" id="clusterBulkAppend" tabindex="-1">Anhängen</button>
+            <button type="button" id="clusterBulkCancel" tabindex="-1">Abbrechen</button>
+          </div>
+        </div>
       </div>
 
       <!-- Maschinen-Konstanten + Schneideeinheit-CAD-Detail (operator-orientiert) -->
@@ -4823,12 +4960,13 @@ footer.footer {
 
   // ============== Cluster-State (Folgeaufträge) ==============
   const CLUSTER_KEY = "rr.clusterJobs";
+  const MAX_CLUSTER = 8; // physisch limitiert durch DCM-Welle 1000mm Bestückungsbereich
   let clusterJobs = []; // {mr, haupt, nebenBreite, nebenAnz}
   function loadClusterJobs() {
     try {
       const saved = JSON.parse(localStorage.getItem(CLUSTER_KEY) || "[]");
       if (Array.isArray(saved)) {
-        clusterJobs = saved.slice(0, 3).map(j => {
+        clusterJobs = saved.slice(0, MAX_CLUSTER).map(j => {
           // Migration: alte Felder "neben: '60×2'" → nebenBreite + nebenAnz
           if (j && j.neben && (!j.nebenBreite && !j.nebenAnz)) {
             const m = String(j.neben).trim().match(/^([\d.,]+)\s*[×x*]\s*([\d]+)$/i);
@@ -4955,7 +5093,7 @@ footer.footer {
     });
     // Add-Btn enable/disable
     const addBtn = document.getElementById("clusterAddBtn");
-    if (addBtn) addBtn.disabled = clusterJobs.length >= 3;
+    if (addBtn) addBtn.disabled = clusterJobs.length >= MAX_CLUSTER;
     // Listeners auf neuen Inputs
     cont.querySelectorAll("input").forEach(inp => {
       inp.addEventListener("input", (e) => {
@@ -6610,10 +6748,105 @@ footer.footer {
   const clusterAddBtn = document.getElementById("clusterAddBtn");
   if (clusterAddBtn) {
     clusterAddBtn.addEventListener("click", () => {
-      if (clusterJobs.length >= 3) return;
+      if (clusterJobs.length >= MAX_CLUSTER) return;
       clusterJobs.push({});
       saveClusterJobs();
       renderClusterJobs();
+    });
+  }
+
+  // ============== Bulk-Paste · Aufträge aus Excel/CSV einfügen ==============
+  // Spalten-Reihenfolge: MR · Haupt · Neben · Anz, getrennt durch Tab oder Semikolon
+  // Header-Zeile (erste Spalte nicht numerisch) wird übersprungen
+  function parseBulkClusterText(text) {
+    if (!text || !text.trim()) return { jobs: [], skipped: 0 };
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    const jobs = [];
+    let skipped = 0;
+    for (const line of lines) {
+      const parts = line.split(/[\t;|]+/).map(s => s.trim());
+      if (parts.length < 2) { skipped++; continue; }
+      // Header-Zeile (erste Spalte nicht-numerisch) → skip
+      const firstNum = parseFloat(parts[0].replace(",", "."));
+      if (!isFinite(firstNum) || firstNum <= 0) { skipped++; continue; }
+      // Zweite Spalte muss auch numerisch sein (Haupt-Breite)
+      const secondNum = parseFloat((parts[1] || "").replace(",", "."));
+      if (!isFinite(secondNum) || secondNum <= 0) { skipped++; continue; }
+      jobs.push({
+        mr: parts[0] || "",
+        haupt: parts[1] || "",
+        nebenBreite: parts[2] || "",
+        nebenAnz: parts[3] || ""
+      });
+    }
+    return { jobs, skipped };
+  }
+
+  const clusterBulkToggle = document.getElementById("clusterBulkToggle");
+  const clusterBulkPane = document.getElementById("clusterBulkPane");
+  const clusterBulkText = document.getElementById("clusterBulkText");
+  const clusterBulkApply = document.getElementById("clusterBulkApply");
+  const clusterBulkAppend = document.getElementById("clusterBulkAppend");
+  const clusterBulkCancel = document.getElementById("clusterBulkCancel");
+  const clusterBulkStatus = document.getElementById("clusterBulkStatus");
+
+  function setBulkStatus(msg, kind) {
+    if (!clusterBulkStatus) return;
+    clusterBulkStatus.className = "cluster-bulk-status" + (kind ? " " + kind : "");
+    clusterBulkStatus.textContent = msg || "";
+  }
+
+  if (clusterBulkToggle && clusterBulkPane) {
+    clusterBulkToggle.addEventListener("click", () => {
+      const open = clusterBulkPane.hidden;
+      clusterBulkPane.hidden = !open;
+      clusterBulkToggle.classList.toggle("active", open);
+      if (open) {
+        setBulkStatus("");
+        setTimeout(() => clusterBulkText && clusterBulkText.focus(), 30);
+      }
+    });
+  }
+  // Live-Status während Eingabe (zeigt erkannte Aufträge)
+  if (clusterBulkText) {
+    clusterBulkText.addEventListener("input", () => {
+      const { jobs, skipped } = parseBulkClusterText(clusterBulkText.value);
+      if (jobs.length === 0 && skipped === 0) { setBulkStatus(""); return; }
+      const overflow = jobs.length > MAX_CLUSTER ? ` · ${jobs.length - MAX_CLUSTER} überzählig (Max ${MAX_CLUSTER})` : "";
+      const skipTxt = skipped > 0 ? ` · ${skipped} übersprungen` : "";
+      const kind = jobs.length === 0 ? "err" : (jobs.length > MAX_CLUSTER ? "warn" : "ok");
+      setBulkStatus(`${jobs.length} Auftr${jobs.length===1?"ag":"äge"} erkannt${skipTxt}${overflow}`, kind);
+    });
+  }
+  function applyBulk(append) {
+    if (!clusterBulkText) return;
+    const { jobs, skipped } = parseBulkClusterText(clusterBulkText.value);
+    if (jobs.length === 0) {
+      setBulkStatus("Keine Aufträge erkannt — Tab/Semikolon zwischen Spalten?", "err");
+      return;
+    }
+    if (append) {
+      const slotsLeft = MAX_CLUSTER - clusterJobs.length;
+      clusterJobs = [...clusterJobs, ...jobs.slice(0, slotsLeft)];
+    } else {
+      clusterJobs = jobs.slice(0, MAX_CLUSTER);
+    }
+    saveClusterJobs();
+    renderClusterJobs();
+    if (lastValid) renderWelle(lastValid);
+    clusterBulkText.value = "";
+    clusterBulkPane.hidden = true;
+    if (clusterBulkToggle) clusterBulkToggle.classList.remove("active");
+    setBulkStatus("");
+  }
+  if (clusterBulkApply) clusterBulkApply.addEventListener("click", () => applyBulk(false));
+  if (clusterBulkAppend) clusterBulkAppend.addEventListener("click", () => applyBulk(true));
+  if (clusterBulkCancel) {
+    clusterBulkCancel.addEventListener("click", () => {
+      if (clusterBulkText) clusterBulkText.value = "";
+      if (clusterBulkPane) clusterBulkPane.hidden = true;
+      if (clusterBulkToggle) clusterBulkToggle.classList.remove("active");
+      setBulkStatus("");
     });
   }
   // Cluster auch closed by default beim Reload
