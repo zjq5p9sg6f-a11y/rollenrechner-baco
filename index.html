@@ -644,7 +644,7 @@ header.bar {
 }
 .neben-slot {
   display: grid;
-  grid-template-columns: 44px 1fr 18px 1fr;
+  grid-template-columns: 44px 1fr 18px 1fr 1.1fr;
   gap: 10px;
   align-items: center;
   padding: 12px 14px;
@@ -653,6 +653,16 @@ header.bar {
   background: linear-gradient(180deg, rgba(255,180,0,0.04), rgba(255,180,0,0.01));
   transition: all var(--t-fast);
 }
+.neben-slot-pair.soll {
+  border-color: rgba(0,230,118,0.25);
+  border-style: dashed;
+}
+.neben-slot-pair.soll:focus-within {
+  border-color: var(--accent-primary);
+  border-style: solid;
+}
+.neben-slot-pair.soll .neben-slot-label { color: var(--accent-primary); opacity: 0.85; }
+.neben-slot-pair.soll input { color: var(--accent-primary); }
 .neben-slot:focus-within {
   border-color: #ffb400;
   box-shadow: 0 0 0 1px rgba(255,180,0,0.5), 0 0 16px rgba(255,180,0,0.15);
@@ -715,6 +725,180 @@ header.bar {
   .neben-slot { grid-template-columns: 36px 1fr; gap: 6px; }
   .neben-slot-x { display: none; }
   .neben-slot-pair { grid-column: 2; }
+}
+
+.neben-slot[data-slot-hidden="true"] { display: none; }
+.neben-slot { position: relative; }
+.neben-slot-remove {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 22px; height: 22px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(0,0,0,0.4);
+  color: var(--text-secondary);
+  border-radius: 50%;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 0.9;
+  display: grid; place-items: center;
+  transition: all var(--t-fast);
+  z-index: 2;
+}
+.neben-slot-remove:hover {
+  background: var(--danger-color);
+  color: #fff;
+  border-color: var(--danger-color);
+  transform: scale(1.1);
+}
+.neben-slot-add {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%;
+  gap: 10px;
+  padding: 12px 18px;
+  margin-top: 10px;
+  background: transparent;
+  border: 1px dashed rgba(255,180,0,0.45);
+  border-radius: var(--r-2);
+  color: #ffb400;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.neben-slot-add:hover {
+  background: rgba(255,180,0,0.06);
+  border-style: solid;
+  border-color: #ffb400;
+  box-shadow: 0 0 16px rgba(255,180,0,0.18);
+}
+.neben-slot-add:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.neben-slot-add-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-size: 16px; font-weight: 800;
+  line-height: 0.9;
+}
+
+/* ============== Auftragserfüllungs-Tabelle (Bottleneck-View) ============== */
+.fulfillment-card {
+  background: linear-gradient(180deg, rgba(20,20,20,0.7), rgba(10,10,10,0.5));
+  border: 1px solid rgba(0,230,118,0.20);
+  border-radius: var(--r-3);
+  padding: 18px 22px;
+  margin-top: var(--s-3);
+  box-shadow: 0 0 24px rgba(0,230,118,0.04) inset;
+}
+.fulfillment-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px;
+}
+.fulfillment-title {
+  font-size: 16px; font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  text-shadow: 0 0 16px var(--accent-glow);
+}
+.fulfillment-title-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: rgba(0,230,118,0.12);
+  border: 1px solid rgba(0,230,118,0.32);
+  color: var(--accent-primary);
+  display: grid; place-items: center;
+}
+.fulfillment-title-icon svg { width: 16px; height: 16px; }
+.fulfillment-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+.fulfillment-table {
+  display: grid;
+  grid-template-columns: minmax(70px, auto) 1fr 1fr 1fr auto;
+  gap: 8px 18px;
+  align-items: center;
+}
+.fulfillment-table .ft-header {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.fulfillment-row {
+  display: contents;
+}
+.fulfillment-row > * {
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.06);
+}
+.fulfillment-row:last-child > * { border-bottom: 0; }
+.ft-tag {
+  font-size: 12px; font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid currentColor;
+  display: inline-block;
+}
+.ft-tag.haupt { color: var(--accent-primary); background: rgba(0,230,118,0.08); }
+.ft-tag.neben { color: #ffb400; background: rgba(255,180,0,0.08); }
+.ft-num {
+  font-size: 17px; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+.ft-num-unit { font-size: 12px; opacity: 0.6; font-weight: 600; margin-left: 4px; }
+.ft-status {
+  font-size: 13px; font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-align: center;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.ft-status.ok        { background: rgba(0,230,118,0.12); color: var(--accent-primary); border: 1px solid rgba(0,230,118,0.4); }
+.ft-status.over      { background: rgba(0,230,118,0.20); color: var(--accent-primary); border: 1px solid var(--accent-primary); }
+.ft-status.under     { background: rgba(255,107,53,0.16); color: var(--warn-color); border: 1px solid rgba(255,107,53,0.5); }
+.ft-status.critical  { background: rgba(255,77,109,0.16); color: var(--danger-color); border: 1px solid var(--danger-color); }
+.ft-status.no-soll   { background: rgba(120,120,120,0.10); color: var(--text-secondary); border: 1px dashed var(--border); }
+
+.ft-summary {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  flex-wrap: wrap;
+}
+.ft-summary-text { font-size: 14px; color: var(--text-secondary); }
+.ft-summary-text strong { color: var(--text-primary); font-weight: 700; }
+.ft-summary-saetze {
+  font-size: 22px; font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-primary);
+  text-shadow: 0 0 14px var(--accent-glow-soft);
+}
+
+@media (max-width: 800px) {
+  .fulfillment-table { grid-template-columns: 1fr; gap: 4px; }
+  .fulfillment-table .ft-header { display: none; }
+  .fulfillment-row > * { padding: 6px 0; border-bottom: 0; }
+  .fulfillment-row { padding: 10px 0; border-bottom: 1px dashed rgba(255,255,255,0.06); display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; }
 }
 
 /* ============== Multi-Line-Result Display (Nutzen + Hülsen bei Hetero) ============== */
@@ -1692,8 +1876,14 @@ footer.footer {
                   <input id="neben1Anz" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="1" autocomplete="off">
                   <span class="neben-slot-unit">Stk</span>
                 </div>
+                <div class="neben-slot-pair soll">
+                  <label class="neben-slot-label">Soll</label>
+                  <input id="neben1Soll" type="text" inputmode="decimal" pattern="[0-9.,]*" placeholder="optional" autocomplete="off">
+                  <span class="neben-slot-unit">qm</span>
+                </div>
               </div>
-              <div class="neben-slot" data-slot="2">
+              <div class="neben-slot" data-slot="2" data-slot-hidden="true">
+                <button type="button" class="neben-slot-remove" data-slot-target="2" aria-label="Slot N2 entfernen" tabindex="-1">×</button>
                 <div class="neben-slot-num">N2</div>
                 <div class="neben-slot-pair">
                   <label class="neben-slot-label">Breite</label>
@@ -1706,8 +1896,14 @@ footer.footer {
                   <input id="neben2Anz" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="—" autocomplete="off">
                   <span class="neben-slot-unit">Stk</span>
                 </div>
+                <div class="neben-slot-pair soll">
+                  <label class="neben-slot-label">Soll</label>
+                  <input id="neben2Soll" type="text" inputmode="decimal" pattern="[0-9.,]*" placeholder="optional" autocomplete="off">
+                  <span class="neben-slot-unit">qm</span>
+                </div>
               </div>
-              <div class="neben-slot" data-slot="3">
+              <div class="neben-slot" data-slot="3" data-slot-hidden="true">
+                <button type="button" class="neben-slot-remove" data-slot-target="3" aria-label="Slot N3 entfernen" tabindex="-1">×</button>
                 <div class="neben-slot-num">N3</div>
                 <div class="neben-slot-pair">
                   <label class="neben-slot-label">Breite</label>
@@ -1720,8 +1916,14 @@ footer.footer {
                   <input id="neben3Anz" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="—" autocomplete="off">
                   <span class="neben-slot-unit">Stk</span>
                 </div>
+                <div class="neben-slot-pair soll">
+                  <label class="neben-slot-label">Soll</label>
+                  <input id="neben3Soll" type="text" inputmode="decimal" pattern="[0-9.,]*" placeholder="optional" autocomplete="off">
+                  <span class="neben-slot-unit">qm</span>
+                </div>
               </div>
-              <div class="neben-slot" data-slot="4">
+              <div class="neben-slot" data-slot="4" data-slot-hidden="true">
+                <button type="button" class="neben-slot-remove" data-slot-target="4" aria-label="Slot N4 entfernen" tabindex="-1">×</button>
                 <div class="neben-slot-num">N4</div>
                 <div class="neben-slot-pair">
                   <label class="neben-slot-label">Breite</label>
@@ -1734,8 +1936,17 @@ footer.footer {
                   <input id="neben4Anz" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="—" autocomplete="off">
                   <span class="neben-slot-unit">Stk</span>
                 </div>
+                <div class="neben-slot-pair soll">
+                  <label class="neben-slot-label">Soll</label>
+                  <input id="neben4Soll" type="text" inputmode="decimal" pattern="[0-9.,]*" placeholder="optional" autocomplete="off">
+                  <span class="neben-slot-unit">qm</span>
+                </div>
               </div>
             </div>
+            <button type="button" class="neben-slot-add" id="addNebenBtn" aria-label="Weitere Neben-Breite hinzufügen" tabindex="-1">
+              <span class="neben-slot-add-icon">+</span>
+              <span class="neben-slot-add-text">Weitere Neben-Breite hinzufügen</span>
+            </button>
             <div class="input-row hetero" data-field="besaeumungL">
               <span class="input-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
@@ -1846,6 +2057,26 @@ footer.footer {
             Maschinen-Daten
           </div>
           <span id="lastUpdate" style="font-size:12px;color:var(--text-secondary);font-weight:500;">—</span>
+        </div>
+
+        <!-- Auftragserfüllungs-Card: nur sichtbar bei Hetero + mind. 1 Soll-Wert -->
+        <div class="fulfillment-card" id="fulfillmentCard" style="display:none">
+          <div class="fulfillment-head">
+            <span class="fulfillment-title-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11 L11 13 L16 8"/><circle cx="12" cy="12" r="9"/></svg></span>
+            <div class="fulfillment-title">Auftragserfüllung</div>
+          </div>
+          <div class="fulfillment-sub" id="fulfillmentSub">Soll-Ist-Vergleich pro Schmalrollen-Art bei aktueller Cluster-Konfiguration</div>
+          <div class="fulfillment-table" id="fulfillmentTable">
+            <div class="ft-header">Auftrag</div>
+            <div class="ft-header">Soll</div>
+            <div class="ft-header">Ist (bei N Sätzen)</div>
+            <div class="ft-header">Δ</div>
+            <div class="ft-header">Status</div>
+          </div>
+          <div class="ft-summary">
+            <div class="ft-summary-text" id="fulfillmentSummary">—</div>
+            <div class="ft-summary-saetze" id="fulfillmentSaetze">— Sätze</div>
+          </div>
         </div>
 
         <div class="results-grid">
@@ -1991,13 +2222,18 @@ footer.footer {
     mutter:       document.getElementById("mutter"),
     neben1Breite: document.getElementById("neben1Breite"),
     neben1Anz:    document.getElementById("neben1Anz"),
+    neben1Soll:   document.getElementById("neben1Soll"),
     neben2Breite: document.getElementById("neben2Breite"),
     neben2Anz:    document.getElementById("neben2Anz"),
+    neben2Soll:   document.getElementById("neben2Soll"),
     neben3Breite: document.getElementById("neben3Breite"),
     neben3Anz:    document.getElementById("neben3Anz"),
+    neben3Soll:   document.getElementById("neben3Soll"),
     neben4Breite: document.getElementById("neben4Breite"),
     neben4Anz:    document.getElementById("neben4Anz"),
+    neben4Soll:   document.getElementById("neben4Soll"),
     besaeumungL:  document.getElementById("besaeumungL"),
+    addNebenBtn:  document.getElementById("addNebenBtn"),
     nutzenClassic: document.getElementById("nutzenClassic"),
     nutzenHetero:  document.getElementById("nutzenHetero"),
     huelsenClassic: document.getElementById("huelsenClassic"),
@@ -2211,10 +2447,19 @@ footer.footer {
     const nebenSlots = [];
     if (heteroOn) {
       for (let i = 1; i <= 4; i++) {
+        const slotEl = document.querySelector(`.neben-slot[data-slot="${i}"]`);
+        // Versteckte Slots ignorieren — auch wenn sie LocalStorage-Werte haben
+        if (slotEl && slotEl.getAttribute("data-slot-hidden") === "true") continue;
         const b = num(els['neben' + i + 'Breite']);
         const a = num(els['neben' + i + 'Anz']);
+        const sollQm = num(els['neben' + i + 'Soll']); // optional
         if (isFinite(b) && b > 0 && isFinite(a) && a >= 1) {
-          nebenSlots.push({ slotIdx: i, breite: b, anz: Math.floor(a) });
+          nebenSlots.push({
+            slotIdx: i,
+            breite: b,
+            anz: Math.floor(a),
+            sollQm: isFinite(sollQm) && sollQm > 0 ? sollQm : null
+          });
         }
       }
     }
@@ -2265,8 +2510,38 @@ footer.footer {
     // Bei heterogener Einteilung produziert ein Satz auch Neben-Schmalrollen → eigene Hülsen-Cuts pro Breite.
     const totalSaetze = volleSaetze + (restsatzLFM > 0.0001 ? 1 : 0);
     const huelsenHaupt = totalSaetze * nutzen;
-    // Per-Slot Hülsen
-    nebenSlots.forEach(s => { s.huelsen = totalSaetze * s.anz; });
+
+    // Per-Slot Hülsen + Soll-Erfüllung-Logik
+    // Annahme: gleiche Maschinengeschwindigkeit → jeder Slot produziert anz × LFM/Satz
+    // Ist-LFM bei Haupt-Sätzen = anz × lfm × totalSaetze
+    nebenSlots.forEach(s => {
+      s.huelsen = totalSaetze * s.anz;
+      s.lfmPerSatz = s.anz * lfm;
+      s.istLFM = s.lfmPerSatz * totalSaetze;
+      s.istQm = s.istLFM * (s.breite / 1000);
+      if (s.sollQm) {
+        s.sollLFM = s.sollQm / (s.breite / 1000);
+        s.deltaQm = s.istQm - s.sollQm;
+        s.deltaPct = (s.istQm / s.sollQm) * 100;
+        s.saetzeFuerSoll = Math.ceil(s.sollLFM / s.lfmPerSatz);
+        // Status: ok (innerhalb ±5%), over (>5% Überschuss), under (<-5% Untererfüllung), critical (<-25%)
+        if (s.deltaPct >= 95 && s.deltaPct <= 105) s.status = "ok";
+        else if (s.deltaPct > 105) s.status = "over";
+        else if (s.deltaPct < 75) s.status = "critical";
+        else s.status = "under";
+      } else {
+        s.status = "no-soll";
+      }
+    });
+    // Haupt-Erfüllung (immer, da flaeche = haupt-soll)
+    const hauptIstLFM = totalSaetze * proSatz;
+    const hauptIstQm = hauptIstLFM * (schmal / 1000);
+    const hauptDeltaQm = hauptIstQm - flaeche;
+    const hauptDeltaPct = (hauptIstQm / flaeche) * 100;
+    const hauptStatus = hauptDeltaPct >= 100 && hauptDeltaPct <= 105 ? "ok"
+                     : hauptDeltaPct > 105 ? "over"
+                     : "under";
+
     const huelsenNebenTotal = nebenSlots.reduce((s, x) => s + x.huelsen, 0);
     const huelsen = huelsenHaupt + huelsenNebenTotal;
 
@@ -2298,6 +2573,8 @@ footer.footer {
       totalSaetze, huelsen,
       hasNeben, nebenSlots, nebenAnzTotal, nebenSpace,
       huelsenHaupt, huelsenNebenTotal,
+      hauptIstQm, hauptDeltaQm, hauptDeltaPct, hauptStatus,
+      hasAnySoll: nebenSlots.some(s => s.sollQm),
       // Asymmetrische Besäumung-Logik (nur bei Hetero relevant — Default symmetrisch)
       ...(function(){
         if (!hasNeben) return { restL: restMM/2, restR: restMM/2, asymmetric: false };
@@ -2325,6 +2602,7 @@ footer.footer {
     render(out);
     renderWarnings(inputs, out);
     drawViz(out);
+    renderFulfillment(out);
 
     els.statusBadge.textContent = "Live · aktualisiert";
     els.statusBadge.style.color = "var(--accent-primary)";
@@ -2413,6 +2691,64 @@ footer.footer {
              `</div>` +
              `<button class="ml-copy" type="button" tabindex="-1" data-copy-value="${value}" data-copy-label="${tag} (${unit} ${detail})" aria-label="Kopieren ${tag}">${copySvg}</button>` +
            `</div>`;
+  }
+
+  function renderFulfillment(o) {
+    const card = document.getElementById("fulfillmentCard");
+    const table = document.getElementById("fulfillmentTable");
+    if (!card || !table) return;
+    // Sichtbar nur wenn Hetero an UND mind. 1 Soll-Wert vorhanden
+    if (!o.hasNeben || !o.hasAnySoll) {
+      card.style.display = "none";
+      return;
+    }
+    card.style.display = "";
+    // Header behalten + Reihen rendern
+    const headerHtml = `<div class="ft-header">Auftrag</div><div class="ft-header">Soll</div><div class="ft-header">Ist (bei ${o.totalSaetze} Sätzen)</div><div class="ft-header">Δ</div><div class="ft-header">Status</div>`;
+
+    function statusBadge(status, deltaPct) {
+      const labels = { ok: "✓ erfüllt", over: "+ Überschuss", under: "− Untererfüllung", critical: "⚠ kritisch", "no-soll": "(kein Soll)" };
+      return `<span class="ft-status ${status}">${labels[status] || status}${status !== "no-soll" && isFinite(deltaPct) ? " · " + nf0.format(deltaPct) + " %" : ""}</span>`;
+    }
+
+    let rows = headerHtml;
+    // Haupt-Zeile
+    rows += `<div class="ft-tag haupt">HAUPT · ${nf0.format(o.schmal)} mm</div>`;
+    rows += `<div><span class="ft-num">${nf0.format(o.flaeche)}</span><span class="ft-num-unit">qm</span></div>`;
+    rows += `<div><span class="ft-num">${nf0.format(o.hauptIstQm)}</span><span class="ft-num-unit">qm</span></div>`;
+    rows += `<div><span class="ft-num" style="color:${o.hauptDeltaQm >= 0 ? 'var(--accent-primary)' : 'var(--warn-color)'}">${o.hauptDeltaQm >= 0 ? '+' : ''}${nf0.format(o.hauptDeltaQm)}</span><span class="ft-num-unit">qm</span></div>`;
+    rows += `<div>${statusBadge(o.hauptStatus, o.hauptDeltaPct)}</div>`;
+    // Neben-Slots
+    o.nebenSlots.forEach(s => {
+      rows += `<div class="ft-tag neben">N${s.slotIdx} · ${nf0.format(s.breite)} mm</div>`;
+      if (s.sollQm) {
+        rows += `<div><span class="ft-num">${nf0.format(s.sollQm)}</span><span class="ft-num-unit">qm</span></div>`;
+        rows += `<div><span class="ft-num">${nf0.format(s.istQm)}</span><span class="ft-num-unit">qm</span></div>`;
+        rows += `<div><span class="ft-num" style="color:${s.deltaQm >= 0 ? 'var(--accent-primary)' : 'var(--warn-color)'}">${s.deltaQm >= 0 ? '+' : ''}${nf0.format(s.deltaQm)}</span><span class="ft-num-unit">qm</span></div>`;
+        rows += `<div>${statusBadge(s.status, s.deltaPct)}</div>`;
+      } else {
+        rows += `<div><span style="color:var(--text-secondary);font-size:13px">—</span></div>`;
+        rows += `<div><span class="ft-num">${nf0.format(s.istQm)}</span><span class="ft-num-unit">qm Output</span></div>`;
+        rows += `<div><span style="color:var(--text-secondary);font-size:13px">—</span></div>`;
+        rows += `<div>${statusBadge("no-soll")}</div>`;
+      }
+    });
+    table.innerHTML = rows;
+
+    // Summary
+    const sollSlots = o.nebenSlots.filter(s => s.sollQm);
+    const fulfilled = sollSlots.filter(s => s.status === "ok" || s.status === "over").length;
+    const total = sollSlots.length;
+    const summary = document.getElementById("fulfillmentSummary");
+    const saetzeEl = document.getElementById("fulfillmentSaetze");
+    if (summary) {
+      const hauptOk = o.hauptStatus === "ok" || o.hauptStatus === "over";
+      const allOk = hauptOk && fulfilled === total;
+      summary.innerHTML = allOk
+        ? `<strong style="color:var(--accent-primary)">✓ Alle Aufträge erfüllt</strong> · Cluster jetzt fahren`
+        : `<strong>${fulfilled + (hauptOk ? 1 : 0)} / ${total + 1} Aufträge erfüllt</strong> · Untererfüllte in nächstem Cluster nachholen oder Anzahl anpassen`;
+    }
+    if (saetzeEl) saetzeEl.textContent = `${o.totalSaetze} Sätze`;
   }
 
   function render(o) {
@@ -3402,8 +3738,10 @@ footer.footer {
   // Alle möglichen Inputs — auch die heterogen-spezifischen (auch wenn aktuell collapsed)
   const ALL_INPUTS = [
     els.flaeche, els.mutter, els.schmal,
-    els.neben1Breite, els.neben1Anz, els.neben2Breite, els.neben2Anz,
-    els.neben3Breite, els.neben3Anz, els.neben4Breite, els.neben4Anz,
+    els.neben1Breite, els.neben1Anz, els.neben1Soll,
+    els.neben2Breite, els.neben2Anz, els.neben2Soll,
+    els.neben3Breite, els.neben3Anz, els.neben3Soll,
+    els.neben4Breite, els.neben4Anz, els.neben4Soll,
     els.besaeumungL,
     els.lfm, els.speed, els.ruestBase, els.ruestPerSatz
   ].filter(Boolean);
@@ -3458,7 +3796,9 @@ footer.footer {
     els.heteroFields.setAttribute("aria-hidden", open ? "false" : "true");
     if (!open) {
       // Werte beim Schließen leeren
-      ["neben1Breite","neben1Anz","neben2Breite","neben2Anz","neben3Breite","neben3Anz","neben4Breite","neben4Anz","besaeumungL"]
+      ["neben1Breite","neben1Anz","neben1Soll","neben2Breite","neben2Anz","neben2Soll",
+       "neben3Breite","neben3Anz","neben3Soll","neben4Breite","neben4Anz","neben4Soll",
+       "besaeumungL"]
         .forEach(k => { if (els[k]) els[k].value = ""; });
     }
     if (persist) localStorage.setItem(HETERO_KEY, open ? "1" : "0");
@@ -3473,21 +3813,79 @@ footer.footer {
       if (!isOpen && els.neben1Breite) setTimeout(() => els.neben1Breite.focus(), 200);
     });
   }
+
+  // ============== Progressive Slot-Visibility ==============
+  // N1 immer sichtbar wenn Hetero an. N2/N3/N4 erst durch "+ weitere Breite"
+  const SLOTS_VISIBLE_KEY = "rr.slotsVisible";
+  function getSlotsVisible() {
+    const v = parseInt(localStorage.getItem(SLOTS_VISIBLE_KEY)) || 1;
+    return Math.min(4, Math.max(1, v));
+  }
+  function applySlotVisibility(n) {
+    n = Math.min(4, Math.max(1, n));
+    for (let i = 1; i <= 4; i++) {
+      const slot = document.querySelector(`.neben-slot[data-slot="${i}"]`);
+      if (slot) slot.setAttribute("data-slot-hidden", i <= n ? "false" : "true");
+    }
+    if (els.addNebenBtn) {
+      els.addNebenBtn.disabled = n >= 4;
+      els.addNebenBtn.style.display = n >= 4 ? "none" : "";
+    }
+    localStorage.setItem(SLOTS_VISIBLE_KEY, String(n));
+    rebuildTabOrder();
+  }
+  if (els.addNebenBtn) {
+    els.addNebenBtn.addEventListener("click", () => {
+      const cur = getSlotsVisible();
+      if (cur >= 4) return;
+      const next = cur + 1;
+      applySlotVisibility(next);
+      // Fokus auf Breite-Feld des neuen Slots
+      const newBreite = els[`neben${next}Breite`];
+      if (newBreite) setTimeout(() => newBreite.focus(), 80);
+    });
+  }
+  // Per-Slot Remove-Handler (delegated)
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".neben-slot-remove");
+    if (!btn) return;
+    const slotNum = parseInt(btn.dataset.slotTarget);
+    if (!slotNum || slotNum < 2 || slotNum > 4) return;
+    // Werte des Slots leeren
+    [`neben${slotNum}Breite`, `neben${slotNum}Anz`, `neben${slotNum}Soll`].forEach(k => {
+      if (els[k]) els[k].value = "";
+    });
+    // Prüfe wieviele Slots gerade sichtbar sind — wenn dieser der höchste war, einen weniger
+    const cur = getSlotsVisible();
+    if (slotNum === cur) {
+      applySlotVisibility(cur - 1);
+    } else {
+      // Lücke — collapse: shift alle Werte runter? Pragmatisch: lass Slot leer und sichtbar
+      // (Operator kann ihn neu befüllen oder wegklicken)
+      // Hier: einfach leer lassen, calc ignoriert leere Slots
+    }
+    calc();
+  });
+
   // Restore Toggle-State bei Page-Load
   if (localStorage.getItem(HETERO_KEY) === "1") setHeteroState(true, false);
+  applySlotVisibility(getSlotsVisible());
 
   // keyboard: Enter + Tab + Shift+Tab cyclen durch die aktiven Eingabefelder.
   // Bei Hetero-Open sind nebenBreite + nebenAnz im Loop, sonst nicht.
   let order = [];
   function rebuildTabOrder() {
     const heteroOn = els.heteroToggle && els.heteroToggle.getAttribute("aria-expanded") === "true";
-    const heteroFields = heteroOn ? [
-      els.neben1Breite, els.neben1Anz,
-      els.neben2Breite, els.neben2Anz,
-      els.neben3Breite, els.neben3Anz,
-      els.neben4Breite, els.neben4Anz,
-      els.besaeumungL
-    ] : [];
+    const heteroFields = [];
+    if (heteroOn) {
+      // Nur sichtbare Slots in den Tab-Loop nehmen
+      for (let i = 1; i <= 4; i++) {
+        const slotEl = document.querySelector(`.neben-slot[data-slot="${i}"]`);
+        if (slotEl && slotEl.getAttribute("data-slot-hidden") === "true") continue;
+        heteroFields.push(els[`neben${i}Breite`], els[`neben${i}Anz`], els[`neben${i}Soll`]);
+      }
+      heteroFields.push(els.besaeumungL);
+    }
     order = [
       els.flaeche, els.mutter, els.schmal,
       ...heteroFields,
@@ -3526,8 +3924,10 @@ footer.footer {
     // Firefox-Defensive: Auftragsdaten-Felder bei jedem Page-Load explizit leeren.
     // Verhindert dass Firefox-Form-Restore alte Werte aus letzter Session wieder einsetzt.
     [els.flaeche, els.mutter, els.schmal, els.lfm,
-     els.neben1Breite, els.neben1Anz, els.neben2Breite, els.neben2Anz,
-     els.neben3Breite, els.neben3Anz, els.neben4Breite, els.neben4Anz,
+     els.neben1Breite, els.neben1Anz, els.neben1Soll,
+     els.neben2Breite, els.neben2Anz, els.neben2Soll,
+     els.neben3Breite, els.neben3Anz, els.neben3Soll,
+     els.neben4Breite, els.neben4Anz, els.neben4Soll,
      els.besaeumungL].forEach(el => { if (el) el.value = ""; });
 
     // Operator-preference fields stick across reloads
@@ -3557,8 +3957,10 @@ footer.footer {
   window.addEventListener("pageshow", (e) => {
     if (e.persisted) {
       [els.flaeche, els.mutter, els.schmal, els.lfm,
-     els.neben1Breite, els.neben1Anz, els.neben2Breite, els.neben2Anz,
-     els.neben3Breite, els.neben3Anz, els.neben4Breite, els.neben4Anz,
+     els.neben1Breite, els.neben1Anz, els.neben1Soll,
+     els.neben2Breite, els.neben2Anz, els.neben2Soll,
+     els.neben3Breite, els.neben3Anz, els.neben3Soll,
+     els.neben4Breite, els.neben4Anz, els.neben4Soll,
      els.besaeumungL].forEach(el => { if (el) el.value = ""; });
       calc();
     }
