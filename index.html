@@ -378,6 +378,14 @@ header.bar {
   border: 1px solid var(--accent-primary);
   box-shadow: 0 0 40px var(--accent-glow), inset 0 1px 0 rgba(0,230,118,0.12);
   overflow: hidden;
+  transition: box-shadow 0.4s ease, border-color 0.4s ease;
+}
+.hero-strip.hero-just-swapped {
+  box-shadow: 0 0 60px rgba(0,230,118,0.55), 0 0 120px rgba(0,230,118,0.25), inset 0 1px 0 rgba(0,230,118,0.20);
+  border-color: #00e676;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-strip { transition: none; }
 }
 .hero-strip::before {
   content: "";
@@ -1367,7 +1375,7 @@ header.bar {
 }
 .cluster-job {
   display: grid;
-  grid-template-columns: 36px 1fr 1fr 1fr 0.7fr 28px 28px;
+  grid-template-columns: 36px 1fr 1fr 1fr 0.7fr 28px 28px 28px;
   gap: 8px;
   align-items: center;
   padding: 10px 14px;
@@ -1398,7 +1406,8 @@ header.bar {
   font-size: 14px;
   font-weight: 600;
 }
-.cluster-job-expand {
+.cluster-job-expand,
+.cluster-job-edit {
   width: 28px; height: 28px;
   border: 1px solid rgba(66,165,245,0.30);
   background: rgba(0,0,0,0.30);
@@ -1412,13 +1421,26 @@ header.bar {
   font-family: inherit;
   padding: 0;
 }
-.cluster-job-expand:hover {
+.cluster-job-expand:hover,
+.cluster-job-edit:hover {
   background: rgba(66,165,245,0.20);
   border-color: #42a5f5;
 }
 .cluster-job-expanded .cluster-job-expand {
   background: rgba(66,165,245,0.20);
   border-color: #42a5f5;
+}
+/* Edit-Button (↑) prominenter — der eigentliche Workflow-Hebel */
+.cluster-job-edit {
+  border-color: rgba(0,230,118,0.50);
+  background: rgba(0,230,118,0.10);
+  color: var(--accent-primary);
+  font-size: 14px;
+}
+.cluster-job-edit:hover {
+  background: var(--accent-primary);
+  color: #062b14;
+  box-shadow: 0 0 12px var(--accent-glow);
 }
 /* Output-Block · Mini-Kacheln pro Slot */
 .cluster-job-output {
@@ -2078,13 +2100,14 @@ header.bar {
 /* Mobile: cluster-job auf 2 Spalten kollabieren */
 @media (max-width: 800px) {
   .cluster-job {
-    grid-template-columns: 36px 1fr 1fr 28px 28px;
+    grid-template-columns: 36px 1fr 1fr 28px 28px 28px;
     grid-template-areas:
-      "num   mr     haupt  exp  rm"
-      "num   neben  anz    exp  rm";
+      "num   mr     haupt  edt  exp  rm"
+      "num   neben  anz    edt  exp  rm";
     row-gap: 6px;
   }
   .cluster-job .cluster-job-num { grid-area: num; }
+  .cluster-job .cluster-job-edit { grid-area: edt; align-self: center; }
   .cluster-job .cluster-job-expand { grid-area: exp; align-self: center; }
   .cluster-job .cluster-job-remove,
   .cluster-job .cluster-job-jump { grid-area: rm; }
@@ -2092,7 +2115,6 @@ header.bar {
   .cluster-job .cluster-job-pair:nth-of-type(2) { grid-area: haupt; }
   .cluster-job .cluster-job-pair:nth-of-type(3) { grid-area: neben; }
   .cluster-job .cluster-job-pair:nth-of-type(4) { grid-area: anz; }
-  /* Extras im Expanded-Mode überschreiben grid-area-Logik (sind direct children) */
   .cluster-job .cluster-job-extras .cluster-job-pair { grid-area: auto; }
 }
 .cluster-add-icon {
@@ -5489,6 +5511,156 @@ footer.footer {
     try { localStorage.setItem(CLUSTER_KEY, JSON.stringify(clusterJobs)); } catch(e) {}
   }
 
+  // ============== Auftrags-Snapshot · Hauptrechner ↔ Cluster-Slot Swap ==============
+  // Liste aller Hauptrechner-Input-IDs die zu EINEM Auftrag gehören (NICHT speed/ruest* —
+  // das sind Maschinen-Settings, global gültig).
+  const MAIN_JOB_INPUT_IDS = [
+    "flaeche","mutter","schmal","lfm","besaeumungL",
+    "neben1Breite","neben1Anz","neben1Soll",
+    "neben2Breite","neben2Anz","neben2Soll",
+    "neben3Breite","neben3Anz","neben3Soll",
+    "neben4Breite","neben4Anz","neben4Soll",
+    "welleAuftragNr","welleDatum","welleKunde","welleMaterial","welleBemerkung"
+  ];
+  function captureMainState() {
+    const snap = {};
+    MAIN_JOB_INPUT_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) snap[id] = el.value;
+    });
+    // State-Flags die zur Auftrag-Konfiguration gehören
+    const heteroToggle = document.getElementById("heteroToggle");
+    const asymToggle = document.getElementById("asymToggle");
+    snap._heteroOpen = !!(heteroToggle && heteroToggle.getAttribute("aria-expanded") === "true");
+    snap._asymOpen = !!(asymToggle && asymToggle.getAttribute("aria-expanded") === "true");
+    snap._slotsVisible = parseInt(localStorage.getItem("rr.slotsVisible") || "1") || 1;
+    return snap;
+  }
+  // Mapping: Hauptrechner-State (full snapshot) ↔ Cluster-Slot-Felder (compact)
+  // Slots speichern compact-Felder (mr/haupt/nebenBreite/nebenAnz/flaeche/lfm/Header)
+  // PLUS einen optionalen `_fullState` Blob mit allem anderen (Hetero-Slots, Asym, etc.)
+  // Damit nichts verloren geht beim Swap, aber compact-Eingabe direkt im Slot weiterhin funktioniert.
+  function jobToMainState(job) {
+    if (!job) return {};
+    // Kompakt-Felder → Hauptrechner-IDs
+    const snap = job._fullState ? { ...job._fullState } : {};
+    snap.mutter = job.mr || snap.mutter || "";
+    snap.schmal = job.haupt || snap.schmal || "";
+    snap.flaeche = job.flaeche || snap.flaeche || "";
+    snap.lfm = job.lfm || snap.lfm || "";
+    snap.welleAuftragNr = job.auftragsNr || snap.welleAuftragNr || "";
+    snap.welleKunde = job.kunde || snap.welleKunde || "";
+    snap.welleMaterial = job.material || snap.welleMaterial || "";
+    snap.welleBemerkung = job.bemerkung || snap.welleBemerkung || "";
+    // Neben N1 aus compact-Feldern (höhere Slots nur via _fullState)
+    if (job.nebenBreite) {
+      snap.neben1Breite = job.nebenBreite;
+      snap.neben1Anz = job.nebenAnz || "1";
+      snap._heteroOpen = true;
+      if (!snap._slotsVisible || snap._slotsVisible < 1) snap._slotsVisible = 1;
+    }
+    return snap;
+  }
+  function mainStateToJob(snap) {
+    if (!snap) return ensureClusterJobShape({});
+    const job = ensureClusterJobShape({});
+    job.mr = snap.mutter || "";
+    job.haupt = snap.schmal || "";
+    job.flaeche = snap.flaeche || "";
+    job.lfm = snap.lfm || "";
+    job.auftragsNr = snap.welleAuftragNr || "";
+    job.kunde = snap.welleKunde || "";
+    job.material = snap.welleMaterial || "";
+    job.bemerkung = snap.welleBemerkung || "";
+    job.nebenBreite = snap.neben1Breite || "";
+    job.nebenAnz = snap.neben1Anz || "";
+    job._fullState = snap; // alles incl. Hetero-N2-N4, Asym, etc. konservieren
+    return job;
+  }
+  // Swap-Routine: Slot ↔ Hauptrechner — der eigentliche Workflow-Hebel.
+  // Operator klickt auf "↑ Bearbeiten" eines Cluster-Slots → der Slot kommt in den
+  // Hauptrechner (volle Rechnung + Visualisierung), und der bisherige Hauptrechner-
+  // Inhalt geht in den Slot. So kann jeder Auftrag voll konfiguriert werden.
+  function swapSlotWithMain(slotIdx) {
+    if (!clusterJobs[slotIdx]) return;
+    const slotJob = clusterJobs[slotIdx];
+    const currentMain = captureMainState();
+    // Hauptrechner-Inhalt → Slot
+    clusterJobs[slotIdx] = mainStateToJob(currentMain);
+    // Persist expanded-Flag aus dem alten Slot beibehalten — Operator-UX-Kontinuität
+    clusterJobs[slotIdx].expanded = slotJob.expanded;
+    // Slot-Inhalt → Hauptrechner
+    applyMainState(jobToMainState(slotJob), { calc: true });
+    saveClusterJobs();
+    saveActiveJob();
+    renderClusterJobs();
+    // Nach oben scrollen damit Operator die neuen Hauptrechner-Werte sieht
+    setTimeout(() => {
+      const flaecheEl = document.getElementById("flaeche");
+      if (flaecheEl) {
+        flaecheEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Visual-Feedback: Subtle Pulse auf Hero-Strip
+        const hero = document.querySelector(".hero-strip");
+        if (hero) {
+          hero.classList.add("hero-just-swapped");
+          setTimeout(() => hero.classList.remove("hero-just-swapped"), 1400);
+        }
+      }
+    }, 80);
+  }
+
+  const ACTIVE_JOB_KEY = "rr.activeJob";
+  function saveActiveJob() {
+    try { localStorage.setItem(ACTIVE_JOB_KEY, JSON.stringify(captureMainState())); } catch(e) {}
+  }
+  function loadActiveJob() {
+    try { return JSON.parse(localStorage.getItem(ACTIVE_JOB_KEY) || "null"); } catch(e) { return null; }
+  }
+  function clearActiveJob() {
+    try { localStorage.removeItem(ACTIVE_JOB_KEY); } catch(e) {}
+  }
+
+  function applyMainState(snap, opts) {
+    if (!snap || typeof snap !== "object") snap = {};
+    const triggerCalc = !opts || opts.calc !== false;
+    // 1. Inputs setzen
+    MAIN_JOB_INPUT_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = snap[id] || "";
+    });
+    // 2. Hetero-Toggle
+    const heteroToggle = document.getElementById("heteroToggle");
+    if (heteroToggle && typeof setHeteroState === "function") {
+      const isOpen = heteroToggle.getAttribute("aria-expanded") === "true";
+      const wantOpen = !!snap._heteroOpen;
+      if (isOpen !== wantOpen) setHeteroState(wantOpen, false);
+    }
+    // 3. Slots-Visibility
+    if (typeof applySlotVisibility === "function" && snap._slotsVisible) {
+      applySlotVisibility(snap._slotsVisible, true);
+    }
+    // 4. Asym-Toggle
+    const asymToggle = document.getElementById("asymToggle");
+    if (asymToggle) {
+      const isAsymOpen = asymToggle.getAttribute("aria-expanded") === "true";
+      const wantAsymOpen = !!snap._asymOpen;
+      if (isAsymOpen !== wantAsymOpen) {
+        asymToggle.setAttribute("aria-expanded", wantAsymOpen ? "true" : "false");
+        const asymFields = document.getElementById("asymFields");
+        if (asymFields) asymFields.setAttribute("aria-hidden", wantAsymOpen ? "false" : "true");
+      }
+    }
+    // 5. Auftrags-Meta-localStorage gleich auch updaten (Welle-Header zieht aus localStorage)
+    try {
+      const metaKeys = ["welleAuftragNr","welleDatum","welleKunde","welleMaterial","welleBemerkung"];
+      const meta = {};
+      metaKeys.forEach(k => { meta[k] = snap[k] || ""; });
+      localStorage.setItem("rr.welleMeta", JSON.stringify(meta));
+    } catch(e) {}
+    // 6. Calc neu triggern damit alle Outputs frisch sind
+    if (triggerCalc && typeof calc === "function") calc();
+  }
+
   // ============== Per-Slot Compute · liefert Outputs pro Cluster-Auftrag ==============
   // Spiegelt calc()-Logik in kompakter Form. Maschinen-Settings werden global
   // (speed/ruestBase/ruestPerSatz) gezogen, nicht pro Slot überschrieben (Phase 2).
@@ -5650,6 +5822,7 @@ footer.footer {
           <input type="text" inputmode="numeric" pattern="[0-9]*" data-cidx="${idx}" data-cf="nebenAnz" value="${job.nebenAnz || ""}" placeholder="0">
           <span class="unit">×</span>
         </div>
+        <button type="button" class="cluster-job-edit" data-cedit="${idx}" tabindex="-1" aria-label="Auftrag im Hauptrechner bearbeiten" title="In Hauptrechner laden für volle Rechnung">↑</button>
         <button type="button" class="cluster-job-expand" data-cexpand="${idx}" tabindex="-1" aria-label="Voll-Auftrag aufklappen" title="Fläche, LFM, Auftrags-Daten">${job.expanded ? "▲" : "▼"}</button>
         <button type="button" class="cluster-job-remove" data-cremove="${idx}" tabindex="-1" aria-label="Auftrag entfernen">×</button>
         <div class="cluster-job-extras">
@@ -5720,6 +5893,15 @@ footer.footer {
         clusterJobs[i].expanded = !clusterJobs[i].expanded;
         saveClusterJobs();
         renderClusterJobs();
+      });
+    });
+    // Edit-Button (↑): Slot-Auftrag in Hauptrechner laden für volle Berechnung
+    // Aktueller Hauptrechner-Inhalt wird in den Slot zurückgeschrieben (Swap)
+    cont.querySelectorAll("[data-cedit]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const i = parseInt(btn.dataset.cedit);
+        if (!clusterJobs[i]) return;
+        swapSlotWithMain(i);
       });
     });
     // Σ-Aggregat-Zeile updaten
@@ -7426,15 +7608,15 @@ footer.footer {
       }
       updateEchoes();
       calc();
+      // Aktiver Auftrag persistieren — nur wenn Input zu MAIN_JOB_INPUT_IDS gehört
+      // (speed/ruest* sind Maschinen-Settings, nicht pro Auftrag)
+      if (el.id && MAIN_JOB_INPUT_IDS.includes(el.id)) {
+        if (typeof saveActiveJob === "function") saveActiveJob();
+      }
     };
-    // Drei Trigger für maximale Robustheit über Browser/Locale hinweg:
-    // input  = jede Tastatureingabe (live)
-    // change = nach Verlassen des Felds (Tab/Click weg)
-    // blur   = Fallback wenn change blockiert
     el.addEventListener("input",  handle);
     el.addEventListener("change", handle);
     el.addEventListener("blur",   handle);
-    // Kein el.select() — Operator klickt ins Feld um Wert zu ergänzen, nicht zu ersetzen.
   });
 
   // Berechnen-Button: garantierter Sicherheits-Trigger
@@ -8297,6 +8479,12 @@ footer.footer {
     localStorage.removeItem("rr.ruest");
   }
   restore();
+  // Aktiver Auftrag aus localStorage wiederherstellen (Tagesplan-Persistenz)
+  // Das überschreibt restore() für die job-spezifischen Inputs, behält aber Maschinen-Settings
+  const savedActiveJob = (typeof loadActiveJob === "function") ? loadActiveJob() : null;
+  if (savedActiveJob && Object.keys(savedActiveJob).length > 0) {
+    applyMainState(savedActiveJob, { calc: false });
+  }
   calc();
 
   // Firefox bfcache-Defense: Wenn der User über Browser-Back/Forward zurückkehrt
