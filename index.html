@@ -605,10 +605,7 @@ header.bar {
   letter-spacing: 0.02em;
   font-style: italic;
 }
-.hetero-toggle[aria-expanded="true"] .hetero-toggle-text::before {
-  content: "✓ ";
-  font-weight: 800;
-}
+/* Kein doppeltes ✓ — der rotierte Plus-Icon zeigt schon "expanded" */
 
 /* Collapsible-Container: max-height-Transition (Firefox-bulletproof) */
 .hetero-fields {
@@ -644,8 +641,9 @@ header.bar {
 }
 .neben-slot {
   display: grid;
-  grid-template-columns: 44px 1fr 18px 1fr 1.1fr;
-  gap: 10px;
+  grid-template-columns: 44px 1fr 18px 1fr;
+  grid-template-rows: auto auto;
+  gap: 8px 10px;
   align-items: center;
   padding: 12px 14px;
   border: 1px solid rgba(255,180,0,0.18);
@@ -653,15 +651,19 @@ header.bar {
   background: linear-gradient(180deg, rgba(255,180,0,0.04), rgba(255,180,0,0.01));
   transition: all var(--t-fast);
 }
+.neben-slot-num { grid-row: 1 / span 2; }
+/* Soll-Feld in zweiter Reihe, spannt ganze Breite — visuell als optional */
 .neben-slot-pair.soll {
-  border-color: rgba(0,230,118,0.25);
+  grid-column: 2 / -1;
+  grid-row: 2;
+  border-color: rgba(0,230,118,0.30);
   border-style: dashed;
 }
 .neben-slot-pair.soll:focus-within {
   border-color: var(--accent-primary);
   border-style: solid;
 }
-.neben-slot-pair.soll .neben-slot-label { color: var(--accent-primary); opacity: 0.85; }
+.neben-slot-pair.soll .neben-slot-label { color: var(--accent-primary); opacity: 0.85; min-width: 60px; }
 .neben-slot-pair.soll input { color: var(--accent-primary); }
 .neben-slot:focus-within {
   border-color: #ffb400;
@@ -690,12 +692,15 @@ header.bar {
 }
 .neben-slot-pair:focus-within { border-color: #ffb400; }
 .neben-slot-label {
-  font-size: 11px; font-weight: 700;
-  letter-spacing: 0.08em;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-secondary);
-  min-width: 50px;
+  min-width: 0;
+  opacity: 0.75;
+  flex-shrink: 0;
 }
+.neben-slot-pair input { font-size: 19px; }
 .neben-slot-pair input {
   flex: 1;
   background: transparent;
@@ -786,6 +791,66 @@ header.bar {
   border: 1.5px solid currentColor;
   font-size: 16px; font-weight: 800;
   line-height: 0.9;
+}
+
+/* Asymmetrische-Besäumung-Sub-Toggle — kleiner und subtiler als Hetero-Toggle */
+.asym-toggle {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px dashed rgba(255,255,255,0.12);
+  border-radius: var(--r-2);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.asym-toggle:hover {
+  border-color: var(--warn-color);
+  color: var(--warn-color);
+}
+.asym-toggle-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 1.4px solid currentColor;
+  flex-shrink: 0;
+  transition: transform var(--t-fast);
+}
+.asym-toggle-icon svg { width: 10px; height: 10px; }
+.asym-toggle[aria-expanded="true"] .asym-toggle-icon {
+  transform: rotate(45deg);
+  background: var(--warn-color);
+  color: var(--bg-base);
+  border-color: var(--warn-color);
+}
+.asym-toggle[aria-expanded="true"] {
+  border-color: var(--warn-color);
+  border-style: solid;
+  color: var(--warn-color);
+}
+.asym-toggle-hint {
+  margin-left: auto;
+  font-size: 10px;
+  opacity: 0.7;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+.asym-fields {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 280ms var(--ease-out-expo), opacity 200ms ease;
+  opacity: 0;
+}
+.asym-fields[aria-hidden="false"] {
+  max-height: 180px;
+  opacity: 1;
 }
 
 /* ============== Auftragserfüllungs-Tabelle (Bottleneck-View) ============== */
@@ -1947,22 +2012,30 @@ footer.footer {
               <span class="neben-slot-add-icon">+</span>
               <span class="neben-slot-add-text">Weitere Neben-Breite hinzufügen</span>
             </button>
-            <div class="input-row hetero" data-field="besaeumungL">
-              <span class="input-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="6" width="4" height="12" rx="1" fill="currentColor" opacity="0.4"/>
-                  <line x1="9" y1="12" x2="20" y2="12"/>
-                  <path d="M9 12 L11 10 M9 12 L11 14"/>
-                  <path d="M20 12 L18 10 M20 12 L18 14"/>
-                </svg>
-              </span>
-              <label for="besaeumungL">Besäumung links <span class="label-hint">leer = symmetrisch</span></label>
-              <input id="besaeumungL" type="text" inputmode="decimal" pattern="[0-9.,]*" placeholder="auto = symmetrisch" autocomplete="off">
-              <div class="steppers">
-                <button class="stepper" data-step="+1" data-target="besaeumungL" aria-label="Plus 1"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8l3-3 3 3"/></svg></button>
-                <button class="stepper" data-step="-1" data-target="besaeumungL" aria-label="Minus 1"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 4l3 3 3-3"/></svg></button>
+            <!-- Asymmetrische Besäumung — selten genutzt, daher eigener kleiner Toggle -->
+            <button type="button" class="asym-toggle" id="asymToggle" aria-expanded="false" aria-controls="asymFields" tabindex="-1">
+              <span class="asym-toggle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+              <span>Asymmetrische Besäumung</span>
+              <span class="asym-toggle-hint">selten · nur bei Multi-Auftrag</span>
+            </button>
+            <div class="asym-fields" id="asymFields" aria-hidden="true">
+              <div class="input-row hetero" data-field="besaeumungL">
+                <span class="input-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="6" width="4" height="12" rx="1" fill="currentColor" opacity="0.4"/>
+                    <line x1="9" y1="12" x2="20" y2="12"/>
+                    <path d="M9 12 L11 10 M9 12 L11 14"/>
+                    <path d="M20 12 L18 10 M20 12 L18 14"/>
+                  </svg>
+                </span>
+                <label for="besaeumungL">Besäumung links <span class="label-hint">leer = symmetrisch</span></label>
+                <input id="besaeumungL" type="text" inputmode="decimal" pattern="[0-9.,]*" placeholder="auto = symmetrisch" autocomplete="off">
+                <div class="steppers">
+                  <button class="stepper" data-step="+1" data-target="besaeumungL" aria-label="Plus 1"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8l3-3 3 3"/></svg></button>
+                  <button class="stepper" data-step="-1" data-target="besaeumungL" aria-label="Minus 1"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 4l3 3 3-3"/></svg></button>
+                </div>
+                <div class="input-unit"><span class="input-unit-label">mm</span></div>
               </div>
-              <div class="input-unit"><span class="input-unit-label">mm</span></div>
             </div>
            </div>
           </div>
@@ -2234,6 +2307,8 @@ footer.footer {
     neben4Soll:   document.getElementById("neben4Soll"),
     besaeumungL:  document.getElementById("besaeumungL"),
     addNebenBtn:  document.getElementById("addNebenBtn"),
+    asymToggle:   document.getElementById("asymToggle"),
+    asymFields:   document.getElementById("asymFields"),
     nutzenClassic: document.getElementById("nutzenClassic"),
     nutzenHetero:  document.getElementById("nutzenHetero"),
     huelsenClassic: document.getElementById("huelsenClassic"),
@@ -3664,9 +3739,11 @@ footer.footer {
     els.schmal.value  = 29;
     els.lfm.value     = 500;
     els.mutter.value  = 620;
-    // Hetero-Modus beim Demo-Reset deaktivieren — Demo zeigt klassisches Bild
     if (els.heteroToggle && els.heteroToggle.getAttribute("aria-expanded") === "true") {
       setHeteroState(false, true);
+    }
+    if (els.asymToggle && els.asymToggle.getAttribute("aria-expanded") === "true") {
+      setAsymState(false, true);
     }
     calc();
     toast("Beispielwerte geladen");
@@ -3680,6 +3757,9 @@ footer.footer {
     if (els.ruestPerSatz) els.ruestPerSatz.value = "";
     if (els.heteroToggle && els.heteroToggle.getAttribute("aria-expanded") === "true") {
       setHeteroState(false, true);
+    }
+    if (els.asymToggle && els.asymToggle.getAttribute("aria-expanded") === "true") {
+      setAsymState(false, true);
     }
     calc();
     toast("Alle Felder zurückgesetzt");
@@ -3871,6 +3951,26 @@ footer.footer {
   if (localStorage.getItem(HETERO_KEY) === "1") setHeteroState(true, false);
   applySlotVisibility(getSlotsVisible());
 
+  // ============== Asymmetrische Besäumung — Sub-Toggle ==============
+  const ASYM_KEY = "rr.asym";
+  function setAsymState(open, persist) {
+    if (!els.asymToggle || !els.asymFields) return;
+    els.asymToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    els.asymFields.setAttribute("aria-hidden", open ? "false" : "true");
+    if (!open && els.besaeumungL) els.besaeumungL.value = "";
+    if (persist) localStorage.setItem(ASYM_KEY, open ? "1" : "0");
+    rebuildTabOrder();
+    calc();
+  }
+  if (els.asymToggle) {
+    els.asymToggle.addEventListener("click", () => {
+      const isOpen = els.asymToggle.getAttribute("aria-expanded") === "true";
+      setAsymState(!isOpen, true);
+      if (!isOpen && els.besaeumungL) setTimeout(() => els.besaeumungL.focus(), 200);
+    });
+  }
+  if (localStorage.getItem(ASYM_KEY) === "1") setAsymState(true, false);
+
   // keyboard: Enter + Tab + Shift+Tab cyclen durch die aktiven Eingabefelder.
   // Bei Hetero-Open sind nebenBreite + nebenAnz im Loop, sonst nicht.
   let order = [];
@@ -3878,13 +3978,14 @@ footer.footer {
     const heteroOn = els.heteroToggle && els.heteroToggle.getAttribute("aria-expanded") === "true";
     const heteroFields = [];
     if (heteroOn) {
-      // Nur sichtbare Slots in den Tab-Loop nehmen
       for (let i = 1; i <= 4; i++) {
         const slotEl = document.querySelector(`.neben-slot[data-slot="${i}"]`);
         if (slotEl && slotEl.getAttribute("data-slot-hidden") === "true") continue;
         heteroFields.push(els[`neben${i}Breite`], els[`neben${i}Anz`], els[`neben${i}Soll`]);
       }
-      heteroFields.push(els.besaeumungL);
+      // Besäumung-L nur im Tab-Loop wenn asym-Toggle offen
+      const asymOn = els.asymToggle && els.asymToggle.getAttribute("aria-expanded") === "true";
+      if (asymOn) heteroFields.push(els.besaeumungL);
     }
     order = [
       els.flaeche, els.mutter, els.schmal,
