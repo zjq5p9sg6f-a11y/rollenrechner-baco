@@ -2250,7 +2250,8 @@ footer.footer {
       renderWarnings(inputs, null);
       els.statusBadge.textContent = "Kein Haupt-Nutzen";
       els.statusBadge.style.color = "var(--danger-color)";
-      setSubtitle(`Neben-Schnitte (${nebenAnz}× ${nf0.format(nebenBreite)} mm) lassen keinen Platz für Haupt — Werte prüfen`);
+      const slotsTxt = nebenSlots.map(s => `${s.anz}× ${nf0.format(s.breite)} mm`).join(" + ");
+      setSubtitle(`Neben-Schnitte (${slotsTxt}) lassen keinen Platz für Haupt — Werte prüfen`);
       return;
     }
     const restMM    = mutter - (nutzen * schmal) - nebenSpace;
@@ -3398,6 +3399,14 @@ footer.footer {
     [els.ruestBase,    "rr.ruestBase"],
     [els.ruestPerSatz, "rr.ruestPerSatz"],
   ]);
+  // Alle möglichen Inputs — auch die heterogen-spezifischen (auch wenn aktuell collapsed)
+  const ALL_INPUTS = [
+    els.flaeche, els.mutter, els.schmal,
+    els.neben1Breite, els.neben1Anz, els.neben2Breite, els.neben2Anz,
+    els.neben3Breite, els.neben3Anz, els.neben4Breite, els.neben4Anz,
+    els.besaeumungL,
+    els.lfm, els.speed, els.ruestBase, els.ruestPerSatz
+  ].filter(Boolean);
   ALL_INPUTS.forEach(el => {
     if (!el) return;
     const handle = () => {
@@ -3486,13 +3495,7 @@ footer.footer {
     ].filter(Boolean);
   }
   rebuildTabOrder();
-  const ALL_INPUTS = [
-    els.flaeche, els.mutter, els.schmal,
-    els.neben1Breite, els.neben1Anz, els.neben2Breite, els.neben2Anz,
-    els.neben3Breite, els.neben3Anz, els.neben4Breite, els.neben4Anz,
-    els.besaeumungL,
-    els.lfm, els.speed, els.ruestBase, els.ruestPerSatz
-  ].filter(Boolean);
+  // Keydown-Listener (Tab/Enter cycling) auf dieselben ALL_INPUTS oben
   ALL_INPUTS.forEach(el => {
     if (!el) return;
     el.addEventListener("keydown", (e) => {
