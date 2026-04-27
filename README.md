@@ -1,6 +1,6 @@
 # Rollenrechner · Ballerstaedt
 
-Internes Single-Page-Tool für Maschinenführer an Vertikalschneidemaschinen (Euromac, DCM Panther). Berechnet aus Auftragsdaten alle Maschinen-Parameter inkl. Lean-Wertstrom-Diagnose.
+Internes Single-Page-Tool für Maschinenführer an Längsschneidemaschinen (Euromac, DCM Panther). Berechnet aus Auftragsdaten alle Maschinen-Parameter inkl. Lean-Wertstrom-Diagnose.
 
 ## Was es kann
 
@@ -54,8 +54,8 @@ Setup-Anteil          = Rüst-gesamt / Brutto
 | Gesamt-LFM | 86.207 |
 | Nutzen | 21 |
 | Rest | 11 mm (5,5 + 5,5) |
-| Volle Sätze | 8 |
-| Restsatz | 2.207 LFM |
+| Sätze gesamt | 9 (8 volle + 1 Restsatz) |
+| Restsatz | 2.207 LFM (eingelagert) |
 | **MR-Menge bereitstellen** | **4.106 LFM** |
 | Hülsen | 189 Stk á 29 mm |
 
