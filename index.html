@@ -1023,6 +1023,53 @@ header.bar {
   display: flex; flex-direction: column; gap: 6px;
 }
 
+/* Maschinen-Konstanten + SE-CAD-Detail Grid */
+.welle-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+.welle-info-box {
+  padding: 14px 16px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.welle-info-box h4 {
+  font-size: 12px; font-weight: 800;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent-primary);
+  margin: 0 0 10px 0;
+}
+.welle-info-box .info-row {
+  display: flex; justify-content: space-between; gap: 12px;
+  padding: 5px 0;
+  font-size: 12.5px;
+  border-bottom: 1px dashed rgba(255,255,255,0.05);
+}
+.welle-info-box .info-row:last-child { border-bottom: 0; }
+.welle-info-box .info-row span { color: var(--text-secondary); }
+.welle-info-box .info-row strong { color: var(--text-primary); font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.se-cad {
+  width: 100%;
+  height: auto;
+  background: rgba(0,0,0,0.4);
+  border-radius: 6px;
+  margin: 8px 0;
+}
+.se-cad-note {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 6px;
+  font-style: italic;
+}
+.se-cad-note strong { color: var(--accent-primary); font-style: normal; }
+@media (max-width: 800px) {
+  .welle-info-grid { grid-template-columns: 1fr; }
+}
+
 /* Bestückungs-Sequenz — Schritt-für-Schritt für Einrichter */
 .welle-sequenz-wrap {
   margin-top: 18px;
@@ -1315,8 +1362,48 @@ header.bar {
   color: var(--danger-color);
 }
 
-/* Print-Stylesheet — nur Welle + Holliste drucken */
+/* ============== Auftrags-Meta-Eingaben (für Druck-Header + Datei-Name) ============== */
+.welle-auftrag-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  background: rgba(0,0,0,0.3);
+  border: 1px dashed rgba(0,230,118,0.25);
+  border-radius: 8px;
+}
+.welle-auftrag-meta .meta-row {
+  display: flex; flex-direction: column;
+  gap: 3px;
+}
+.welle-auftrag-meta .meta-row-full { grid-column: 1 / -1; }
+.welle-auftrag-meta label {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent-primary);
+  opacity: 0.85;
+}
+.welle-auftrag-meta input {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+  transition: border-color var(--t-fast);
+}
+.welle-auftrag-meta input:focus { border-color: var(--accent-primary); }
+
+/* Print-Header (nur beim Drucken sichtbar) */
+.print-header { display: none; }
+
+/* ============== Print-Stylesheet ============== */
 @media print {
+  @page { margin: 12mm 14mm; size: A4; }
   body * { visibility: hidden; }
   #welleSection, #welleSection * { visibility: visible; }
   #welleSection {
@@ -1324,45 +1411,142 @@ header.bar {
     left: 0; top: 0;
     width: 100%;
     max-height: none !important;
-    padding: 20mm !important;
+    padding: 0 !important;
     background: white !important;
     color: black !important;
     margin: 0 !important;
     border: 0;
     opacity: 1 !important;
   }
-  #welleSection .welle-title,
-  #welleSection .welle-machine,
-  #welleSection .welle-sub,
-  #welleSection .welle-holliste h4,
-  #welleSection .welle-holliste .hl-name,
-  #welleSection .welle-holliste .hl-anz,
-  #welleSection .welle-holliste .hl-unit { color: black !important; }
-  #welleSection .welle-holliste {
+
+  /* Auftrags-Eingabe + Web-only Buttons + Cluster-Eingabe ausblenden */
+  #welleSection .welle-head,
+  #welleSection .welle-auftrag-meta,
+  #welleSection .btn-print,
+  #welleSection .cluster-section,
+  #welleSection .cluster-toggle,
+  #welleSection .welle-alerts { display: none !important; }
+
+  /* Print-Header sichtbar machen */
+  #welleSection .print-header {
+    display: block !important;
+    margin-bottom: 8mm;
+    padding-bottom: 4mm;
+    border-bottom: 2px solid #000;
+  }
+  #welleSection .ph-brand {
+    font-size: 16pt; font-weight: 800;
+    color: black !important;
+    margin-bottom: 2mm;
+  }
+  #welleSection .ph-brand strong { color: #007a3d !important; }
+  #welleSection .ph-machine {
+    font-size: 9pt; font-weight: 600;
+    color: #555 !important;
+    margin-bottom: 4mm;
+    letter-spacing: 0.04em;
+  }
+  #welleSection .ph-meta-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10pt;
+  }
+  #welleSection .ph-meta-table td {
+    padding: 3px 8px;
+    border-bottom: 1px solid #ddd;
+    color: black !important;
+  }
+  #welleSection .ph-lbl {
+    font-weight: 700; font-size: 8pt;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #666 !important;
+    width: 18%;
+    background: #f5f5f5 !important;
+  }
+  #welleSection .ph-val {
+    font-weight: 600;
+    width: 32%;
+  }
+
+  /* Welle-SVG sichtbar im Print */
+  #welleSvg {
     background: white !important;
     border: 1px solid #999 !important;
+    border-radius: 4px;
+    width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+    margin-bottom: 5mm;
   }
-  #welleSection .btn-print { display: none !important; }
-  #welleSvg, #tracksSvg { background: white !important; border-color: #999 !important; }
-  #welleSection .cluster-section, #welleSection .cluster-toggle { display: none !important; }
-  #welleSection .welle-quality {
-    background: white !important; color: black !important; border-color: #555 !important;
+  #tracksSvg {
+    background: white !important;
+    border: 1px solid #999 !important;
+    border-radius: 4px;
+    width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+    margin-bottom: 5mm;
   }
-  #welleSection .welle-alert { color: #555 !important; background: #f5f5f5 !important; border-color: #ccc !important; }
-  #welleSection .welle-sequenz-wrap { background: white !important; border-color: #999 !important; }
+
+  /* Sequenz: Page-Break-Disziplin */
+  #welleSection .welle-sequenz-wrap {
+    background: white !important;
+    border: 1px solid #999 !important;
+    page-break-before: auto;
+    page-break-inside: auto;
+    margin-bottom: 5mm;
+  }
+  #welleSection .welle-sequenz-head {
+    page-break-after: avoid;
+    border-bottom: 1px solid #999;
+    padding-bottom: 3mm;
+    margin-bottom: 3mm;
+  }
   #welleSection .welle-sequenz-wrap h4 { color: black !important; }
-  #welleSection .stueck-row { border-color: #ccc !important; }
+  #welleSection .seq-arrow { background: white !important; color: #007a3d !important; border-color: #007a3d !important; }
+  #welleSection .welle-sequenz-sub { color: #666 !important; }
+  #welleSection .stueck-row {
+    border-bottom: 1px solid #ddd !important;
+    page-break-inside: avoid;  /* nicht mid-row schneiden */
+    padding: 4px 0 !important;
+  }
   #welleSection .stueck-name, #welleSection .stueck-mass, #welleSection .stueck-pos, #welleSection .stueck-detail { color: black !important; }
   #welleSection .stueck-mass { color: #007a3d !important; font-weight: 800 !important; }
-  #welleSection .stueck-nr.park { background: #eee !important; color: #333 !important; }
+  #welleSection .stueck-nr.park { background: #eee !important; color: #333 !important; border-color: #999 !important; }
   #welleSection .stueck-nr.distanz { background: #d0f0d0 !important; color: #007a3d !important; border-color: #007a3d !important; }
   #welleSection .stueck-nr.schneid { background: #fdd !important; color: #a00 !important; border-color: #a00 !important; }
   #welleSection .stueck-nr.neben { background: #fed !important; color: #a60 !important; border-color: #a60 !important; }
-  #welleSection .seq-arrow { background: white !important; color: #007a3d !important; border-color: #007a3d !important; }
-  #welleSection .welle-sequenz-sub { color: #666 !important; }
-  /* Page-break-Hinweis: Sequenz auf neue Seite, Stückliste am Ende */
-  #welleSection .welle-sequenz-wrap { page-break-before: auto; }
-  #welleSection .welle-holliste { page-break-before: auto; }
+
+  /* Picking-Stückliste auf neue Seite */
+  #welleSection .welle-holliste {
+    background: white !important;
+    border: 1px solid #999 !important;
+    page-break-before: always;
+    page-break-inside: avoid;
+  }
+  #welleSection .welle-holliste h4 { color: black !important; }
+  #welleSection .welle-holliste .hl-name { color: black !important; }
+  #welleSection .welle-holliste .hl-anz { color: #007a3d !important; font-weight: 800 !important; }
+  #welleSection .welle-holliste .hl-unit { color: #555 !important; }
+
+  /* Quality-Score / Alerts beim Druck unsichtbar (gehören in Web-Sicht) */
+  #welleSection .welle-quality { display: none !important; }
+
+  /* Maschinen-Konstanten + SE-CAD im Print sichtbar — wertvoll für Operator */
+  #welleSection .welle-info-grid {
+    page-break-inside: avoid;
+    margin-bottom: 5mm;
+  }
+  #welleSection .welle-info-box {
+    background: white !important;
+    border: 1px solid #999 !important;
+  }
+  #welleSection .welle-info-box h4 { color: black !important; }
+  #welleSection .welle-info-box .info-row span { color: #555 !important; }
+  #welleSection .welle-info-box .info-row strong { color: black !important; }
+  #welleSection .se-cad { background: #f8f8f8 !important; }
+  #welleSection .se-cad-note { color: #555 !important; }
+  #welleSection .se-cad-note strong { color: #007a3d !important; }
 }
 
 /* ============== Auftragserfüllungs-Tabelle (Bottleneck-View) ============== */
@@ -2798,11 +2982,53 @@ footer.footer {
           <div class="welle-sub" id="welleSubtitle">Werte eingeben um Bestückung zu berechnen</div>
         </div>
         <div class="welle-head-actions">
-          <button class="btn-print" id="printWelleBtn" type="button" tabindex="-1" title="Stückliste drucken">
+          <button class="btn-print" id="printWelleBtn" type="button" tabindex="-1" title="Bestückungs-Anweisung + Picking-Liste drucken">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            <span>Stückliste drucken</span>
+            <span>Bestückungs-Anweisung drucken</span>
           </button>
         </div>
+      </div>
+
+      <!-- Auftrags-Identifikation für Druck-Header + Datei-Name -->
+      <div class="welle-auftrag-meta">
+        <div class="meta-row">
+          <label>Auftrags-Nr / Kommission</label>
+          <input id="welleAuftragNr" type="text" placeholder="z. B. KOM-2026-0421" autocomplete="off">
+        </div>
+        <div class="meta-row">
+          <label>Datum</label>
+          <input id="welleDatum" type="date">
+        </div>
+        <div class="meta-row">
+          <label>Kunde</label>
+          <input id="welleKunde" type="text" placeholder="z. B. ACME GmbH" autocomplete="off">
+        </div>
+        <div class="meta-row">
+          <label>Material</label>
+          <input id="welleMaterial" type="text" placeholder="z. B. BaCo Seal HSL-PP 4.6 · 25 µm" autocomplete="off">
+        </div>
+        <div class="meta-row meta-row-full">
+          <label>Bemerkung</label>
+          <input id="welleBemerkung" type="text" placeholder="optional · z. B. Folge-Auftrag, Sonderaufwand" autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Print-Only Header (versteckt in Web, sichtbar im Druck) -->
+      <div class="print-header" id="printHeader" aria-hidden="true">
+        <div class="ph-brand">
+          <strong>Ballerstaedt</strong> · Bestückungs-Anweisung
+        </div>
+        <div class="ph-machine">DCM Untermesserwelle · 1472 mm · Bestückungsbereich 1000 mm</div>
+        <table class="ph-meta-table">
+          <tr><td class="ph-lbl">Auftrag</td><td class="ph-val" id="printAuftragNr">—</td>
+              <td class="ph-lbl">Datum</td><td class="ph-val" id="printDatum">—</td></tr>
+          <tr><td class="ph-lbl">Kunde</td><td class="ph-val" id="printKunde">—</td>
+              <td class="ph-lbl">Material</td><td class="ph-val" id="printMaterial">—</td></tr>
+          <tr><td class="ph-lbl">MR</td><td class="ph-val" id="printMR">—</td>
+              <td class="ph-lbl">Schmalrolle(n)</td><td class="ph-val" id="printSchmal">—</td></tr>
+          <tr><td class="ph-lbl">Nutzen</td><td class="ph-val" id="printNutzen">—</td>
+              <td class="ph-lbl">Bemerkung</td><td class="ph-val" id="printBemerkung">—</td></tr>
+        </table>
       </div>
       <svg id="welleSvg" viewBox="0 0 1500 460" preserveAspectRatio="xMidYMid meet" aria-label="Bestückte Welle DCM">
         <defs>
@@ -2849,8 +3075,6 @@ footer.footer {
         <g id="welleVizGroup"></g>
       </svg>
 
-      <!-- Track-Projektion (bei Master-Welle): pro Folgeauftrag eigene Spur -->
-      <svg id="tracksSvg" viewBox="0 0 1500 200" preserveAspectRatio="xMidYMid meet" aria-label="Auftrags-Tracks" style="display:none"></svg>
 
       <!-- Folgeauftrags-Cluster (Beta) — Multi-Order Master-Welle -->
       <button type="button" class="cluster-toggle" id="clusterToggle" aria-expanded="false" aria-controls="clusterSection" tabindex="-1">
@@ -2866,6 +3090,69 @@ footer.footer {
           <span class="cluster-add-icon">+</span>
           <span>Weiteren Auftrag hinzufügen</span>
         </button>
+      </div>
+
+      <!-- Maschinen-Konstanten + Schneideeinheit-CAD-Detail (operator-orientiert) -->
+      <div class="welle-info-grid">
+        <div class="welle-info-box">
+          <h4>Maschinen-Konstanten · DCM</h4>
+          <div class="info-row"><span>Welle-Länge</span><strong>1472 mm</strong></div>
+          <div class="info-row"><span>Bestückungsbereich</span><strong>1000 mm</strong></div>
+          <div class="info-row"><span>Park-Ring</span><strong>59 mm · 4/Seite</strong></div>
+          <div class="info-row"><span>Schneideeinheit</span><strong>20 mm</strong></div>
+          <div class="info-row"><span>Schnittkante v. links</span><strong>13 mm</strong></div>
+          <div class="info-row"><span>Distanzringe</span><strong>0,3 / 0,5 / 1 / 2 / 5 / 10 / 20 / 30 / 50 / 100 / 200 / 300 mm</strong></div>
+        </div>
+        <div class="welle-info-box">
+          <h4>Schneideeinheit · CAD-Detail</h4>
+          <svg class="se-cad" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid meet" aria-label="Schneideeinheit CAD-Detail">
+            <defs>
+              <linearGradient id="seCadSchneidring" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ff8a7a"/>
+                <stop offset="50%" stop-color="#e34a3a"/>
+                <stop offset="100%" stop-color="#a01810"/>
+              </linearGradient>
+              <linearGradient id="seCadNutmesser" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ffe082"/>
+                <stop offset="100%" stop-color="#ffc107"/>
+              </linearGradient>
+            </defs>
+            <!-- Bemaßung TOP: Gesamt 20mm -->
+            <line x1="60" y1="30" x2="340" y2="30" stroke="#999" stroke-width="0.8"/>
+            <path d="M60 30 L68 26 L68 34 Z" fill="#999"/>
+            <path d="M340 30 L332 26 L332 34 Z" fill="#999"/>
+            <line x1="60" y1="30" x2="60" y2="60" stroke="#999" stroke-width="0.6" stroke-dasharray="3 3"/>
+            <line x1="340" y1="30" x2="340" y2="60" stroke="#999" stroke-width="0.6" stroke-dasharray="3 3"/>
+            <rect x="170" y="20" width="60" height="20" rx="4" fill="#0a0a0a" stroke="#00e676" stroke-width="1"/>
+            <text x="200" y="34" text-anchor="middle" fill="#00e676" font-size="11" font-weight="700" font-family="inherit">20 mm</text>
+            <!-- Schneidring links 10mm + Nutmesser rechts 10mm -->
+            <rect x="60" y="60" width="140" height="100" fill="url(#seCadSchneidring)" stroke="#a01810" stroke-width="1.5"/>
+            <rect x="200" y="60" width="140" height="100" fill="url(#seCadNutmesser)" stroke="#c08800" stroke-width="1.5"/>
+            <line x1="200" y1="60" x2="200" y2="160" stroke="#000" stroke-width="1.5"/>
+            <!-- Steg im Nutmesser (3mm) -->
+            <rect x="200" y="92" width="21" height="36" fill="rgba(0,0,0,0.25)"/>
+            <!-- Schnittkante 13mm v.l. (weiße Linie) -->
+            <line x1="60" y1="60" x2="60" y2="160" stroke="white" stroke-width="0.5" stroke-dasharray="2 2" opacity="0.6"/>
+            <line x1="242" y1="50" x2="242" y2="170" stroke="#fff" stroke-width="2.5"/>
+            <text x="242" y="44" text-anchor="middle" fill="#fff" font-size="10" font-weight="700" font-family="inherit">SCHNITT</text>
+            <!-- Beschriftung -->
+            <text x="130" y="115" text-anchor="middle" fill="#0a0a0a" font-size="13" font-weight="800" font-family="inherit">Schneidring</text>
+            <text x="130" y="132" text-anchor="middle" fill="#0a0a0a" font-size="10" font-weight="600" font-family="inherit">10 mm</text>
+            <text x="270" y="115" text-anchor="middle" fill="#0a0a0a" font-size="13" font-weight="800" font-family="inherit">Nutmesser</text>
+            <text x="270" y="132" text-anchor="middle" fill="#0a0a0a" font-size="10" font-weight="600" font-family="inherit">10 mm</text>
+            <!-- Bemaßung BOTTOM: 13mm v.l. -->
+            <line x1="60" y1="180" x2="242" y2="180" stroke="#fff" stroke-width="0.8"/>
+            <path d="M60 180 L68 176 L68 184 Z" fill="#fff"/>
+            <path d="M242 180 L234 176 L234 184 Z" fill="#fff"/>
+            <line x1="60" y1="160" x2="60" y2="190" stroke="#fff" stroke-width="0.5" stroke-dasharray="3 3"/>
+            <line x1="242" y1="160" x2="242" y2="190" stroke="#fff" stroke-width="0.5" stroke-dasharray="3 3"/>
+            <rect x="135" y="170" width="32" height="20" rx="4" fill="#0a0a0a" stroke="#fff" stroke-width="1"/>
+            <text x="151" y="184" text-anchor="middle" fill="#fff" font-size="11" font-weight="700" font-family="inherit">13 mm</text>
+          </svg>
+          <div class="se-cad-note">
+            <strong>Schnittkante asymmetrisch</strong> · 13 mm vom linken Rand der Schneideeinheit
+          </div>
+        </div>
       </div>
 
       <!-- Bestückungs-Sequenz: Schritt-für-Schritt-Anweisung für den Einrichter (Rechts → Links auf Welle) -->
@@ -3627,8 +3914,8 @@ footer.footer {
     const innerW = W - padX * 2;
     const baseH = 460;
     const isMaster = d && d.isMaster && d.validJobs && d.validJobs.length >= 2;
-    const trackH = 38, trackGap = 6, trackHeader = 22, scaleStripH = 22;
-    const tracksTotalH = 0; // tracks rendern wir separat in tracksSvg
+    const trackH = 44, trackGap = 6, trackHeader = 28;
+    const tracksTotalH = isMaster ? (trackHeader + d.validJobs.length * (trackH + trackGap) + 16) : 0;
     const H = baseH + tracksTotalH;
     svgEl.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
@@ -3871,6 +4158,104 @@ footer.footer {
     svgW(g, "line", { x1: xEnd, y1: scaleY - 4, x2: xEnd, y2: scaleY + 4, stroke: "var(--accent-primary)", "stroke-width": "1" });
     svgW(g, "text", { x: xEnd, y: scaleY + 14, "text-anchor": "middle",
       fill: "var(--accent-primary)", "font-size": "8.5", "font-weight": "700", "font-family": "inherit" }, "1472");
+
+    // ========================================================================
+    // TRACKS-INTEGRATION (bei Master-Mode): pro Auftrag eine Spur DIREKT IN WELLESVG
+    // mit DURCHGEHENDEN Verbindungs-Linien von Master-Cut bis Track-Mittelpunkt
+    // ========================================================================
+    if (isMaster) {
+      const tracksY0 = baseH + 6;
+      const jobColors = ["#00e676", "#ffb74d", "#42a5f5", "#ec407a"];
+      const tol = 0.5;
+      const tracksBottom = tracksY0 + trackHeader + d.validJobs.length * (trackH + trackGap);
+
+      // Tracks-Header
+      svgW(g, "text", { x: padX, y: tracksY0 + 14,
+        fill: "rgba(220,220,220,0.85)", "font-size": "10", "font-weight": "700", "letter-spacing": "0.1em", "font-family": "inherit" },
+        "▶ AUFTRAGS-SPUREN · AKTIV / GEPARKT");
+      svgW(g, "text", { x: W - padX, y: tracksY0 + 14, "text-anchor": "end",
+        fill: "rgba(140,140,140,0.7)", "font-size": "9", "font-weight": "500", "font-family": "inherit" },
+        "durchgängige Linien zeigen Projektion auf Master-SE");
+
+      // PHASE 1: Verbindungs-Linien ZUERST rendern (damit Markers oben drauf liegen)
+      // Pro aktiven Cut pro Job: vertikale farbige Linie von Track-Mittelpunkt UP bis barBottom (Master-Welle Bottom-Kante)
+      d.validJobs.forEach((jw, i) => {
+        const ty = tracksY0 + trackHeader + i * (trackH + trackGap);
+        const tmidY = ty + trackH / 2;
+        const color = jobColors[i % jobColors.length];
+        for (const c of jw.cuts) {
+          const x = xAt(c);
+          // Durchgehende farbige Linie von Track-Mittelpunkt bis Master-Bar-Boden
+          svgW(g, "line", { x1: x, y1: barBottom, x2: x, y2: tmidY,
+            stroke: color, "stroke-width": "1.4", opacity: "0.45" });
+        }
+      });
+
+      // PHASE 2: Pro Job Track + Markers
+      d.validJobs.forEach((jw, i) => {
+        const ty = tracksY0 + trackHeader + i * (trackH + trackGap);
+        const tmidY = ty + trackH / 2;
+        const color = jobColors[i % jobColors.length];
+
+        // Track-Background
+        svgW(g, "rect", { x: padX, y: ty, width: innerW, height: trackH,
+          fill: "rgba(0,0,0,0.4)", stroke: "rgba(255,255,255,0.07)", "stroke-width": "0.7", rx: "5" });
+
+        // Park-Zonen dezent
+        const parkLEndPx = xAt(DCM.PARK_TOTAL);
+        const parkRStartPx = xAt(DCM.PARK_TOTAL + DCM.BESTUECKUNGS_BREITE);
+        svgW(g, "rect", { x: padX, y: ty + 6, width: parkLEndPx - padX, height: trackH - 12,
+          fill: "rgba(50,50,50,0.5)", stroke: "rgba(255,255,255,0.05)", "stroke-width": "0.4", rx: "3" });
+        svgW(g, "rect", { x: parkRStartPx, y: ty + 6, width: (W - padX) - parkRStartPx, height: trackH - 12,
+          fill: "rgba(50,50,50,0.5)", stroke: "rgba(255,255,255,0.05)", "stroke-width": "0.4", rx: "3" });
+
+        // MR-Bereich farbig
+        const mrL = xAt(jw.mrLeft), mrR = xAt(jw.mrRight);
+        svgW(g, "rect", { x: mrL, y: ty + 4, width: mrR - mrL, height: trackH - 8,
+          fill: color, opacity: "0.10", stroke: color, "stroke-width": "0.7", "stroke-dasharray": "4 3", rx: "2" });
+
+        // Master-Cuts die diesem Job NICHT zugeordnet sind = inaktive (geparkt) als hohle Kreise
+        for (const c of d.cuts) {
+          if (jw.cuts.some(x => Math.abs(x - c) < tol)) continue;
+          const x = xAt(c);
+          svgW(g, "circle", { cx: x, cy: tmidY, r: "3.5",
+            fill: "transparent", stroke: "rgba(140,140,140,0.6)",
+            "stroke-width": "1", "stroke-dasharray": "1.5 1.5" });
+        }
+
+        // Aktive Cuts: farbiger Punkt + Glow (auf Track-Mittelpunkt)
+        for (const c of jw.cuts) {
+          const x = xAt(c);
+          svgW(g, "line", { x1: x, y1: ty + 8, x2: x, y2: ty + trackH - 8,
+            stroke: color, "stroke-width": "2" });
+          svgW(g, "circle", { cx: x, cy: tmidY, r: "4", fill: color, filter: "url(#glowGreen)" });
+        }
+
+        // Job-Label LINKS auf der Park-L-Seite
+        const lblX = padX + 6;
+        const lblY = ty + 14;
+        const jobLabelTxt = `Auftrag ${jw.idx + 1}`;
+        const jobLabelW = jobLabelTxt.length * 7 + 14;
+        svgW(g, "rect", { x: lblX, y: lblY - 11, width: jobLabelW, height: 22, rx: 4,
+          fill: "var(--bg-base)", stroke: color, "stroke-width": "1" });
+        svgW(g, "text", { x: lblX + jobLabelW/2, y: lblY + 4, "text-anchor": "middle",
+          fill: color, "font-size": "11", "font-weight": "800", "font-family": "inherit", "letter-spacing": "0.04em" }, jobLabelTxt);
+        // Sub-Label mit MR/Haupt
+        const subTxt = `MR ${jw.mr} · ${jw.haupt}` + (jw.versatz ? ` · Δ${jw.versatz>0?"+":""}${jw.versatz}` : "");
+        svgW(g, "text", { x: lblX + 4, y: lblY + 22, "text-anchor": "start",
+          fill: "rgba(180,180,180,0.85)", "font-size": "9", "font-weight": "600", "font-family": "inherit" }, subTxt);
+
+        // Stats RECHTS auf der Park-R-Seite
+        const aktiv = jw.cuts.length;
+        const geparkt = d.cuts.length - aktiv;
+        const statsTxt1 = `${aktiv} aktiv`;
+        const statsTxt2 = `${geparkt} geparkt`;
+        svgW(g, "text", { x: W - padX - 6, y: lblY + 4, "text-anchor": "end",
+          fill: color, "font-size": "12", "font-weight": "800", "font-family": "inherit" }, statsTxt1);
+        svgW(g, "text", { x: W - padX - 6, y: lblY + 22, "text-anchor": "end",
+          fill: "rgba(180,180,180,0.7)", "font-size": "9", "font-weight": "600", "font-family": "inherit" }, statsTxt2);
+      });
+    }
   }
 
   // Helper: Distanzring-Stack-Aufschlüsselung für Sequenz-Detail
@@ -3880,6 +4265,7 @@ footer.footer {
   }
 
   // Bestückungs-Sequenz: Rechts → Links Reihenfolge auf Rüstdorn
+  // Doppelte Position-Anzeige: @ X mm ab links + Mitte ±Y mm (für Mitte-Operatoren)
   function renderWelleSequenz(result) {
     const seqEl = document.getElementById("welleSequenz");
     const wrap = document.getElementById("welleSequenzWrap");
@@ -3889,6 +4275,14 @@ footer.footer {
       return;
     }
     seqEl.innerHTML = "";
+    const MITTE = DCM.WELLE_MITTE;
+    function fromMitte(absPos, breite) {
+      // Mittelpunkt des Bauteils relativ zur Welle-Mitte
+      const center = absPos + (breite / 2);
+      const delta = center - MITTE;
+      if (Math.abs(delta) < 1) return "Mitte";
+      return delta > 0 ? `Mitte +${Math.round(delta)}` : `Mitte ${Math.round(delta)}`;
+    }
     const sequenz = [...result.layoutLR].reverse();  // Rechts → Links
     let kumPos = 0;
     let nr = 1;
@@ -3904,10 +4298,10 @@ footer.footer {
               <div class="stueck-nr distanz">${nr++}</div>
               <div>
                 <div class="stueck-name"><span class="icon" style="background:linear-gradient(180deg,#00e676,#00b85e)"></span>Distanzring (Rest)</div>
-                <div class="stueck-detail">aus ${size} mm Stack</div>
+                <div class="stueck-detail">aus ${size} mm Stack · ${fromMitte(kumPos, size)}</div>
               </div>
               <div class="stueck-mass">${size} mm</div>
-              <div class="stueck-pos">@ ${Math.round(kumPos)}</div>
+              <div class="stueck-pos">@ ${Math.round(kumPos)} mm</div>
             `;
             seqEl.appendChild(row);
             kumPos += size;
@@ -3923,16 +4317,21 @@ footer.footer {
           ? "linear-gradient(90deg,#ffb74d 0%,#ffb74d 50%,#ffd54f 50%,#ffd54f 100%)"
           : "linear-gradient(90deg,#ff5544 0%,#ff5544 50%,#ffd54f 50%,#ffd54f 100%)";
         const cutPosLocal = DCM.SCHNITT_OFFSET;
+        const cutAbsPos = Math.round(kumPos + cutPosLocal);
+        const cutFromMitte = cutAbsPos - MITTE;
+        const cutMitteTxt = Math.abs(cutFromMitte) < 1
+          ? "Schnitt = Welle-Mitte"
+          : (cutFromMitte > 0 ? `Schnitt: Mitte +${cutFromMitte} mm` : `Schnitt: Mitte ${cutFromMitte} mm`);
         const r = document.createElement("div");
         r.className = "stueck-row";
         r.innerHTML = `
           <div class="stueck-nr ${cls}">${nr++}</div>
           <div>
             <div class="stueck-name"><span class="icon" style="background:${swatch}"></span>Schneideeinheit${isNeben ? ' <span style="color:#ffb400">(Neben)</span>' : ''}</div>
-            <div class="stueck-detail">Schnittkante asymmetrisch @ ${DCM.SCHNITT_OFFSET} mm v. links · Position auf Welle ${Math.round(kumPos + cutPosLocal)} mm</div>
+            <div class="stueck-detail">Schnittkante asymmetrisch @ ${DCM.SCHNITT_OFFSET} mm v. links · Welle-Position ${cutAbsPos} mm · ${cutMitteTxt}</div>
           </div>
           <div class="stueck-mass">20 mm</div>
-          <div class="stueck-pos">@ ${Math.round(kumPos)}</div>
+          <div class="stueck-pos">@ ${Math.round(kumPos)} mm<br><span style="font-size:10px;opacity:0.7">${fromMitte(kumPos, DCM.SCHNEIDEEINHEIT)}</span></div>
         `;
         seqEl.appendChild(r);
         kumPos += DCM.SCHNEIDEEINHEIT;
@@ -3944,8 +4343,8 @@ footer.footer {
         seg.kind === "park" ? "linear-gradient(180deg,#3a3a3a,#161616)" :
         "linear-gradient(180deg,#00e676,#00b85e)";
       const detail = seg.kind === "distanz" && seg.breite > 0
-        ? `<div class="stueck-detail">↳ Stack: ${stackBreakdown(seg.breite)}</div>`
-        : "";
+        ? `<div class="stueck-detail">↳ Stack: ${stackBreakdown(seg.breite)} · ${fromMitte(kumPos, seg.breite)}</div>`
+        : (seg.kind === "park" ? `<div class="stueck-detail">${fromMitte(kumPos, seg.breite)}</div>` : "");
       const row = document.createElement("div");
       row.className = "stueck-row";
       row.innerHTML = `
@@ -3955,7 +4354,7 @@ footer.footer {
           ${detail}
         </div>
         <div class="stueck-mass">${seg.breite < 1 ? seg.breite.toFixed(2) : Math.round(seg.breite * 100) / 100} mm</div>
-        <div class="stueck-pos">@ ${Math.round(kumPos)}</div>
+        <div class="stueck-pos">@ ${Math.round(kumPos)} mm</div>
       `;
       seqEl.appendChild(row);
       kumPos += seg.breite;
@@ -4351,7 +4750,6 @@ footer.footer {
         const mergeTxt = master.mergedCount > 0 ? ` · ⚠ ${master.mergedCount} Cut-Konflikt${master.mergedCount>1?"e":""} gemerged` : "";
         if (sub) sub.innerHTML = `<strong style="color:var(--accent-primary)">✓ MEHRFACH-BESTÜCKUNG MÖGLICH</strong> · Master-Welle für ${master.validJobs.length} Aufträge · ${master.cuts.length} SE total · innen ${master.innerLen.toFixed(0)} mm${versatzTxt ? " · MR-Versatz: " + versatzTxt : ""}${mergeTxt}`;
         renderWelleSvg(master);
-        renderTracksSvg(master);
         renderWelleSequenz(master);
         renderWelleHolliste(master);
         const qScore = calcQualityScore(master, out);
@@ -5608,13 +6006,89 @@ footer.footer {
   }
   if (localStorage.getItem(CLUSTER_OPEN_KEY) === "1") setClusterState(true, false);
 
+  // ============== Auftrags-Meta-Eingaben (für Print-Header + Datei-Name) ==============
+  const META_KEY = "rr.welleMeta";
+  const metaIds = ["welleAuftragNr", "welleDatum", "welleKunde", "welleMaterial", "welleBemerkung"];
+  function loadMeta() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(META_KEY) || "{}");
+      metaIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && saved[id]) el.value = saved[id];
+      });
+    } catch(e) { /* ignore */ }
+    // Datum default: heute, falls leer
+    const d = document.getElementById("welleDatum");
+    if (d && !d.value) d.value = new Date().toISOString().slice(0, 10);
+  }
+  function saveMeta() {
+    const data = {};
+    metaIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) data[id] = el.value;
+    });
+    try { localStorage.setItem(META_KEY, JSON.stringify(data)); } catch(e) { /* ignore */ }
+  }
+  metaIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener("input", saveMeta);
+      el.addEventListener("change", saveMeta);
+    }
+  });
+  loadMeta();
+
+  // Print-Header befüllen (vor jedem Print-Aufruf)
+  function preparePrintHeader() {
+    const get = (id) => (document.getElementById(id) || {}).value || "";
+    const txt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || "—"; };
+    const auftragNr = get("welleAuftragNr") || "(ohne Nr)";
+    const datum = get("welleDatum") || new Date().toISOString().slice(0, 10);
+    const kunde = get("welleKunde") || "(ohne Kunde)";
+    const material = get("welleMaterial") || "(ohne Material)";
+    const bemerkung = get("welleBemerkung") || "—";
+    txt("printAuftragNr", auftragNr);
+    txt("printDatum", datum);
+    txt("printKunde", kunde);
+    txt("printMaterial", material);
+    txt("printBemerkung", bemerkung);
+    // MR + Schmal aus aktueller calc-Sicht
+    if (lastValid) {
+      const mr = lastValid.mutter ? `${lastValid.mutter} mm` : "—";
+      let schmal = lastValid.schmal ? `${lastValid.nutzen}× ${lastValid.schmal} mm` : "—";
+      if (lastValid.nebenSlots && lastValid.nebenSlots.length) {
+        schmal += " + " + lastValid.nebenSlots.map(s => `${s.anz}× ${s.breite} mm`).join(" + ");
+      }
+      const nutzen = lastValid.nutzen != null
+        ? `${lastValid.nutzen + (lastValid.nebenAnzTotal || 0)} Schmalrollen pro MR`
+        : "—";
+      txt("printMR", mr);
+      txt("printSchmal", schmal);
+      txt("printNutzen", nutzen);
+    } else {
+      txt("printMR", "—"); txt("printSchmal", "—"); txt("printNutzen", "—");
+    }
+    // Datei-Name dynamisch via document.title
+    const safe = s => String(s).replace(/[^a-zA-Z0-9_\-äöüÄÖÜß]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+    const dateShort = datum.replace(/-/g, "");
+    const fileName = `Bestueckung_DCM_${safe(auftragNr)}_${dateShort}`;
+    document.title = fileName;
+    return fileName;
+  }
+  function restoreTitle() {
+    document.title = "Rollenrechner · Ballerstaedt";
+  }
+
   // Print-Handler
   const printBtnEl = document.getElementById("printWelleBtn");
   if (printBtnEl) {
     printBtnEl.addEventListener("click", () => {
-      // Kurzer Toast vor Print-Dialog
-      toast("Druck-Dialog öffnet…");
-      setTimeout(() => window.print(), 200);
+      const fileName = preparePrintHeader();
+      toast(`Druck-Dialog · ${fileName}.pdf`);
+      // Browser onafterprint setzt Titel zurück
+      const handler = () => { restoreTitle(); window.removeEventListener("afterprint", handler); };
+      window.addEventListener("afterprint", handler);
+      setTimeout(() => window.print(), 250);
     });
   }
 
