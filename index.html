@@ -5627,22 +5627,34 @@ footer.footer {
   // Damit nichts verloren geht beim Swap, aber compact-Eingabe direkt im Slot weiterhin funktioniert.
   function jobToMainState(job) {
     if (!job) return {};
-    // Kompakt-Felder → Hauptrechner-IDs
+    // Compact-Felder gewinnen IMMER über _fullState (User-direkt-Edits werden bevorzugt)
     const snap = job._fullState ? { ...job._fullState } : {};
-    snap.mutter = job.mr || snap.mutter || "";
-    snap.schmal = job.haupt || snap.schmal || "";
-    snap.flaeche = job.flaeche || snap.flaeche || "";
-    snap.lfm = job.lfm || snap.lfm || "";
-    snap.welleAuftragNr = job.auftragsNr || snap.welleAuftragNr || "";
-    snap.welleKunde = job.kunde || snap.welleKunde || "";
-    snap.welleMaterial = job.material || snap.welleMaterial || "";
-    snap.welleBemerkung = job.bemerkung || snap.welleBemerkung || "";
-    // Neben N1 aus compact-Feldern (höhere Slots nur via _fullState)
-    if (job.nebenBreite) {
-      snap.neben1Breite = job.nebenBreite;
-      snap.neben1Anz = job.nebenAnz || "1";
+    snap.mutter = job.mr || "";
+    snap.schmal = job.haupt || "";
+    snap.flaeche = job.flaeche || "";
+    snap.lfm = job.lfm || "";
+    snap.welleAuftragNr = job.auftragsNr || "";
+    snap.welleKunde = job.kunde || "";
+    snap.welleMaterial = job.material || "";
+    snap.welleBemerkung = job.bemerkung || "";
+    // Neben N1 aus compact (N2-N4 bleiben aus _fullState erhalten)
+    snap.neben1Breite = job.nebenBreite || "";
+    snap.neben1Anz = job.nebenAnz || "";
+    // Hetero-Auto-Detection: open wenn N1 ODER irgendein höherer Slot Werte hat
+    const hasN1 = !!(job.nebenBreite && job.nebenAnz);
+    const hasHigherSlots = !!(snap.neben2Breite || snap.neben3Breite || snap.neben4Breite);
+    if (hasN1 || hasHigherSlots) {
       snap._heteroOpen = true;
-      if (!snap._slotsVisible || snap._slotsVisible < 1) snap._slotsVisible = 1;
+      // Mindestens N1 sichtbar — höhere Slots nur wenn ihre Werte da sind
+      let neededSlots = 1;
+      if (snap.neben2Breite) neededSlots = Math.max(neededSlots, 2);
+      if (snap.neben3Breite) neededSlots = Math.max(neededSlots, 3);
+      if (snap.neben4Breite) neededSlots = Math.max(neededSlots, 4);
+      snap._slotsVisible = neededSlots;
+    } else {
+      // Kein Neben überhaupt — Hetero zu, Slot-1 sichtbar (default)
+      snap._heteroOpen = false;
+      snap._slotsVisible = 1;
     }
     return snap;
   }
@@ -5708,23 +5720,17 @@ footer.footer {
   function applyMainState(snap, opts) {
     if (!snap || typeof snap !== "object") snap = {};
     const triggerCalc = !opts || opts.calc !== false;
-    // 1. Inputs setzen
-    MAIN_JOB_INPUT_IDS.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = snap[id] || "";
-    });
-    // 2. Hetero-Toggle
+    // ORDER MATTERS: setHeteroState(false) hat den Side-Effect dass es Hetero-Werte LEERT.
+    // Daher zuerst Hetero/Asym State setzen, DANN die Werte schreiben.
+    // 1. Hetero-Toggle setzen (wenn falsch geschaltet → toggle, leert ggf. Werte — aber wir
+    //    schreiben sie gleich neu in Schritt 3)
     const heteroToggle = document.getElementById("heteroToggle");
     if (heteroToggle && typeof setHeteroState === "function") {
       const isOpen = heteroToggle.getAttribute("aria-expanded") === "true";
       const wantOpen = !!snap._heteroOpen;
       if (isOpen !== wantOpen) setHeteroState(wantOpen, false);
     }
-    // 3. Slots-Visibility
-    if (typeof applySlotVisibility === "function" && snap._slotsVisible) {
-      applySlotVisibility(snap._slotsVisible, true);
-    }
-    // 4. Asym-Toggle
+    // 2. Asym-Toggle (kein Side-Effect, einfach setzen)
     const asymToggle = document.getElementById("asymToggle");
     if (asymToggle) {
       const isAsymOpen = asymToggle.getAttribute("aria-expanded") === "true";
@@ -5735,7 +5741,16 @@ footer.footer {
         if (asymFields) asymFields.setAttribute("aria-hidden", wantAsymOpen ? "false" : "true");
       }
     }
-    // 5. Auftrags-Meta-localStorage gleich auch updaten (Welle-Header zieht aus localStorage)
+    // 3. Slots-Visibility VOR den Inputs (damit Slots sichtbar sind bevor Werte rein gehen)
+    if (typeof applySlotVisibility === "function" && snap._slotsVisible) {
+      applySlotVisibility(snap._slotsVisible, true);
+    }
+    // 4. Inputs setzen — JETZT die finalen Werte, nachdem Side-Effects durch sind
+    MAIN_JOB_INPUT_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = snap[id] || "";
+    });
+    // 5. Auftrags-Meta-localStorage updaten (Welle-Header zieht aus localStorage)
     try {
       const metaKeys = ["welleAuftragNr","welleDatum","welleKunde","welleMaterial","welleBemerkung"];
       const meta = {};
@@ -6087,13 +6102,33 @@ footer.footer {
     // Add-Btn enable/disable
     const addBtn = document.getElementById("clusterAddBtn");
     if (addBtn) addBtn.disabled = clusterJobs.length >= MAX_CLUSTER;
-    // Listeners auf neuen Inputs
+    // Mapping: compact-Slot-Feld → Hauptrechner-Input-ID (für _fullState-Sync)
+    const COMPACT_TO_MAIN_ID = {
+      mr: "mutter", haupt: "schmal", flaeche: "flaeche", lfm: "lfm",
+      nebenBreite: "neben1Breite", nebenAnz: "neben1Anz",
+      auftragsNr: "welleAuftragNr", kunde: "welleKunde",
+      material: "welleMaterial", bemerkung: "welleBemerkung"
+    };
+    // Listeners auf neuen Inputs · syncen ALLES (compact + _fullState)
     cont.querySelectorAll("input").forEach(inp => {
       inp.addEventListener("input", (e) => {
         const i = parseInt(e.target.dataset.cidx);
         const f = e.target.dataset.cf;
-        if (!clusterJobs[i]) clusterJobs[i] = {};
+        if (!Number.isInteger(i) || !f) return;
+        if (!clusterJobs[i]) clusterJobs[i] = ensureClusterJobShape({});
         clusterJobs[i][f] = e.target.value;
+        // _fullState mit-updaten falls vorhanden — sonst Inkonsistenz beim Swap
+        if (clusterJobs[i]._fullState) {
+          const tid = COMPACT_TO_MAIN_ID[f];
+          if (tid) clusterJobs[i]._fullState[tid] = e.target.value;
+          // Hetero-State aus N1-Daten ableiten
+          if (f === "nebenBreite" || f === "nebenAnz") {
+            const hasN1 = clusterJobs[i].nebenBreite && clusterJobs[i].nebenAnz;
+            const hasHigherSlots = clusterJobs[i]._fullState.neben2Breite || clusterJobs[i]._fullState.neben3Breite || clusterJobs[i]._fullState.neben4Breite;
+            if (hasN1 || hasHigherSlots) clusterJobs[i]._fullState._heteroOpen = true;
+            else clusterJobs[i]._fullState._heteroOpen = false;
+          }
+        }
         saveClusterJobs();
         if (lastValid) renderWelle(lastValid);
       });
