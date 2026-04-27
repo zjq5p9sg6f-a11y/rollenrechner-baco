@@ -4161,6 +4161,10 @@ footer.footer {
     drawViz(out);
     renderFulfillment(out);
     renderWelle(out);
+    // A1-Read-Only-Zeile + Save-Template-Btn IMMER live updaten — auch wenn
+    // Welle-Section closed ist (Cluster-Section kann allein offen sein)
+    if (typeof updatePrimaryRow === "function") updatePrimaryRow();
+    if (typeof updateSaveTemplateBtn === "function") updateSaveTemplateBtn();
 
     els.statusBadge.textContent = "Live · aktualisiert";
     els.statusBadge.style.color = "var(--accent-primary)";
