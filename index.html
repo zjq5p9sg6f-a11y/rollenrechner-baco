@@ -1022,6 +1022,195 @@ header.bar {
   margin-top: 12px;
   display: flex; flex-direction: column; gap: 6px;
 }
+
+/* Tracks-SVG */
+#tracksSvg {
+  width: 100%;
+  height: auto;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-top: 8px;
+  min-height: 140px;
+}
+
+/* ============== Cluster (Folgeauftrag) Toggle + Section ============== */
+.cluster-toggle {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px 18px;
+  background: linear-gradient(90deg, rgba(66,165,245,0.06), transparent);
+  border: 1px dashed rgba(66,165,245,0.4);
+  border-radius: var(--r-2);
+  color: #42a5f5;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  text-transform: uppercase;
+}
+.cluster-toggle:hover {
+  border-style: solid;
+  background: linear-gradient(90deg, rgba(66,165,245,0.10), rgba(66,165,245,0.02));
+  box-shadow: 0 0 18px rgba(66,165,245,0.18);
+}
+.cluster-toggle-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  flex-shrink: 0;
+  transition: transform var(--t-fast);
+}
+.cluster-toggle-icon svg { width: 12px; height: 12px; }
+.cluster-toggle[aria-expanded="true"] .cluster-toggle-icon {
+  transform: rotate(45deg);
+  background: #42a5f5;
+  color: var(--bg-base);
+}
+.cluster-toggle[aria-expanded="true"] {
+  border-style: solid;
+  border-color: #42a5f5;
+}
+.cluster-toggle-hint {
+  margin-left: auto;
+  font-size: 10px; opacity: 0.7; font-style: italic;
+  letter-spacing: 0.02em; text-transform: none;
+}
+
+.cluster-section {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 320ms var(--ease-out-expo), opacity 200ms ease, margin-top 320ms var(--ease-out-expo);
+  margin-top: 0;
+}
+.cluster-section[aria-hidden="false"] {
+  max-height: 1200px;
+  opacity: 1;
+  margin-top: 12px;
+}
+
+.cluster-jobs {
+  display: flex; flex-direction: column;
+  gap: 8px;
+}
+.cluster-job {
+  display: grid;
+  grid-template-columns: 36px 1fr 1fr 1fr 36px;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 14px;
+  border: 1px solid rgba(66,165,245,0.20);
+  border-radius: var(--r-2);
+  background: linear-gradient(180deg, rgba(66,165,245,0.04), rgba(66,165,245,0.01));
+  position: relative;
+}
+.cluster-job:focus-within {
+  border-color: #42a5f5;
+  box-shadow: 0 0 0 1px rgba(66,165,245,0.5);
+}
+.cluster-job-num {
+  width: 36px; height: 32px;
+  display: grid; place-items: center;
+  border-radius: 7px;
+  background: rgba(66,165,245,0.12);
+  border: 1px solid rgba(66,165,245,0.4);
+  color: #42a5f5;
+  font-size: 13px; font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.cluster-job-pair {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 5px 10px;
+  min-width: 0;
+}
+.cluster-job-pair label {
+  grid-row: 1; grid-column: 1;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+.cluster-job-pair input {
+  grid-row: 2; grid-column: 1;
+  background: transparent;
+  border: 0; outline: 0;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  width: 100%; min-width: 0;
+  padding: 0;
+}
+.cluster-job-pair .unit {
+  grid-row: 1 / span 2; grid-column: 2;
+  align-self: center;
+  font-size: 11px; font-weight: 700;
+  color: var(--text-unit);
+}
+.cluster-job-remove {
+  width: 32px; height: 32px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(0,0,0,0.4);
+  color: var(--text-secondary);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 700;
+  display: grid; place-items: center;
+  transition: all var(--t-fast);
+}
+.cluster-job-remove:hover { background: var(--danger-color); color: #fff; border-color: var(--danger-color); }
+
+.cluster-add-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; gap: 10px;
+  padding: 10px 16px;
+  margin-top: 10px;
+  background: transparent;
+  border: 1px dashed rgba(66,165,245,0.45);
+  border-radius: var(--r-2);
+  color: #42a5f5;
+  font-family: inherit;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.cluster-add-btn:hover { background: rgba(66,165,245,0.06); border-style: solid; }
+.cluster-add-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.cluster-add-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  font-size: 14px; font-weight: 800;
+}
+
+/* Quality-Score-Badge */
+.welle-quality {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px;
+  margin-top: 8px;
+  border-radius: 6px;
+  font-size: 13px; font-weight: 700;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.welle-quality.q-good { background: rgba(0,230,118,0.12); color: var(--accent-primary); border: 1px solid rgba(0,230,118,0.4); }
+.welle-quality.q-ok { background: rgba(255,180,0,0.12); color: #ffb400; border: 1px solid rgba(255,180,0,0.4); }
+.welle-quality.q-bad { background: rgba(255,77,109,0.12); color: var(--danger-color); border: 1px solid rgba(255,77,109,0.4); }
 .welle-alerts .welle-alert {
   padding: 10px 14px;
   border-radius: 8px;
@@ -1067,7 +1256,11 @@ header.bar {
     border: 1px solid #999 !important;
   }
   #welleSection .btn-print { display: none !important; }
-  #welleSvg { background: white !important; border-color: #999 !important; }
+  #welleSvg, #tracksSvg { background: white !important; border-color: #999 !important; }
+  #welleSection .cluster-section, #welleSection .cluster-toggle { display: none !important; }
+  #welleSection .welle-quality {
+    background: white !important; color: black !important; border-color: #555 !important;
+  }
   #welleSection .welle-alert { color: #555 !important; background: #f5f5f5 !important; border-color: #ccc !important; }
 }
 
@@ -2511,6 +2704,26 @@ footer.footer {
         </div>
       </div>
       <svg id="welleSvg" viewBox="0 0 1500 280" preserveAspectRatio="xMidYMid meet" aria-label="Bestückte Welle DCM"></svg>
+
+      <!-- Track-Projektion (bei Master-Welle): pro Folgeauftrag eigene Spur -->
+      <svg id="tracksSvg" viewBox="0 0 1500 200" preserveAspectRatio="xMidYMid meet" aria-label="Auftrags-Tracks" style="display:none"></svg>
+
+      <!-- Folgeauftrags-Cluster (Beta) — Multi-Order Master-Welle -->
+      <button type="button" class="cluster-toggle" id="clusterToggle" aria-expanded="false" aria-controls="clusterSection" tabindex="-1">
+        <span class="cluster-toggle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+        <span>Folgeauftrag prüfen — auf gleicher Welle bestücken?</span>
+        <span class="cluster-toggle-hint">max 3 zusätzlich · Master-Welle-Cluster</span>
+      </button>
+      <div class="cluster-section" id="clusterSection" aria-hidden="true">
+        <div class="cluster-jobs" id="clusterJobs">
+          <!-- Slots werden via JS gerendert -->
+        </div>
+        <button type="button" class="cluster-add-btn" id="clusterAddBtn" tabindex="-1">
+          <span class="cluster-add-icon">+</span>
+          <span>Weiteren Auftrag hinzufügen</span>
+        </button>
+      </div>
+
       <div class="welle-holliste" id="welleHolliste"></div>
       <div class="welle-alerts" id="welleAlerts"></div>
     </section>
@@ -3383,7 +3596,18 @@ footer.footer {
     const cont = document.getElementById("welleAlerts");
     if (!cont) return;
     cont.innerHTML = "";
-    if (!result || !result.alerts) return;
+    if (!result) return;
+    // Quality-Score-Badge oben
+    if (result.qScore != null) {
+      const q = result.qScore;
+      const cls = q >= 80 ? "q-good" : q >= 60 ? "q-ok" : "q-bad";
+      const lbl = q >= 80 ? "✓ exzellent" : q >= 60 ? "ok" : "⚠ kritisch";
+      const div = document.createElement("div");
+      div.className = `welle-quality ${cls}`;
+      div.innerHTML = `<strong>Quality-Score</strong> · <span style="font-size:18px">${q}</span>/100 · ${lbl}`;
+      cont.appendChild(div);
+    }
+    if (!result.alerts) return;
     for (const a of result.alerts) {
       const div = document.createElement("div");
       div.className = `welle-alert ${a.type}`;
@@ -3392,15 +3616,367 @@ footer.footer {
     }
   }
 
+  // ============== Cluster-State (Folgeaufträge) ==============
+  const CLUSTER_KEY = "rr.clusterJobs";
+  let clusterJobs = []; // {mr, haupt, neben, nebenAnz}
+  function loadClusterJobs() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(CLUSTER_KEY) || "[]");
+      if (Array.isArray(saved)) clusterJobs = saved.slice(0, 3);
+    } catch(e) { clusterJobs = []; }
+  }
+  function saveClusterJobs() {
+    try { localStorage.setItem(CLUSTER_KEY, JSON.stringify(clusterJobs)); } catch(e) {}
+  }
+  function renderClusterJobs() {
+    const cont = document.getElementById("clusterJobs");
+    if (!cont) return;
+    cont.innerHTML = "";
+    clusterJobs.forEach((job, idx) => {
+      const slotNum = idx + 2; // primary ist #1
+      const div = document.createElement("div");
+      div.className = "cluster-job";
+      div.innerHTML = `
+        <div class="cluster-job-num">A${slotNum}</div>
+        <div class="cluster-job-pair">
+          <label>MR</label>
+          <input type="text" inputmode="decimal" pattern="[0-9.,]*" data-cidx="${idx}" data-cf="mr" value="${job.mr || ""}" placeholder="z. B. 620">
+          <span class="unit">mm</span>
+        </div>
+        <div class="cluster-job-pair">
+          <label>Haupt</label>
+          <input type="text" inputmode="decimal" pattern="[0-9.,]*" data-cidx="${idx}" data-cf="haupt" value="${job.haupt || ""}" placeholder="z. B. 35">
+          <span class="unit">mm</span>
+        </div>
+        <div class="cluster-job-pair">
+          <label>Neben × Anz</label>
+          <input type="text" inputmode="decimal" pattern="[0-9.,× ]*" data-cidx="${idx}" data-cf="neben" value="${job.neben || ""}" placeholder="z. B. 50×2">
+          <span class="unit">mm</span>
+        </div>
+        <button type="button" class="cluster-job-remove" data-cremove="${idx}" tabindex="-1" aria-label="Auftrag entfernen">×</button>
+      `;
+      cont.appendChild(div);
+    });
+    // Add-Btn enable/disable
+    const addBtn = document.getElementById("clusterAddBtn");
+    if (addBtn) addBtn.disabled = clusterJobs.length >= 3;
+    // Listeners auf neuen Inputs
+    cont.querySelectorAll("input").forEach(inp => {
+      inp.addEventListener("input", (e) => {
+        const i = parseInt(e.target.dataset.cidx);
+        const f = e.target.dataset.cf;
+        if (!clusterJobs[i]) clusterJobs[i] = {};
+        clusterJobs[i][f] = e.target.value;
+        saveClusterJobs();
+        if (lastValid) renderWelle(lastValid);
+      });
+    });
+    cont.querySelectorAll("[data-cremove]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const i = parseInt(btn.dataset.cremove);
+        clusterJobs.splice(i, 1);
+        saveClusterJobs();
+        renderClusterJobs();
+        if (lastValid) renderWelle(lastValid);
+      });
+    });
+  }
+
+  // Parse "60×2" oder "60 × 2" oder "60" → {breite, anz}
+  function parseNebenSpec(s) {
+    if (!s) return { breite: 0, anz: 0 };
+    const txt = String(s).trim();
+    if (!txt) return { breite: 0, anz: 0 };
+    const m = txt.match(/^([\d.,]+)\s*[×x*]\s*([\d]+)$/i);
+    if (m) return { breite: parseFloat(m[1].replace(",", ".")) || 0, anz: parseInt(m[2]) || 0 };
+    const single = parseFloat(txt.replace(",", "."));
+    return isFinite(single) && single > 0 ? { breite: single, anz: 1 } : { breite: 0, anz: 0 };
+  }
+
+  // ============== Master-Welle-Engine (port aus Wellenbestückungs-Tool) ==============
+  // Vereinigt Cuts mehrerer Aufträge mit MR-Versatz-Optimierung.
+  function calcMasterWelle(allJobs) {
+    if (!Array.isArray(allJobs) || allJobs.length < 2) return null;
+    const tol = 0.5;
+    const validJobs = [];
+    for (let idx = 0; idx < allJobs.length; idx++) {
+      const j = allJobs[idx];
+      if (!j.mr || !j.haupt) continue;
+      const mr = j.mr, haupt = j.haupt;
+      if (haupt < DCM.SCHNEIDEEINHEIT) continue;
+      const nebenSpec = j.nebenSlots && j.nebenSlots.length > 0
+        ? j.nebenSlots
+        : (j.neben && j.neben.breite > 0 ? [{ breite: j.neben.breite, anz: j.neben.anz }] : []);
+      const nebenSpace = nebenSpec.reduce((s,x)=>s+x.anz*x.breite, 0);
+      const N = Math.floor((mr - nebenSpace) / haupt);
+      if (N < 1) continue;
+      const besaeumung = (mr - N*haupt - nebenSpace) / 2;
+      const mrLeft = DCM.WELLE_MITTE - mr/2;
+      const cuts = [];
+      let p = mrLeft + besaeumung;
+      cuts.push(p);
+      for (let i = 0; i < N; i++) { p += haupt; cuts.push(p); }
+      for (const sp of nebenSpec) {
+        for (let n = 0; n < sp.anz; n++) { p += sp.breite; cuts.push(p); }
+      }
+      validJobs.push({
+        idx, mr, haupt, nebenSpec, N,
+        cuts, mrLeft, mrRight: mrLeft + mr,
+        besaeumung, versatz: 0
+      });
+    }
+    if (validJobs.length < 2) return null;
+
+    // MR-Versatz-Optimierung — pro Folgeauftrag bestes δ ∈ [-50, +50] mm
+    const ref = validJobs[0];
+    for (let i = 1; i < validJobs.length; i++) {
+      const job = validJobs[i];
+      let bestDelta = 0, bestCommon = 0;
+      for (let d = -50; d <= 50; d += 1) {
+        const shifted = job.cuts.map(c => c + d);
+        const common = shifted.filter(c => ref.cuts.some(r => Math.abs(c - r) < tol)).length;
+        if (common > bestCommon) { bestCommon = common; bestDelta = d; }
+      }
+      if (bestDelta !== 0) {
+        job.mrLeft += bestDelta;
+        job.mrRight += bestDelta;
+        job.cuts = job.cuts.map(c => c + bestDelta);
+        job.versatz = bestDelta;
+      }
+    }
+
+    // Union aller Cuts
+    const rawCuts = [];
+    for (const j of validJobs) for (const c of j.cuts) {
+      if (!rawCuts.some(x => Math.abs(x - c) < tol)) rawCuts.push(c);
+    }
+    rawCuts.sort((a, b) => a - b);
+
+    // Konflikt-Resolution: <SE-Breite Cuts mergen
+    const allCuts = [];
+    let mergedCount = 0;
+    for (const c of rawCuts) {
+      if (allCuts.length === 0 || (c - allCuts[allCuts.length - 1]) >= DCM.SCHNEIDEEINHEIT - 0.001) {
+        allCuts.push(c);
+      } else {
+        allCuts[allCuts.length - 1] = (allCuts[allCuts.length - 1] + c) / 2;
+        mergedCount++;
+      }
+    }
+
+    // Inner-Layout: SE pro Cut + Distanzring zwischen
+    const innerSegs = [];
+    for (let i = 0; i < allCuts.length; i++) {
+      if (i > 0) {
+        const dist = (allCuts[i] - allCuts[i - 1]) - DCM.SCHNEIDEEINHEIT;
+        if (dist > 0.001) innerSegs.push({ kind: "distanz", breite: dist, name: `Distanzring Master ${i}`, short: "D" });
+      }
+      innerSegs.push({ kind: "schneid", breite: DCM.SCHNEIDEEINHEIT, name: `SE Master ${i + 1}`, short: "SE" });
+    }
+    const innerLen = innerSegs.reduce((s, x) => s + x.breite, 0);
+
+    const firstSeStart = allCuts[0] - DCM.SCHNITT_OFFSET;
+    const lastSeEnd = (allCuts[allCuts.length - 1] - DCM.SCHNITT_OFFSET) + DCM.SCHNEIDEEINHEIT;
+    const restL = firstSeStart - DCM.PARK_TOTAL;
+    const restR = (DCM.PARK_TOTAL + DCM.BESTUECKUNGS_BREITE) - lastSeEnd;
+
+    if (restL < -0.001 || restR < -0.001) {
+      return { ok: false, error: `Master-Bestückung passt nicht in ${DCM.BESTUECKUNGS_BREITE} mm Bereich (innerLen=${innerLen.toFixed(1)} mm)`, validJobs, mergedCount };
+    }
+    const restFillL = distanzringeForDCM(Math.max(0, restL));
+    const restFillR = distanzringeForDCM(Math.max(0, restR));
+
+    const layoutLR = [];
+    for (let i = 0; i < DCM.PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: DCM.PARK_RING, name: "Park-L", short: "P" });
+    if (restL > 0.001) layoutLR.push({ kind: "rest", breite: restL, name: "Auffüllung L", short: "Rest", fill: restFillL.rings });
+    for (const s of innerSegs) layoutLR.push({...s});
+    if (restR > 0.001) layoutLR.push({ kind: "rest", breite: restR, name: "Auffüllung R", short: "Rest", fill: restFillR.rings });
+    for (let i = 0; i < DCM.PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: DCM.PARK_RING, name: "Park-R", short: "P" });
+
+    // Hol-Liste (Master)
+    const holliste = [
+      { name: "Schneideeinheit", spec: "20 mm (Master)", anz: allCuts.length },
+      { name: "Parkplatz-Ring", spec: "59 mm", anz: DCM.PARK_PRO_SEITE * 2 }
+    ];
+    const distMap = {};
+    for (const seg of innerSegs) {
+      if (seg.kind === "distanz" && seg.breite > 0) {
+        const f = distanzringeForDCM(seg.breite);
+        for (const [k,v] of Object.entries(f.rings)) distMap[k] = (distMap[k] || 0) + v;
+      }
+    }
+    for (const [k,v] of Object.entries(restFillL.rings)) distMap[k] = (distMap[k] || 0) + v;
+    for (const [k,v] of Object.entries(restFillR.rings)) distMap[k] = (distMap[k] || 0) + v;
+    const distKeys = Object.keys(distMap).map(parseFloat).sort((a,b)=>b-a);
+    for (const k of distKeys) holliste.push({ name: "Distanzring", spec: `${k} mm`, anz: distMap[k] });
+
+    return {
+      ok: true,
+      isMaster: true,
+      validJobs,
+      cuts: allCuts,
+      mergedCount,
+      innerLen,
+      restL, restR,
+      layoutLR, innerSegs, holliste
+    };
+  }
+
+  // ============== Tracks-Projektion-Render ==============
+  function renderTracksSvg(master) {
+    const svg = document.getElementById("tracksSvg");
+    if (!svg) return;
+    if (!master || !master.ok || !master.validJobs || master.validJobs.length < 2) {
+      svg.style.display = "none";
+      svg.innerHTML = "";
+      return;
+    }
+    svg.style.display = "";
+    svg.innerHTML = "";
+
+    const W = 1500;
+    const padX = 50;
+    const innerW = W - padX*2;
+    const pxPerMM = innerW / DCM.WELLE;
+    const xAt = (mm) => padX + mm * pxPerMM;
+    const trackH = 38, trackGap = 6, headerH = 24, bottomPad = 20;
+    const n = master.validJobs.length;
+    const totalH = headerH + n * (trackH + trackGap) + bottomPad;
+    svg.setAttribute("viewBox", `0 0 ${W} ${totalH}`);
+
+    const jobColors = ["#00e676", "#42a5f5", "#ffb74d", "#ec407a"];
+
+    // Master-Cut-Projektions-Linien (vertikal durch alle Tracks)
+    const tracksBottom = headerH + n * (trackH + trackGap);
+    for (const c of master.cuts) {
+      const x = xAt(c);
+      svgW(svg, "line", { x1: x, y1: 0, x2: x, y2: tracksBottom,
+        stroke: "rgba(0,230,118,0.18)", "stroke-width": "0.6", "stroke-dasharray": "2 3" });
+      svgW(svg, "path", { d: `M${x} 6 L${x-3} 0 L${x+3} 0 Z`, fill: "rgba(0,230,118,0.4)" });
+    }
+    // Welle-Mitte
+    const midX = xAt(DCM.WELLE_MITTE);
+    svgW(svg, "line", { x1: midX, y1: 0, x2: midX, y2: tracksBottom,
+      stroke: "rgba(0,230,118,0.55)", "stroke-width": "0.8", "stroke-dasharray": "8 3 1 3" });
+
+    // Header-Label
+    svgW(svg, "text", { x: padX, y: 16, fill: "var(--accent-primary)", "font-size": "11", "font-weight": "700", "letter-spacing": "0.06em", "text-transform": "uppercase", "font-family": "inherit" }, "Auftrags-Projektion · pro Auftrag eine Spur · gemeinsame Cuts = grün durchgehend");
+
+    master.validJobs.forEach((jw, i) => {
+      const ty = headerH + i * (trackH + trackGap);
+      const tmidY = ty + trackH/2;
+      const color = jobColors[i % jobColors.length];
+
+      // Spur-Hintergrund
+      svgW(svg, "rect", { x: padX, y: ty, width: innerW, height: trackH,
+        fill: "rgba(0,0,0,0.4)", stroke: "rgba(255,255,255,0.06)", "stroke-width": "0.6", rx: "4" });
+      // Park-Zonen
+      svgW(svg, "rect", { x: padX, y: ty+5, width: xAt(DCM.PARK_TOTAL)-padX, height: trackH-10,
+        fill: "rgba(60,60,60,0.4)", stroke: "rgba(255,255,255,0.05)", "stroke-width": "0.4", rx: "3" });
+      svgW(svg, "rect", { x: xAt(DCM.PARK_TOTAL+DCM.BESTUECKUNGS_BREITE), y: ty+5, width: padX+innerW-xAt(DCM.PARK_TOTAL+DCM.BESTUECKUNGS_BREITE), height: trackH-10,
+        fill: "rgba(60,60,60,0.4)", stroke: "rgba(255,255,255,0.05)", "stroke-width": "0.4", rx: "3" });
+      // MR-Bereich farbig
+      svgW(svg, "rect", { x: xAt(jw.mrLeft), y: ty+3, width: xAt(jw.mrRight)-xAt(jw.mrLeft), height: trackH-6,
+        fill: color, opacity: "0.10", stroke: color, "stroke-width": "0.7", "stroke-dasharray": "4 3", rx: "2" });
+      // Inaktive Master-Cuts (graue Kreise)
+      const tol = 0.5;
+      for (const c of master.cuts) {
+        if (jw.cuts.some(x => Math.abs(x - c) < tol)) continue;
+        const x = xAt(c);
+        svgW(svg, "circle", { cx: x, cy: tmidY, r: "2.5", fill: "transparent", stroke: "rgba(140,140,140,0.5)", "stroke-width": "0.8", "stroke-dasharray": "1.5 1.5" });
+      }
+      // Aktive Cuts (farbig)
+      for (const c of jw.cuts) {
+        const x = xAt(c);
+        svgW(svg, "line", { x1: x, y1: ty+6, x2: x, y2: ty+trackH-6, stroke: color, "stroke-width": "1.5" });
+        svgW(svg, "circle", { cx: x, cy: tmidY, r: "3", fill: color });
+      }
+      // Job-Label links
+      const versatzTxt = jw.versatz ? ` · Versatz ${jw.versatz > 0 ? '+' : ''}${jw.versatz}mm` : "";
+      svgW(svg, "text", { x: padX + 6, y: ty + trackH - 5, fill: color, "font-size": "10", "font-weight": "700", "font-family": "inherit" }, `A${jw.idx + 1}: MR ${jw.mr}/${jw.haupt} mm · ${jw.cuts.length} Cuts${versatzTxt}`);
+    });
+  }
+
+  // Quality-Score (vereinfacht, aus Wellenbestückungs-Engine inspiriert)
+  function calcQualityScore(welle, out) {
+    if (!welle || !welle.ok) return null;
+    let score = 0;
+    // Trim-Effizienz: innerLen / Bestückungsbereich (näher an 100% = besser)
+    const trimEff = welle.innerLen / DCM.BESTUECKUNGS_BREITE;
+    score += Math.min(40, trimEff * 40);
+    // Cut-Konflikte (Master-Mode) — strafe
+    if (welle.mergedCount && welle.mergedCount > 0) score -= welle.mergedCount * 5;
+    // Anzahl Aufträge im Cluster — Bonus
+    if (welle.validJobs && welle.validJobs.length >= 2) score += 25;
+    // Besäumung (single) — innerhalb 5-20mm = ok
+    if (out && out.restMM >= 10 && out.restMM <= 40) score += 20;
+    else if (out && out.restMM > 0) score += 10;
+    // Parkplatz-Vollständigkeit (immer 100% bei DCM)
+    score += 15;
+    return Math.max(0, Math.min(100, Math.round(score)));
+  }
+
   function renderWelle(out) {
     const section = document.getElementById("welleSection");
     if (!section || section.getAttribute("aria-hidden") === "true") return;
     const sub = document.getElementById("welleSubtitle");
+    const tracksSvg = document.getElementById("tracksSvg");
     if (!out || !out.mutter) {
       if (sub) sub.textContent = "Werte oben eingeben um Bestückung zu berechnen";
       renderWelleSvg(null); renderWelleHolliste(null); renderWelleAlerts(null);
+      if (tracksSvg) { tracksSvg.style.display = "none"; tracksSvg.innerHTML = ""; }
       return;
     }
+
+    // Cluster-Mode aktiv? — nur wenn Toggle open UND mind. 1 valider Folgeauftrag
+    const clusterToggle = document.getElementById("clusterToggle");
+    const clusterOn = clusterToggle && clusterToggle.getAttribute("aria-expanded") === "true";
+    const clusterValidJobs = clusterOn ? clusterJobs.filter(j => {
+      const mr = parseFloat((j.mr || "").replace(",", ".")) || 0;
+      const haupt = parseFloat((j.haupt || "").replace(",", ".")) || 0;
+      return mr > 0 && haupt >= DCM.SCHNEIDEEINHEIT;
+    }) : [];
+
+    if (clusterValidJobs.length > 0) {
+      // ============== Master-Welle-Mode ==============
+      // Primary-Auftrag aus out
+      const primaryJob = {
+        mr: out.mutter, haupt: out.schmal,
+        nebenSlots: (out.nebenSlots || []).map(s => ({ breite: s.breite, anz: s.anz }))
+      };
+      // Folgeaufträge umwandeln
+      const followJobs = clusterValidJobs.map(j => {
+        const nspec = parseNebenSpec(j.neben);
+        return {
+          mr: parseFloat((j.mr || "").replace(",", ".")) || 0,
+          haupt: parseFloat((j.haupt || "").replace(",", ".")) || 0,
+          nebenSlots: nspec.breite > 0 && nspec.anz > 0 ? [nspec] : []
+        };
+      });
+      const allJobs = [primaryJob, ...followJobs];
+      const master = calcMasterWelle(allJobs);
+      if (master && master.ok) {
+        const versatzTxt = master.validJobs.filter(j => j.versatz).map(j => `A${j.idx+1}: ${j.versatz>0?"+":""}${j.versatz}mm`).join(", ");
+        const mergeTxt = master.mergedCount > 0 ? ` · ⚠ ${master.mergedCount} Cut-Konflikt${master.mergedCount>1?"e":""} gemerged` : "";
+        if (sub) sub.innerHTML = `<strong style="color:var(--accent-primary)">MASTER-WELLE für ${master.validJobs.length} Aufträge</strong> · ${master.cuts.length} SE total · innen ${master.innerLen.toFixed(0)} mm${versatzTxt ? " · MR-Versatz: " + versatzTxt : ""}${mergeTxt}`;
+        renderWelleSvg(master);
+        renderTracksSvg(master);
+        renderWelleHolliste(master);
+        const qScore = calcQualityScore(master, out);
+        renderWelleAlerts({...master, qScore });
+        return;
+      }
+      if (master && !master.ok) {
+        if (sub) sub.innerHTML = `<span style="color:var(--danger-color)"><strong>Master nicht möglich:</strong> ${master.error}</span>`;
+        renderWelleSvg(null); renderWelleHolliste(null);
+        if (tracksSvg) { tracksSvg.style.display = "none"; tracksSvg.innerHTML = ""; }
+        renderWelleAlerts({ ok: false, alerts: [{type:"danger", msg: master.error + ". Aufträge inkompatibel — Reihenfolge/MR-Versatz/Park-Strategie nötig."}] });
+        return;
+      }
+    }
+
+    // ============== Single-Auftrag-Mode (Default) ==============
+    if (tracksSvg) { tracksSvg.style.display = "none"; tracksSvg.innerHTML = ""; }
     const result = calcWelleJob(out);
     if (!result.ok) {
       if (sub) sub.innerHTML = `<span style="color:var(--danger-color)">${(result.alerts[0] && result.alerts[0].msg) || 'Bestückung nicht möglich'}</span>`;
@@ -3411,7 +3987,8 @@ footer.footer {
     if (sub) sub.textContent = `MR ${result.mr} mm → ${result.N}× ${result.haupt} mm${slotsTxt} · innen ${result.innerLen.toFixed(1)} mm · Rest ${result.restProSeite.toFixed(2)} mm/Seite`;
     renderWelleSvg(result);
     renderWelleHolliste(result);
-    renderWelleAlerts(result);
+    const qScore = calcQualityScore(result, out);
+    renderWelleAlerts({...result, qScore });
   }
 
   function render(o) {
@@ -4453,7 +5030,7 @@ footer.footer {
   }
 
   // Tab-Order säubern: Lean-Flow — alle Hilfs-Buttons aus dem Tab-Pfad raus.
-  document.querySelectorAll(".stepper, .copy-btn, .unit-toggle, .icon-btn, .hero-cta, #exampleBtn, #calcBtn, #heteroToggle, #asymToggle, #welleToggle, #printWelleBtn, .ml-copy")
+  document.querySelectorAll(".stepper, .copy-btn, .unit-toggle, .icon-btn, .hero-cta, #exampleBtn, #calcBtn, #heteroToggle, #asymToggle, #welleToggle, #printWelleBtn, #clusterToggle, #clusterAddBtn, .cluster-job-remove, .ml-copy")
     .forEach(b => b.setAttribute("tabindex", "-1"));
 
   // ============== Heterogene Einteilung — Toggle-Logik ==============
@@ -4587,6 +5164,43 @@ footer.footer {
     });
   }
   if (localStorage.getItem(WELLE_KEY) === "1") setWelleState(true, false);
+
+  // ============== Cluster (Folgeauftrag) Toggle + Slot-Mgmt ==============
+  const CLUSTER_OPEN_KEY = "rr.clusterOpen";
+  loadClusterJobs();
+  renderClusterJobs();
+  function setClusterState(open, persist) {
+    const toggle = document.getElementById("clusterToggle");
+    const section = document.getElementById("clusterSection");
+    if (!toggle || !section) return;
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    section.setAttribute("aria-hidden", open ? "false" : "true");
+    if (persist) localStorage.setItem(CLUSTER_OPEN_KEY, open ? "1" : "0");
+    if (lastValid) renderWelle(lastValid);
+  }
+  const clusterToggleEl = document.getElementById("clusterToggle");
+  if (clusterToggleEl) {
+    clusterToggleEl.addEventListener("click", () => {
+      const isOpen = clusterToggleEl.getAttribute("aria-expanded") === "true";
+      setClusterState(!isOpen, true);
+      // Bei Öffnen: ersten Slot adden wenn leer
+      if (!isOpen && clusterJobs.length === 0) {
+        clusterJobs.push({});
+        saveClusterJobs();
+        renderClusterJobs();
+      }
+    });
+  }
+  const clusterAddBtn = document.getElementById("clusterAddBtn");
+  if (clusterAddBtn) {
+    clusterAddBtn.addEventListener("click", () => {
+      if (clusterJobs.length >= 3) return;
+      clusterJobs.push({});
+      saveClusterJobs();
+      renderClusterJobs();
+    });
+  }
+  if (localStorage.getItem(CLUSTER_OPEN_KEY) === "1") setClusterState(true, false);
 
   // Print-Handler
   const printBtnEl = document.getElementById("printWelleBtn");
