@@ -2856,21 +2856,28 @@ footer.footer {
   }
 
   // Tab-Order säubern: Lean-Flow → NUR die 7 Eingabefelder im Tab-Pfad,
-  // alle anderen Buttons aus dem Tab-Pfad raus (Klick mit Maus weiter möglich).
-  document.querySelectorAll(".stepper, .copy-btn, .unit-toggle, .icon-btn, #exampleBtn, #calcBtn")
+  // ALLE anderen fokussierbaren Elemente aus dem Tab-Pfad raus.
+  // Klick mit Maus geht weiter — tabindex=-1 deaktiviert NUR Tab-Fokus.
+  document.querySelectorAll(".stepper, .copy-btn, .unit-toggle, .icon-btn, .hero-cta, #exampleBtn, #calcBtn")
     .forEach(b => b.setAttribute("tabindex", "-1"));
 
-  // keyboard: Enter UND Tab springen zum nächsten Feld (Operator-Wunsch)
+  // keyboard: Enter + Tab + Shift+Tab cyclen sauber durch die 7 Eingabefelder.
+  // Wrap-around an beiden Enden — perfekter Lean-Loop ohne dass der Operator
+  // versehentlich aus den Inputs in die Browser-Adressleiste fällt.
   const order = [els.flaeche, els.mutter, els.schmal, els.lfm, els.speed, els.ruestBase, els.ruestPerSatz].filter(Boolean);
   order.forEach((el, i) => {
     el.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        const next = order[(i + 1) % order.length];
-        next.focus();
+        order[(i + 1) % order.length].focus();
+        return;
       }
-      // Tab läuft jetzt automatisch sauber durch die Inputs (alle Hilfs-Buttons sind tabindex=-1).
-      // Shift+Tab = rückwärts. Browser-Default reicht.
+      if (e.key === "Tab") {
+        e.preventDefault();
+        const dir = e.shiftKey ? -1 : 1;
+        const nextIdx = (i + dir + order.length) % order.length;
+        order[nextIdx].focus();
+      }
     });
   });
 
