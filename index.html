@@ -1487,6 +1487,14 @@ header.bar {
   text-transform: uppercase;
   margin-top: 2px;
 }
+.cjo-sub {
+  font-size: 10px; font-weight: 600;
+  color: rgba(0,230,118,0.85);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  margin-top: 1px;
+}
+.cjo-item.cjo-huelsen { padding-right: 14px; }
 @media (max-width: 800px) {
   .cje-header { grid-template-columns: 1fr; }
   .cluster-job-output { padding: 8px; }
@@ -2103,6 +2111,59 @@ header.bar {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   margin-top: 4px;
+}
+.ca-sub {
+  font-size: 10px; font-weight: 700;
+  color: #ffd76a;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  margin-top: 2px;
+  opacity: 0.85;
+}
+
+/* Hülsen-Bestell-Liste pro Breite (für die Brodbeck-Hülsenschneidemaschine) */
+.ca-bestell {
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255,180,0,0.30);
+}
+.ca-bestell-label {
+  font-size: 10px; font-weight: 800;
+  color: #ffb400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.ca-bestell-rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 6px;
+}
+.ca-bestell-row {
+  display: flex; align-items: baseline; gap: 6px;
+  padding: 6px 10px;
+  background: rgba(0,0,0,0.30);
+  border: 1px solid rgba(255,180,0,0.20);
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.ca-bestell-stk {
+  font-size: 14px; font-weight: 800;
+  color: #ffd76a;
+}
+.ca-bestell-x {
+  font-size: 11px; font-weight: 700;
+  color: var(--text-secondary);
+}
+.ca-bestell-breite {
+  font-size: 13px; font-weight: 700;
+  color: var(--text-primary);
+}
+.ca-bestell-meter {
+  margin-left: auto;
+  font-size: 11px; font-weight: 700;
+  color: rgba(255,180,0,0.85);
+  letter-spacing: 0.03em;
 }
 
 @media (max-width: 700px) {
@@ -5722,6 +5783,10 @@ footer.footer {
       const huelsenHaupt = saetzeGesamt * nutzen;
       const huelsenNeben = saetzeGesamt * (na || 0);
       const huelsenGesamt = huelsenHaupt + huelsenNeben;
+      // Hülsen-Material-Länge als Bestell-Maß (laufende Meter)
+      // Haupt-Hülsen sind haupt-mm breit, Neben-Hülsen nb-mm breit
+      const huelsenMaterialMm = huelsenHaupt * haupt + huelsenNeben * nb;
+      const huelsenMaterialM = huelsenMaterialMm / 1000;
       const laufzeitNettoMin = settings.speed > 0 ? mrMengeLFM / settings.speed : 0;
       const ruestGesamtMin = settings.ruestBase + saetzeGesamt * settings.ruestPerSatz;
       const laufzeitBruttoMin = laufzeitNettoMin + ruestGesamtMin;
@@ -5729,6 +5794,7 @@ footer.footer {
         flaeche, lfm,
         gesamtLFM, prodPerSatz, volleSaetze, restsatzLFM, saetzeGesamt,
         mrMengeLFM, huelsenHaupt, huelsenNeben, huelsenGesamt,
+        huelsenMaterialMm, huelsenMaterialM,
         laufzeitNettoMin, ruestGesamtMin, laufzeitBruttoMin,
         hasMengen: true
       });
@@ -5789,9 +5855,30 @@ footer.footer {
     const mrLfm = Math.round(v.mrMengeLFM || 0);
     const netto = (v.tNettoMin || 0).toFixed(0);
     const brutto = (v.tBruttoMin || 0).toFixed(0);
+    // Hülsen-Material-Länge berechnen (Haupt × haupt-Breite + Neben × neben-Breite)
+    const haupt = v.schmal || 0;
+    const huelsenHaupt = v.huelsenHaupt || (v.totalSaetze * v.nutzen) || 0;
+    const huelsenNebenTotal = v.huelsenNebenTotal || (huelsen - huelsenHaupt);
+    let materialMm = huelsenHaupt * haupt;
+    const subParts = [];
+    if (huelsenHaupt > 0) subParts.push(`${huelsenHaupt}×${haupt}mm`);
+    if (v.nebenSlots && v.nebenSlots.length > 0) {
+      v.nebenSlots.forEach(s => {
+        const stk = (s.huelsen != null) ? s.huelsen : (saetze * (s.anz || 0));
+        if (stk > 0 && s.breite > 0) {
+          materialMm += stk * s.breite;
+          subParts.push(`${stk}×${s.breite}mm`);
+        }
+      });
+    } else if (huelsenNebenTotal > 0) {
+      // Fallback ohne Detail-Info
+      subParts.push(`${huelsenNebenTotal}× neben`);
+    }
+    const materialM = (materialMm / 1000).toFixed(1);
+    const huelsenSubTxt = `${subParts.join(" + ")} · ${materialM} m`;
     return `
       <div class="cluster-job-output">
-        <span class="cjo-item"><span class="cjo-val">${huelsen}</span><span class="cjo-lbl">Hülsen</span></span>
+        <span class="cjo-item cjo-huelsen"><span class="cjo-val">${huelsen}</span><span class="cjo-sub">${huelsenSubTxt}</span><span class="cjo-lbl">Hülsen</span></span>
         <span class="cjo-item"><span class="cjo-val">${saetze}</span><span class="cjo-lbl">Sätze</span></span>
         <span class="cjo-item"><span class="cjo-val">${mrLfm.toLocaleString("de-DE")}</span><span class="cjo-lbl">LFM MR</span></span>
         <span class="cjo-item"><span class="cjo-val">${netto}</span><span class="cjo-lbl">min netto</span></span>
@@ -5918,9 +6005,16 @@ footer.footer {
       div.className = "cluster-job";
       if (job.expanded) div.classList.add("cluster-job-expanded");
       const out = computeJobOutput(job, settings);
+      // Hülsen-Sub-Info (Bestell-Maß): Stk × Breite + Σ Material in m
+      const huelsenSubTxt = out.ok && out.hasMengen ? (() => {
+        const parts = [];
+        if (out.huelsenHaupt > 0) parts.push(`${out.huelsenHaupt}×${out.haupt}mm`);
+        if (out.huelsenNeben > 0 && out.nebenBreite > 0) parts.push(`${out.huelsenNeben}×${out.nebenBreite}mm`);
+        return parts.join(" + ") + ` · ${out.huelsenMaterialM.toFixed(1)} m`;
+      })() : "";
       const outputHtml = (out.ok && out.hasMengen) ? `
         <div class="cluster-job-output">
-          <span class="cjo-item"><span class="cjo-val">${out.huelsenGesamt}</span><span class="cjo-lbl">Hülsen</span></span>
+          <span class="cjo-item cjo-huelsen"><span class="cjo-val">${out.huelsenGesamt}</span><span class="cjo-sub">${huelsenSubTxt}</span><span class="cjo-lbl">Hülsen</span></span>
           <span class="cjo-item"><span class="cjo-val">${out.saetzeGesamt}</span><span class="cjo-lbl">Sätze</span></span>
           <span class="cjo-item"><span class="cjo-val">${Math.round(out.mrMengeLFM).toLocaleString("de-DE")}</span><span class="cjo-lbl">LFM MR</span></span>
           <span class="cjo-item"><span class="cjo-val">${out.laufzeitNettoMin.toFixed(0)}</span><span class="cjo-lbl">min netto</span></span>
@@ -6422,8 +6516,16 @@ footer.footer {
     if (!clusterOn) { root.hidden = true; return; }
     const settings = getMachineSettings();
     let huelsenSum = 0, saetzeSum = 0, mrLfmSum = 0, nettoSum = 0, bruttoSum = 0;
+    let huelsenMaterialMmSum = 0;
+    const huelsenByBreite = {}; // {29: 120, 60: 18} = Bestell-Liste pro Hülsen-Länge
     let countWithMengen = 0, countTotal = 0;
-    // Primary aus lastValid (Field-Namen: huelsen / totalSaetze / mrMengeLFM / tNettoMin / tBruttoMin)
+    function addHuelsenBreite(breite, stk) {
+      if (!breite || !stk) return;
+      const key = String(breite);
+      huelsenByBreite[key] = (huelsenByBreite[key] || 0) + stk;
+      huelsenMaterialMmSum += stk * breite;
+    }
+    // Primary aus lastValid
     if (lastValid && lastValid.huelsen != null && lastValid.huelsen > 0) {
       countTotal++;
       countWithMengen++;
@@ -6432,8 +6534,18 @@ footer.footer {
       mrLfmSum += (lastValid.mrMengeLFM || 0);
       nettoSum += (lastValid.tNettoMin || 0);
       bruttoSum += (lastValid.tBruttoMin || 0);
+      // Hülsen pro Breite aufsummieren (Haupt + Neben-Slots)
+      const haupt = lastValid.schmal || 0;
+      const huelsenHaupt = lastValid.huelsenHaupt || ((lastValid.totalSaetze || 0) * (lastValid.nutzen || 0));
+      addHuelsenBreite(haupt, huelsenHaupt);
+      if (lastValid.nebenSlots && lastValid.nebenSlots.length > 0) {
+        lastValid.nebenSlots.forEach(s => {
+          const stk = (s.huelsen != null) ? s.huelsen : ((lastValid.totalSaetze || 0) * (s.anz || 0));
+          addHuelsenBreite(s.breite, stk);
+        });
+      }
     } else if (lastValid && lastValid.mutter) {
-      countTotal++; // Primary geometrisch da, aber keine Mengen
+      countTotal++;
     }
     // Cluster-Aufträge
     clusterJobs.forEach(j => {
@@ -6447,9 +6559,14 @@ footer.footer {
           mrLfmSum += out.mrMengeLFM;
           nettoSum += out.laufzeitNettoMin;
           bruttoSum += out.laufzeitBruttoMin;
+          addHuelsenBreite(out.haupt, out.huelsenHaupt);
+          if (out.nebenBreite > 0 && out.huelsenNeben > 0) {
+            addHuelsenBreite(out.nebenBreite, out.huelsenNeben);
+          }
         }
       }
     });
+    const huelsenMaterialMSum = huelsenMaterialMmSum / 1000;
     if (countTotal === 0 || countWithMengen === 0) {
       root.hidden = true;
       return;
@@ -6458,18 +6575,39 @@ footer.footer {
     const incomplete = countWithMengen < countTotal
       ? `<span class="ca-incomplete">${countTotal - countWithMengen} Auftr${(countTotal-countWithMengen)===1?"ag":"äge"} ohne Mengen-Daten — Fläche+LFM ergänzen</span>`
       : "";
+    // Bestell-Liste pro Hülsen-Länge (sortiert by Breite DESC)
+    const breitenSorted = Object.keys(huelsenByBreite)
+      .map(k => ({ breite: parseFloat(k), stk: huelsenByBreite[k] }))
+      .filter(x => x.breite > 0 && x.stk > 0)
+      .sort((a, b) => b.breite - a.breite);
+    const bestellListe = breitenSorted.length > 0 ? `
+      <div class="ca-bestell">
+        <div class="ca-bestell-label">Hülsen-Bestellung pro Länge</div>
+        <div class="ca-bestell-rows">
+          ${breitenSorted.map(b => `
+            <div class="ca-bestell-row">
+              <span class="ca-bestell-stk">${b.stk}</span>
+              <span class="ca-bestell-x">×</span>
+              <span class="ca-bestell-breite">${b.breite} mm</span>
+              <span class="ca-bestell-meter">= ${(b.stk * b.breite / 1000).toFixed(2)} m</span>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    ` : "";
     root.innerHTML = `
       <div class="ca-header">
         <span class="ca-label">Σ Tagesplan · ${countWithMengen}/${countTotal} Auftr${countTotal===1?"ag":"äge"}</span>
         ${incomplete}
       </div>
       <div class="ca-grid">
-        <div class="ca-item"><span class="ca-val">${huelsenSum.toLocaleString("de-DE")}</span><span class="ca-lbl">Hülsen gesamt</span></div>
+        <div class="ca-item"><span class="ca-val">${huelsenSum.toLocaleString("de-DE")}</span><span class="ca-sub">${huelsenMaterialMSum.toFixed(1)} m Material</span><span class="ca-lbl">Hülsen gesamt</span></div>
         <div class="ca-item"><span class="ca-val">${saetzeSum}</span><span class="ca-lbl">Sätze gesamt</span></div>
         <div class="ca-item"><span class="ca-val">${Math.round(mrLfmSum).toLocaleString("de-DE")}</span><span class="ca-lbl">LFM MR gesamt</span></div>
         <div class="ca-item"><span class="ca-val">${(nettoSum/60).toFixed(1)}<span class="ca-unit">h</span></span><span class="ca-lbl">Netto-Laufzeit</span></div>
         <div class="ca-item ca-brutto"><span class="ca-val">${(bruttoSum/60).toFixed(1)}<span class="ca-unit">h</span></span><span class="ca-lbl">Brutto-Maschinenzeit</span></div>
       </div>
+      ${bestellListe}
     `;
   }
 
