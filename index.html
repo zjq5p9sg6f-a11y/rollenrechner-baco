@@ -5310,16 +5310,8 @@ footer.footer {
     svgW(g, "text", { x: midX + (W - padX - midX) / 2, y: symY - 5, "text-anchor": "middle",
       fill: cMidStrong, "font-size": "10", "font-weight": "700", "letter-spacing": "0.06em", "font-family": "inherit" }, "R = 736");
 
-    // ⌖ MITTE Label · mit Background-Box damit es nicht von MR-Bracket überdeckt wird
-    const mitteX = midX + 11;
-    const mitteY = crossTopY - 7;
-    svgW(g, "rect", {
-      x: mitteX - 2, y: mitteY - 8,
-      width: 46, height: 12, rx: 2,
-      fill: "var(--bg-base)", stroke: cMidStrong, "stroke-width": "0.6", opacity: "0.95"
-    });
-    svgW(g, "text", { x: mitteX + 1, y: mitteY + 2,
-      fill: cMidStrong, "font-size": "8", "font-weight": "700", "letter-spacing": "0.12em", "font-family": "inherit" }, "⌖ MITTE");
+    // (MITTE-Label entfernt v1.33 — Cross-Mark + Mittellinie + L=R-Symmetrie sind selbsterklärend,
+    //  Label kollidierte mit MR-Bracket. Weniger Visual-Clutter, gleiche Information.)
 
     // ============ Bottom-Bemaßung: Park-L | Bestückungs-Bereich | Park-R ============
     const parkLEnd = DCM.PARK_TOTAL;
