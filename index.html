@@ -2855,7 +2855,13 @@ footer.footer {
     });
   }
 
-  // keyboard: Enter springt zum nächsten Feld
+  // Tab-Order säubern: Stepper/Copy/Unit/Reset/Demo aus dem Tab-Pfad nehmen,
+  // damit Operator mit Tab direkt von Eingabe zu Eingabe springt.
+  // Klick mit der Maus geht weiter — tabindex=-1 deaktiviert NUR Tab-Fokus.
+  document.querySelectorAll(".stepper, .copy-btn, .unit-toggle, .icon-btn, #exampleBtn")
+    .forEach(b => b.setAttribute("tabindex", "-1"));
+
+  // keyboard: Enter UND Tab springen zum nächsten Feld (Operator-Wunsch)
   const order = [els.flaeche, els.mutter, els.schmal, els.lfm, els.speed, els.ruestBase, els.ruestPerSatz].filter(Boolean);
   order.forEach((el, i) => {
     el.addEventListener("keydown", (e) => {
@@ -2864,6 +2870,8 @@ footer.footer {
         const next = order[(i + 1) % order.length];
         next.focus();
       }
+      // Tab läuft jetzt automatisch sauber durch die Inputs (alle Hilfs-Buttons sind tabindex=-1).
+      // Shift+Tab = rückwärts. Browser-Default reicht.
     });
   });
 
