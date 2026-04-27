@@ -1344,6 +1344,46 @@ header.bar {
   font-size: 13px; font-weight: 800;
   letter-spacing: 0.04em;
 }
+.cluster-job-num.primary {
+  background: rgba(0,230,118,0.14);
+  border-color: rgba(0,230,118,0.5);
+  color: var(--accent-primary);
+}
+
+/* Primary-Zeile: grün-akzentuiert + read-only-Inputs subtil */
+.cluster-job.cluster-job-primary {
+  border-color: rgba(0,230,118,0.30);
+  background: linear-gradient(180deg, rgba(0,230,118,0.06), rgba(0,230,118,0.01));
+  margin-bottom: 4px;
+}
+.cluster-job-pair.readonly {
+  background: rgba(0,0,0,0.25);
+  border-color: rgba(0,230,118,0.20);
+}
+.cluster-job-pair.readonly input {
+  color: var(--accent-primary);
+  font-weight: 700;
+  cursor: default;
+}
+.cluster-job-pair.readonly label { color: var(--accent-primary); opacity: 0.85; }
+.cluster-job-jump {
+  width: 32px; height: 32px;
+  border: 1px solid rgba(0,230,118,0.4);
+  background: rgba(0,0,0,0.4);
+  color: var(--accent-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  display: grid; place-items: center;
+  transition: all var(--t-fast);
+}
+.cluster-job-jump:hover {
+  background: var(--accent-primary);
+  color: #062b14;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 14px var(--accent-glow);
+}
 .cluster-job-pair {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -4247,14 +4287,28 @@ footer.footer {
     // ============ TOP-Bemaßung 2: MR-Bereich ============
     if (isMaster) {
       const jobColors = ["#00e676", "#ffb74d", "#42a5f5", "#ec407a"];
-      d.validJobs.forEach((jw, i) => {
-        const color = jobColors[jw.idx % jobColors.length];
+      // Konsolidieren: Aufträge mit IDENTISCHER MR-Position (mrLeft+mrRight innerhalb tol) gruppieren
+      // → 1 Bracket statt mehrere übereinander
+      const tolBracket = 1.0;
+      const groups = [];
+      d.validJobs.forEach(jw => {
+        const existing = groups.find(g => Math.abs(g.mrLeft - jw.mrLeft) < tolBracket && Math.abs(g.mrRight - jw.mrRight) < tolBracket);
+        if (existing) existing.jobs.push(jw);
+        else groups.push({ mrLeft: jw.mrLeft, mrRight: jw.mrRight, jobs: [jw] });
+      });
+      groups.forEach((grp, i) => {
         const yOff = dimTop2Y + i * 14;
-        const lX = xAt(jw.mrLeft), rX = xAt(jw.mrRight);
+        const lX = xAt(grp.mrLeft), rX = xAt(grp.mrRight);
+        // Erste Job-Farbe für Bracket — bei Multi-Job auf weiß-grün setzen (gemeinsam)
+        const color = grp.jobs.length > 1
+          ? "rgba(220,220,220,0.9)"
+          : jobColors[grp.jobs[0].idx % jobColors.length];
         svgW(g, "line", { x1: lX, y1: yOff, x2: rX, y2: yOff, stroke: color, "stroke-width": "1", opacity: "0.85" });
         svgW(g, "path", { d: `M${lX} ${yOff} L${lX+7} ${yOff-3} L${lX+7} ${yOff+3} Z`, fill: color, opacity: "0.85" });
         svgW(g, "path", { d: `M${rX} ${yOff} L${rX-7} ${yOff-3} L${rX-7} ${yOff+3} Z`, fill: color, opacity: "0.85" });
-        const lbl = `A${jw.idx + 1} · MR ${jw.mr}`;
+        // Label: bei Single-Job "A1 · MR 620", bei Multi-Job "A1+A2 · MR 620"
+        const idsTxt = grp.jobs.map(j => `A${j.idx + 1}`).join("+");
+        const lbl = `${idsTxt} · MR ${grp.jobs[0].mr}`;
         const lblW = lbl.length * 6.2 + 12;
         svgW(g, "rect", { x: lX - lblW - 6, y: yOff - 8, width: lblW, height: 16, rx: 4,
           fill: "var(--bg-base)", stroke: color, "stroke-width": "0.8" });
@@ -4488,21 +4542,33 @@ footer.footer {
         svgW(g, "rect", { x: mrL, y: ty + 4, width: mrR - mrL, height: trackH - 8,
           fill: color, opacity: "0.10", stroke: color, "stroke-width": "0.7", "stroke-dasharray": "4 3", rx: "2" });
 
-        // Master-Cuts die diesem Job NICHT zugeordnet sind = inaktive (geparkt) als hohle Kreise
+        // Master-Cuts die diesem Job NICHT zugeordnet sind = inaktive (geparkt) — dezent kleinere Kreise
         for (const c of d.cuts) {
           if (jw.cuts.some(x => Math.abs(x - c) < tol)) continue;
           const x = xAt(c);
-          svgW(g, "circle", { cx: x, cy: tmidY, r: "3.5",
-            fill: "transparent", stroke: "rgba(140,140,140,0.6)",
-            "stroke-width": "1", "stroke-dasharray": "1.5 1.5" });
+          svgW(g, "circle", { cx: x, cy: tmidY, r: "2.5",
+            fill: "transparent", stroke: "rgba(110,110,110,0.5)",
+            "stroke-width": "0.8", "stroke-dasharray": "1.5 1.5" });
         }
 
-        // Aktive Cuts: farbiger Punkt + Glow (auf Track-Mittelpunkt)
+        // Aktive Cuts in REIHENFOLGE sortieren für Perlenkette-Linie
+        const activeCutsX = jw.cuts.map(c => xAt(c)).sort((a, b) => a - b);
+        // Perlenkette-Verbindungslinie zwischen allen aktiven Cuts (zeigt das Pattern visuell)
+        if (activeCutsX.length > 1) {
+          const polyPoints = activeCutsX.map(x => `${x},${tmidY}`).join(" ");
+          svgW(g, "polyline", { points: polyPoints,
+            fill: "none", stroke: color, "stroke-width": "2",
+            opacity: "0.55", filter: "url(#glowGreen)" });
+        }
+
+        // Aktive Cuts: farbiger Punkt prominenter
         for (const c of jw.cuts) {
           const x = xAt(c);
           svgW(g, "line", { x1: x, y1: ty + 8, x2: x, y2: ty + trackH - 8,
             stroke: color, "stroke-width": "2" });
-          svgW(g, "circle", { cx: x, cy: tmidY, r: "4", fill: color, filter: "url(#glowGreen)" });
+          svgW(g, "circle", { cx: x, cy: tmidY, r: "5",
+            fill: color, stroke: "rgba(255,255,255,0.6)", "stroke-width": "0.8",
+            filter: "url(#glowGreen)" });
         }
 
         // Job-Label LINKS auf der Park-L-Seite
@@ -4520,7 +4586,9 @@ footer.footer {
           fill: "rgba(180,180,180,0.85)", "font-size": "9", "font-weight": "600", "font-family": "inherit" }, subTxt);
 
         // Stats RECHTS auf der Park-R-Seite
-        const aktiv = jw.cuts.length;
+        // aktiv = wieviele Master-Cuts dieser Auftrag tatsächlich braucht (nach Konflikt-Merge)
+        // geparkt = wieviele Master-Cuts NICHT von diesem Auftrag genutzt werden
+        const aktiv = d.cuts.filter(c => jw.cuts.some(x => Math.abs(x - c) < tol)).length;
         const geparkt = d.cuts.length - aktiv;
         const statsTxt1 = `${aktiv} aktiv`;
         const statsTxt2 = `${geparkt} geparkt`;
@@ -4696,6 +4764,41 @@ footer.footer {
     const cont = document.getElementById("clusterJobs");
     if (!cont) return;
     cont.innerHTML = "";
+    // === A1 als read-only Primary-Header-Zeile (synchron mit Rollenrechner-Eingaben) ===
+    const primaryDiv = document.createElement("div");
+    primaryDiv.className = "cluster-job cluster-job-primary";
+    let primaryMr = "—", primaryHaupt = "—", primaryNeben = "—";
+    if (lastValid && lastValid.mutter) {
+      primaryMr = lastValid.mutter + " mm";
+      primaryHaupt = lastValid.schmal + " mm";
+      if (lastValid.nebenSlots && lastValid.nebenSlots.length) {
+        primaryNeben = lastValid.nebenSlots.map(s => `${s.breite}×${s.anz}`).join(" + ");
+      } else {
+        primaryNeben = "—";
+      }
+    }
+    primaryDiv.innerHTML = `
+      <div class="cluster-job-num primary">A1</div>
+      <div class="cluster-job-pair readonly">
+        <label>MR · Primär</label>
+        <input type="text" value="${primaryMr}" readonly tabindex="-1">
+      </div>
+      <div class="cluster-job-pair readonly">
+        <label>Haupt</label>
+        <input type="text" value="${primaryHaupt}" readonly tabindex="-1">
+      </div>
+      <div class="cluster-job-pair readonly">
+        <label>Neben × Anz</label>
+        <input type="text" value="${primaryNeben}" readonly tabindex="-1">
+      </div>
+      <button type="button" class="cluster-job-jump" title="Zur Eingabe oben springen" tabindex="-1" aria-label="Zur Primär-Eingabe">↑</button>
+    `;
+    cont.appendChild(primaryDiv);
+    primaryDiv.querySelector(".cluster-job-jump").addEventListener("click", () => {
+      const f = document.getElementById("flaeche");
+      if (f) { f.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => f.focus(), 400); }
+    });
+    // === A2..A4 Folgeaufträge ===
     clusterJobs.forEach((job, idx) => {
       const slotNum = idx + 2; // primary ist #1
       const div = document.createElement("div");
@@ -4961,6 +5064,35 @@ footer.footer {
     });
   }
 
+  // Ratio-Pattern-Detection: erkennt wenn ein Auftrag jeden k. Cut eines anderen nutzt
+  // z.B. A2 mit 60mm ≈ 2× A1 mit 29mm → "A2 nutzt jedes 2. Messer"
+  function detectRatioPattern(jobs) {
+    if (!jobs || jobs.length < 2) return null;
+    const tips = [];
+    for (let i = 0; i < jobs.length; i++) {
+      for (let j = i + 1; j < jobs.length; j++) {
+        const ja = jobs[i], jb = jobs[j];
+        const small = Math.min(ja.haupt, jb.haupt);
+        const big = Math.max(ja.haupt, jb.haupt);
+        if (small <= 0) continue;
+        const ratio = big / small;
+        const k = Math.round(ratio);
+        if (k >= 2 && k <= 6 && Math.abs(ratio - k) / k < 0.04) {
+          // ≤4% Abweichung von ganzzahligem Verhältnis → fast perfekt nutzbar
+          const aSmall = ja.haupt < jb.haupt ? ja : jb;
+          const aBig = ja.haupt < jb.haupt ? jb : ja;
+          const exactBig = aSmall.haupt * k;
+          const drift = aBig.haupt - exactBig;
+          tips.push({
+            small: aSmall, big: aBig, k,
+            msg: `A${aBig.idx + 1} (${aBig.haupt} mm) ≈ <strong>${k}×</strong> A${aSmall.idx + 1} (${aSmall.haupt} mm) → A${aBig.idx + 1} nutzt jedes <strong>${k}. Messer</strong>${Math.abs(drift) > 0.1 ? ` (Abweichung ${drift>0?"+":""}${drift.toFixed(1)} mm pro Cut — auf ${exactBig} mm umstellen für 0 Konflikte)` : ""}`
+          });
+        }
+      }
+    }
+    return tips.length ? tips : null;
+  }
+
   // Quality-Score (vereinfacht, aus Wellenbestückungs-Engine inspiriert)
   function calcQualityScore(welle, out) {
     if (!welle || !welle.ok) return null;
@@ -4983,6 +5115,10 @@ footer.footer {
   function renderWelle(out) {
     const section = document.getElementById("welleSection");
     if (!section || section.getAttribute("aria-hidden") === "true") return;
+    // Cluster-Jobs neu rendern damit A1-Primary-Zeile aktuelle Werte zeigt
+    if (typeof renderClusterJobs === "function" && document.getElementById("clusterJobs")) {
+      renderClusterJobs();
+    }
     const sub = document.getElementById("welleSubtitle");
     const tracksSvg = document.getElementById("tracksSvg");
     if (!out || !out.mutter) {
@@ -5021,18 +5157,37 @@ footer.footer {
       const master = calcMasterWelle(allJobs);
       if (master && master.ok) {
         const versatzTxt = master.validJobs.filter(j => j.versatz).map(j => `A${j.idx+1}: ${j.versatz>0?"+":""}${j.versatz}mm`).join(", ");
-        const mergeTxt = master.mergedCount > 0 ? ` · ⚠ ${master.mergedCount} Cut-Konflikt${master.mergedCount>1?"e":""} gemerged` : "";
+        // Konflikt-Schwellwert: 0=perfekt, 1-5=ok, 6-15=schwierig, >15=kritisch
+        const m = master.mergedCount;
+        const konfliktLevel = m === 0 ? "ok" : m <= 5 ? "leicht" : m <= 15 ? "mittel" : "kritisch";
+        const konfliktBadge = m === 0 ? "✓" : m <= 5 ? "⚠" : m <= 15 ? "⚠⚠" : "✗";
+        const mergeTxt = m > 0 ? ` · <strong style="color:${m<=5?'var(--warn-color)':'var(--danger-color)'}">${konfliktBadge} ${m} Cut-Konflikt${m>1?"e":""} gemerged (${konfliktLevel})</strong>` : "";
         if (sub) sub.innerHTML = `<strong style="color:var(--accent-primary)">✓ MEHRFACH-BESTÜCKUNG MÖGLICH</strong> · Master-Welle für ${master.validJobs.length} Aufträge · ${master.cuts.length} SE total · innen ${master.innerLen.toFixed(0)} mm${versatzTxt ? " · MR-Versatz: " + versatzTxt : ""}${mergeTxt}`;
         renderWelleSvg(master);
         renderWelleSequenz(master);
         renderWelleHolliste(master);
         const qScore = calcQualityScore(master, out);
         const alerts = master.alerts || [];
-        // Klare Mehrfach-Bestückungs-Bestätigung als prominenter Alert
-        alerts.unshift({
-          type: master.mergedCount > 0 ? "warn" : "info",
-          msg: `<strong>✓ Alle ${master.validJobs.length} Aufträge passen auf EINE Welle</strong> — Master-Setup einmal rüsten, alle Aufträge fahren${master.mergedCount > 0 ? ` (mit ${master.mergedCount} MR-Versatz-Anpassungen — siehe Tracks)` : ""}.`
-        });
+        // Ratio-Pattern-Tipp (z.B. "A2 60mm ≈ 2× A1 30mm → jedes 2. Messer nutzen")
+        const ratioTips = detectRatioPattern(master.validJobs);
+        if (ratioTips) {
+          alerts.unshift({ type: "info",
+            msg: `<strong>💡 Operator-Tipp · Master-Welle-Pattern:</strong><br>` + ratioTips.map(t => `&nbsp;&nbsp;• ${t.msg}`).join("<br>") });
+        }
+        // Konflikt-Alert prominent oben — abgestufte Bewertung
+        if (m > 15) {
+          alerts.unshift({ type: "danger",
+            msg: `<strong>✗ Hohe Cut-Konflikt-Dichte (${m} Konflikte):</strong> Aufträge sind geometrisch schlecht kompatibel. Master-Bestückung möglich aber praktisch sehr aufwendig — eigene Welle pro Auftrag fahren bevorzugen, oder MR-Versatz manuell prüfen.` });
+        } else if (m > 5) {
+          alerts.unshift({ type: "warn",
+            msg: `<strong>⚠⚠ Mittlere Cut-Konflikt-Dichte (${m} Konflikte):</strong> Master-Welle gemerged, MR-Versatz reicht nicht aus. Operator sollte Konfliktstellen visuell prüfen.` });
+        } else if (m > 0) {
+          alerts.unshift({ type: "warn",
+            msg: `<strong>⚠ ${m} Cut-Konflikt${m>1?"e":""} gemerged:</strong> Master-Welle nutzbar, leichte MR-Versatz-Optimierung wurde angewendet.` });
+        } else {
+          alerts.unshift({ type: "info",
+            msg: `<strong>✓ Alle ${master.validJobs.length} Aufträge passen perfekt auf EINE Welle</strong> — Master-Setup einmal rüsten, alle Aufträge fahren.` });
+        }
         renderWelleAlerts({...master, alerts, qScore });
         return;
       }
