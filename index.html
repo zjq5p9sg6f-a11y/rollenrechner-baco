@@ -1559,9 +1559,33 @@ header.bar {
 
 /* Primary-Zeile: grün-akzentuiert + read-only-Inputs subtil */
 .cluster-job.cluster-job-primary {
+  grid-template-columns: 36px 1fr 1fr 1fr 0.7fr 28px 28px;
   border-color: rgba(0,230,118,0.30);
   background: linear-gradient(180deg, rgba(0,230,118,0.06), rgba(0,230,118,0.01));
   margin-bottom: 4px;
+}
+/* Primary-Expand-Button (▼/▲): grün passend zur Primary-Zeile */
+.cluster-job-expand-primary {
+  border-color: rgba(0,230,118,0.50) !important;
+  background: rgba(0,230,118,0.10) !important;
+  color: var(--accent-primary) !important;
+}
+.cluster-job-expand-primary:hover {
+  background: rgba(0,230,118,0.25) !important;
+  border-color: var(--accent-primary) !important;
+}
+.cluster-job-expanded.cluster-job-primary .cluster-job-expand-primary {
+  background: rgba(0,230,118,0.25) !important;
+  border-color: var(--accent-primary) !important;
+}
+@media (max-width: 800px) {
+  .cluster-job.cluster-job-primary {
+    grid-template-columns: 36px 1fr 1fr 28px 28px;
+    grid-template-areas:
+      "num   mr     haupt  exp  jmp"
+      "num   neben  anz    exp  jmp";
+  }
+  .cluster-job.cluster-job-primary .cluster-job-jump { grid-area: jmp; }
 }
 .cluster-job-pair.readonly {
   background: rgba(0,0,0,0.25);
@@ -5713,40 +5737,102 @@ footer.footer {
     }
     return out;
   }
-  // Berechnet Primary-Werte aus aktueller calc-Sicht (für A1 read-only Zeile)
+  // Berechnet Primary-Werte aus aktueller calc-Sicht (für A1 read-only Zeile + expanded Mirror)
   function getPrimaryValues() {
     let mr = "—", haupt = "—", nebenBreite = "—", nebenAnz = "—";
+    let flaeche = "—", lfm = "—";
+    let auftragsNr = "—", kunde = "—", material = "—", bemerkung = "—";
     if (lastValid && lastValid.mutter) {
       mr = lastValid.mutter + " mm";
       haupt = lastValid.schmal + " mm";
       if (lastValid.nebenSlots && lastValid.nebenSlots.length) {
-        // Falls mehrere heterogene Slots: zeigen wir den ersten als Indikator + ggf. Σ
         const slots = lastValid.nebenSlots;
         if (slots.length === 1) {
           nebenBreite = slots[0].breite + " mm";
           nebenAnz = String(slots[0].anz);
         } else {
-          // Mehrere Slots → kompakte Darstellung
           nebenBreite = slots.map(s => s.breite).join("/") + " mm";
           nebenAnz = String(slots.reduce((s,x)=>s+x.anz,0));
         }
       }
     }
-    return { mr, haupt, nebenBreite, nebenAnz };
+    // Mengen direkt aus Hauptrechner-Inputs (lastValid hat sie nicht direkt als Strings)
+    const flaecheEl = document.getElementById("flaeche");
+    const lfmEl = document.getElementById("lfm");
+    if (flaecheEl && flaecheEl.value) flaeche = flaecheEl.value + " qm";
+    if (lfmEl && lfmEl.value) lfm = lfmEl.value + " m";
+    // Auftrags-Header aus Welle-Meta-Inputs
+    const headerMap = {
+      auftragsNr: "welleAuftragNr",
+      kunde: "welleKunde",
+      material: "welleMaterial",
+      bemerkung: "welleBemerkung"
+    };
+    Object.entries(headerMap).forEach(([key, id]) => {
+      const el = document.getElementById(id);
+      if (el && el.value) {
+        if (key === "auftragsNr") auftragsNr = el.value;
+        else if (key === "kunde") kunde = el.value;
+        else if (key === "material") material = el.value;
+        else if (key === "bemerkung") bemerkung = el.value;
+      }
+    });
+    return { mr, haupt, nebenBreite, nebenAnz, flaeche, lfm, auftragsNr, kunde, material, bemerkung };
+  }
+  // Primary-Output direkt aus lastValid (Hauptrechner-State)
+  function getPrimaryOutputHtml() {
+    if (!lastValid || !lastValid.mutter) return `<div class="cluster-job-output cjo-empty">Werte oben eingeben um Output zu sehen</div>`;
+    const v = lastValid;
+    if (!v.huelsen || v.huelsen <= 0) return `<div class="cluster-job-output cjo-empty">Fläche + LFM/SR ergänzen für Mengen-Output</div>`;
+    const huelsen = v.huelsen;
+    const saetze = v.totalSaetze || 0;
+    const mrLfm = Math.round(v.mrMengeLFM || 0);
+    const netto = (v.tNettoMin || 0).toFixed(0);
+    const brutto = (v.tBruttoMin || 0).toFixed(0);
+    return `
+      <div class="cluster-job-output">
+        <span class="cjo-item"><span class="cjo-val">${huelsen}</span><span class="cjo-lbl">Hülsen</span></span>
+        <span class="cjo-item"><span class="cjo-val">${saetze}</span><span class="cjo-lbl">Sätze</span></span>
+        <span class="cjo-item"><span class="cjo-val">${mrLfm.toLocaleString("de-DE")}</span><span class="cjo-lbl">LFM MR</span></span>
+        <span class="cjo-item"><span class="cjo-val">${netto}</span><span class="cjo-lbl">min netto</span></span>
+        <span class="cjo-item"><span class="cjo-val">${brutto}</span><span class="cjo-lbl">min brutto</span></span>
+      </div>
+    `;
   }
 
-  // Light-Update: nur A1-Zeile-Werte updaten ohne DOM zu zerstören
+  // Light-Update: A1-Zeile-Werte (compact + expanded) updaten ohne DOM zu zerstören
   // (verhindert Focus-Verlust in A2/A3/A4 Inputs während User tippt)
   function updatePrimaryRow() {
     const row = document.querySelector(".cluster-job-primary");
     if (!row) return;
     const vals = getPrimaryValues();
     const inputs = row.querySelectorAll("input[readonly]");
+    // Compact-Reihe (idx 0-3): mr, haupt, nebenBreite, nebenAnz
     if (inputs.length >= 4) {
       inputs[0].value = vals.mr;
       inputs[1].value = vals.haupt;
       inputs[2].value = vals.nebenBreite;
       inputs[3].value = vals.nebenAnz;
+    }
+    // Expanded-Reihe (idx 4-9): flaeche, lfm, auftragsNr, kunde, material, bemerkung
+    if (inputs.length >= 10) {
+      inputs[4].value = vals.flaeche;
+      inputs[5].value = vals.lfm;
+      inputs[6].value = vals.auftragsNr;
+      inputs[7].value = vals.kunde;
+      inputs[8].value = vals.material;
+      inputs[9].value = vals.bemerkung;
+    }
+    // Output-Block neu rendern (cheap — nur ein innerHTML)
+    const outputContainer = row.querySelector(".cluster-job-extras");
+    if (outputContainer) {
+      const oldOutput = outputContainer.querySelector(".cluster-job-output");
+      if (oldOutput) {
+        const tmpDiv = document.createElement("div");
+        tmpDiv.innerHTML = getPrimaryOutputHtml();
+        const newOutput = tmpDiv.firstElementChild;
+        if (newOutput) oldOutput.replaceWith(newOutput);
+      }
     }
   }
 
@@ -5755,8 +5841,10 @@ footer.footer {
     if (!cont) return;
     cont.innerHTML = "";
     // === A1 als read-only Primary-Header-Zeile (synchron mit Rollenrechner-Eingaben) ===
+    const primaryExpanded = localStorage.getItem("rr.primaryExpanded") === "1";
     const primaryDiv = document.createElement("div");
     primaryDiv.className = "cluster-job cluster-job-primary";
+    if (primaryExpanded) primaryDiv.classList.add("cluster-job-expanded");
     const pv = getPrimaryValues();
     primaryDiv.innerHTML = `
       <div class="cluster-job-num primary">A1</div>
@@ -5776,12 +5864,51 @@ footer.footer {
         <label>Anz</label>
         <input type="text" value="${pv.nebenAnz}" readonly tabindex="-1">
       </div>
+      <button type="button" class="cluster-job-expand cluster-job-expand-primary" data-pexpand="1" tabindex="-1" aria-label="Voll-Auftrag aufklappen" title="Mengen, Auftrags-Daten + Output">${primaryExpanded ? "▲" : "▼"}</button>
       <button type="button" class="cluster-job-jump" title="Zur Eingabe oben springen" tabindex="-1" aria-label="Zur Primär-Eingabe">↑</button>
+      <div class="cluster-job-extras">
+        <div class="cje-row cje-mengen">
+          <div class="cluster-job-pair readonly">
+            <label>Fläche</label>
+            <input type="text" value="${escHtml(pv.flaeche)}" readonly tabindex="-1">
+          </div>
+          <div class="cluster-job-pair readonly">
+            <label>LFM/SR</label>
+            <input type="text" value="${escHtml(pv.lfm)}" readonly tabindex="-1">
+          </div>
+        </div>
+        <div class="cje-row cje-header">
+          <div class="cluster-job-pair readonly">
+            <label>Auftrags-Nr</label>
+            <input type="text" value="${escHtml(pv.auftragsNr)}" readonly tabindex="-1">
+          </div>
+          <div class="cluster-job-pair readonly">
+            <label>Kunde</label>
+            <input type="text" value="${escHtml(pv.kunde)}" readonly tabindex="-1">
+          </div>
+          <div class="cluster-job-pair readonly">
+            <label>Material</label>
+            <input type="text" value="${escHtml(pv.material)}" readonly tabindex="-1">
+          </div>
+        </div>
+        <div class="cje-row cje-bem">
+          <div class="cluster-job-pair readonly">
+            <label>Bemerkung</label>
+            <input type="text" value="${escHtml(pv.bemerkung)}" readonly tabindex="-1">
+          </div>
+        </div>
+        ${getPrimaryOutputHtml()}
+      </div>
     `;
     cont.appendChild(primaryDiv);
     primaryDiv.querySelector(".cluster-job-jump").addEventListener("click", () => {
       const f = document.getElementById("flaeche");
       if (f) { f.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => f.focus(), 400); }
+    });
+    primaryDiv.querySelector("[data-pexpand]").addEventListener("click", () => {
+      const isOpen = primaryDiv.classList.toggle("cluster-job-expanded");
+      localStorage.setItem("rr.primaryExpanded", isOpen ? "1" : "0");
+      primaryDiv.querySelector("[data-pexpand]").textContent = isOpen ? "▲" : "▼";
     });
     // === A2..A8 Folgeaufträge — kompakt + ggf. expanded mit Voll-Auftrag-Feldern ===
     const settings = getMachineSettings();
