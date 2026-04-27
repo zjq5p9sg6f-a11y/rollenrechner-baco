@@ -2297,13 +2297,134 @@ header.bar {
     opacity: 1 !important;
   }
 
-  /* Auftrags-Eingabe + Web-only Buttons + Cluster-Eingabe ausblenden */
+  /* Auftrags-Eingabe + Web-only Buttons ausblenden (Cluster-Section selektiv unten) */
   #welleSection .welle-head,
   #welleSection .welle-auftrag-meta,
   #welleSection .btn-print,
-  #welleSection .cluster-section,
   #welleSection .cluster-toggle,
   #welleSection .welle-alerts { display: none !important; }
+  /* Cluster-Section: nur Aggregat + Slot-Übersicht drucken, Eingabe-UI raus */
+  #welleSection .cluster-section[aria-hidden="true"] { display: none !important; }
+  #welleSection .cluster-section {
+    display: block !important;
+    aria-hidden: false !important;
+    page-break-before: always;
+    margin-top: 8mm;
+    background: white !important;
+  }
+  #welleSection .cluster-actions-row,
+  #welleSection .cluster-bulk-pane,
+  #welleSection .cluster-templates,
+  #welleSection .cluster-job-extras,
+  #welleSection .cluster-job-edit,
+  #welleSection .cluster-job-expand,
+  #welleSection .cluster-job-remove,
+  #welleSection .cluster-job-jump,
+  #welleSection .cluster-auto-results { display: none !important; }
+  /* Slot-Reihen kompakt drucken (A1-A8 als Tagesplan-Übersicht) */
+  #welleSection .cluster-jobs {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3mm !important;
+    margin-bottom: 6mm;
+  }
+  #welleSection .cluster-job {
+    display: grid !important;
+    grid-template-columns: 32px 1fr 1fr 1fr 0.7fr !important;
+    grid-template-areas: none !important;
+    gap: 4mm !important;
+    background: white !important;
+    border: 1px solid #999 !important;
+    color: black !important;
+    page-break-inside: avoid;
+    padding: 2mm 3mm !important;
+    box-shadow: none !important;
+    animation: none !important;
+  }
+  #welleSection .cluster-job-primary {
+    border: 2px solid #007a3d !important;
+    background: #f7fff5 !important;
+  }
+  #welleSection .cluster-job-num {
+    background: #007a3d !important;
+    color: white !important;
+    border-color: #007a3d !important;
+    font-size: 9pt !important;
+  }
+  #welleSection .cluster-job-pair {
+    background: white !important;
+    border: 1px solid #ccc !important;
+  }
+  #welleSection .cluster-job-pair label {
+    color: #666 !important;
+    font-size: 7pt !important;
+  }
+  #welleSection .cluster-job-pair input {
+    color: black !important;
+    background: transparent !important;
+    border: 0 !important;
+    font-size: 11pt !important;
+    font-weight: 700 !important;
+  }
+  #welleSection .cluster-job-pair .unit { color: #007a3d !important; }
+  #welleSection .cluster-job[data-cluster-status="conflict"] {
+    border-color: #c00 !important;
+    background: #fff0f0 !important;
+  }
+  #welleSection .cluster-job[data-cluster-status="conflict"]::before {
+    background: #c00 !important;
+    color: white !important;
+  }
+  /* Σ-Tagesplan-Aggregat im Print prominent */
+  #welleSection .cluster-aggregate {
+    display: flex !important;
+    flex-direction: column !important;
+    background: white !important;
+    border: 2px solid #c87800 !important;
+    color: black !important;
+    page-break-inside: avoid;
+    margin-top: 5mm;
+    padding: 4mm !important;
+  }
+  #welleSection .ca-label,
+  #welleSection .ca-incomplete { color: #c87800 !important; }
+  #welleSection .ca-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 3mm !important;
+  }
+  #welleSection .ca-item {
+    background: white !important;
+    border: 1px solid #c87800 !important;
+    color: black !important;
+    padding: 3mm !important;
+  }
+  #welleSection .ca-item.ca-brutto {
+    background: #fff7e6 !important;
+    border-width: 2px !important;
+  }
+  #welleSection .ca-val,
+  #welleSection .ca-sub,
+  #welleSection .ca-unit { color: black !important; }
+  #welleSection .ca-val { font-size: 13pt !important; }
+  #welleSection .ca-lbl { color: #666 !important; }
+  /* Hülsen-Bestell-Liste prominent für Brodbeck-Maschinenführer */
+  #welleSection .ca-bestell {
+    border-top: 2px dashed #c87800 !important;
+    margin-top: 4mm !important;
+    padding-top: 4mm !important;
+  }
+  #welleSection .ca-bestell-label { color: #c87800 !important; font-size: 10pt !important; }
+  #welleSection .ca-bestell-row {
+    background: white !important;
+    border: 1px solid #c87800 !important;
+    color: black !important;
+    page-break-inside: avoid;
+  }
+  #welleSection .ca-bestell-stk,
+  #welleSection .ca-bestell-x,
+  #welleSection .ca-bestell-breite,
+  #welleSection .ca-bestell-meter { color: black !important; }
 
   /* Print-Header sichtbar machen */
   #welleSection .print-header {
