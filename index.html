@@ -4815,6 +4815,33 @@ footer.footer {
   function saveClusterJobs() {
     try { localStorage.setItem(CLUSTER_KEY, JSON.stringify(clusterJobs)); } catch(e) {}
   }
+  // Berechnet Primary-Werte aus aktueller calc-Sicht (für A1 read-only Zeile)
+  function getPrimaryValues() {
+    let mr = "—", haupt = "—", neben = "—";
+    if (lastValid && lastValid.mutter) {
+      mr = lastValid.mutter + " mm";
+      haupt = lastValid.schmal + " mm";
+      if (lastValid.nebenSlots && lastValid.nebenSlots.length) {
+        neben = lastValid.nebenSlots.map(s => `${s.breite}×${s.anz}`).join(" + ");
+      }
+    }
+    return { mr, haupt, neben };
+  }
+
+  // Light-Update: nur A1-Zeile-Werte updaten ohne DOM zu zerstören
+  // (verhindert Focus-Verlust in A2/A3/A4 Inputs während User tippt)
+  function updatePrimaryRow() {
+    const row = document.querySelector(".cluster-job-primary");
+    if (!row) return;
+    const vals = getPrimaryValues();
+    const inputs = row.querySelectorAll("input[readonly]");
+    if (inputs.length >= 3) {
+      inputs[0].value = vals.mr;
+      inputs[1].value = vals.haupt;
+      inputs[2].value = vals.neben;
+    }
+  }
+
   function renderClusterJobs() {
     const cont = document.getElementById("clusterJobs");
     if (!cont) return;
@@ -4822,16 +4849,8 @@ footer.footer {
     // === A1 als read-only Primary-Header-Zeile (synchron mit Rollenrechner-Eingaben) ===
     const primaryDiv = document.createElement("div");
     primaryDiv.className = "cluster-job cluster-job-primary";
-    let primaryMr = "—", primaryHaupt = "—", primaryNeben = "—";
-    if (lastValid && lastValid.mutter) {
-      primaryMr = lastValid.mutter + " mm";
-      primaryHaupt = lastValid.schmal + " mm";
-      if (lastValid.nebenSlots && lastValid.nebenSlots.length) {
-        primaryNeben = lastValid.nebenSlots.map(s => `${s.breite}×${s.anz}`).join(" + ");
-      } else {
-        primaryNeben = "—";
-      }
-    }
+    const pv = getPrimaryValues();
+    const primaryMr = pv.mr, primaryHaupt = pv.haupt, primaryNeben = pv.neben;
     primaryDiv.innerHTML = `
       <div class="cluster-job-num primary">A1</div>
       <div class="cluster-job-pair readonly">
@@ -5217,10 +5236,8 @@ footer.footer {
   function renderWelle(out) {
     const section = document.getElementById("welleSection");
     if (!section || section.getAttribute("aria-hidden") === "true") return;
-    // Cluster-Jobs neu rendern damit A1-Primary-Zeile aktuelle Werte zeigt
-    if (typeof renderClusterJobs === "function" && document.getElementById("clusterJobs")) {
-      renderClusterJobs();
-    }
+    // A1-Primary-Zeile-Werte updaten OHNE DOM zu zerstören (sonst verlieren A2/A3/A4 Focus)
+    if (typeof updatePrimaryRow === "function") updatePrimaryRow();
     const sub = document.getElementById("welleSubtitle");
     const tracksSvg = document.getElementById("tracksSvg");
     if (!out || !out.mutter) {
@@ -6516,7 +6533,8 @@ footer.footer {
       }
     });
   }
-  if (localStorage.getItem(WELLE_KEY) === "1") setWelleState(true, false);
+  // Welle-Section beim Reload IMMER closed (User-Wunsch: explizit klicken)
+  // localStorage wird beim Toggle geschrieben, aber NICHT zum Auto-Open verwendet
 
   // ============== Cluster (Folgeauftrag) Toggle + Slot-Mgmt ==============
   const CLUSTER_OPEN_KEY = "rr.clusterOpen";
@@ -6553,7 +6571,7 @@ footer.footer {
       renderClusterJobs();
     });
   }
-  if (localStorage.getItem(CLUSTER_OPEN_KEY) === "1") setClusterState(true, false);
+  // Cluster auch closed by default beim Reload
 
   // ============== Auftrags-Meta-Eingaben (für Print-Header + Datei-Name) ==============
   const META_KEY = "rr.welleMeta";
