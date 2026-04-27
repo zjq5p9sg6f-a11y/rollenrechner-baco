@@ -1367,7 +1367,7 @@ header.bar {
 }
 .cluster-job {
   display: grid;
-  grid-template-columns: 36px 1fr 1fr 1fr 36px;
+  grid-template-columns: 36px 1fr 1fr 1fr 0.7fr 36px;
   gap: 8px;
   align-items: center;
   padding: 10px 14px;
@@ -1497,6 +1497,24 @@ header.bar {
 }
 .cluster-add-btn:hover { background: rgba(66,165,245,0.06); border-style: solid; }
 .cluster-add-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Mobile: cluster-job auf 2 Spalten kollabieren */
+@media (max-width: 800px) {
+  .cluster-job {
+    grid-template-columns: 36px 1fr 1fr 36px;
+    grid-template-areas:
+      "num   mr     haupt  rm"
+      "num   neben  anz    rm";
+    row-gap: 6px;
+  }
+  .cluster-job .cluster-job-num { grid-area: num; }
+  .cluster-job .cluster-job-remove,
+  .cluster-job .cluster-job-jump { grid-area: rm; }
+  .cluster-job .cluster-job-pair:nth-of-type(1) { grid-area: mr; }
+  .cluster-job .cluster-job-pair:nth-of-type(2) { grid-area: haupt; }
+  .cluster-job .cluster-job-pair:nth-of-type(3) { grid-area: neben; }
+  .cluster-job .cluster-job-pair:nth-of-type(4) { grid-area: anz; }
+}
 .cluster-add-icon {
   display: inline-flex; align-items: center; justify-content: center;
   width: 22px; height: 22px;
@@ -4805,11 +4823,30 @@ footer.footer {
 
   // ============== Cluster-State (Folgeaufträge) ==============
   const CLUSTER_KEY = "rr.clusterJobs";
-  let clusterJobs = []; // {mr, haupt, neben, nebenAnz}
+  let clusterJobs = []; // {mr, haupt, nebenBreite, nebenAnz}
   function loadClusterJobs() {
     try {
       const saved = JSON.parse(localStorage.getItem(CLUSTER_KEY) || "[]");
-      if (Array.isArray(saved)) clusterJobs = saved.slice(0, 3);
+      if (Array.isArray(saved)) {
+        clusterJobs = saved.slice(0, 3).map(j => {
+          // Migration: alte Felder "neben: '60×2'" → nebenBreite + nebenAnz
+          if (j && j.neben && (!j.nebenBreite && !j.nebenAnz)) {
+            const m = String(j.neben).trim().match(/^([\d.,]+)\s*[×x*]\s*([\d]+)$/i);
+            if (m) {
+              j.nebenBreite = m[1];
+              j.nebenAnz = m[2];
+            } else {
+              const single = parseFloat(String(j.neben).replace(",", "."));
+              if (isFinite(single) && single > 0) {
+                j.nebenBreite = String(single);
+                j.nebenAnz = "1";
+              }
+            }
+            delete j.neben;
+          }
+          return j;
+        });
+      }
     } catch(e) { clusterJobs = []; }
   }
   function saveClusterJobs() {
@@ -4817,15 +4854,24 @@ footer.footer {
   }
   // Berechnet Primary-Werte aus aktueller calc-Sicht (für A1 read-only Zeile)
   function getPrimaryValues() {
-    let mr = "—", haupt = "—", neben = "—";
+    let mr = "—", haupt = "—", nebenBreite = "—", nebenAnz = "—";
     if (lastValid && lastValid.mutter) {
       mr = lastValid.mutter + " mm";
       haupt = lastValid.schmal + " mm";
       if (lastValid.nebenSlots && lastValid.nebenSlots.length) {
-        neben = lastValid.nebenSlots.map(s => `${s.breite}×${s.anz}`).join(" + ");
+        // Falls mehrere heterogene Slots: zeigen wir den ersten als Indikator + ggf. Σ
+        const slots = lastValid.nebenSlots;
+        if (slots.length === 1) {
+          nebenBreite = slots[0].breite + " mm";
+          nebenAnz = String(slots[0].anz);
+        } else {
+          // Mehrere Slots → kompakte Darstellung
+          nebenBreite = slots.map(s => s.breite).join("/") + " mm";
+          nebenAnz = String(slots.reduce((s,x)=>s+x.anz,0));
+        }
       }
     }
-    return { mr, haupt, neben };
+    return { mr, haupt, nebenBreite, nebenAnz };
   }
 
   // Light-Update: nur A1-Zeile-Werte updaten ohne DOM zu zerstören
@@ -4835,10 +4881,11 @@ footer.footer {
     if (!row) return;
     const vals = getPrimaryValues();
     const inputs = row.querySelectorAll("input[readonly]");
-    if (inputs.length >= 3) {
+    if (inputs.length >= 4) {
       inputs[0].value = vals.mr;
       inputs[1].value = vals.haupt;
-      inputs[2].value = vals.neben;
+      inputs[2].value = vals.nebenBreite;
+      inputs[3].value = vals.nebenAnz;
     }
   }
 
@@ -4850,20 +4897,23 @@ footer.footer {
     const primaryDiv = document.createElement("div");
     primaryDiv.className = "cluster-job cluster-job-primary";
     const pv = getPrimaryValues();
-    const primaryMr = pv.mr, primaryHaupt = pv.haupt, primaryNeben = pv.neben;
     primaryDiv.innerHTML = `
       <div class="cluster-job-num primary">A1</div>
       <div class="cluster-job-pair readonly">
         <label>MR · Primär</label>
-        <input type="text" value="${primaryMr}" readonly tabindex="-1">
+        <input type="text" value="${pv.mr}" readonly tabindex="-1">
       </div>
       <div class="cluster-job-pair readonly">
         <label>Haupt</label>
-        <input type="text" value="${primaryHaupt}" readonly tabindex="-1">
+        <input type="text" value="${pv.haupt}" readonly tabindex="-1">
       </div>
       <div class="cluster-job-pair readonly">
-        <label>Neben × Anz</label>
-        <input type="text" value="${primaryNeben}" readonly tabindex="-1">
+        <label>Neben</label>
+        <input type="text" value="${pv.nebenBreite}" readonly tabindex="-1">
+      </div>
+      <div class="cluster-job-pair readonly">
+        <label>Anz</label>
+        <input type="text" value="${pv.nebenAnz}" readonly tabindex="-1">
       </div>
       <button type="button" class="cluster-job-jump" title="Zur Eingabe oben springen" tabindex="-1" aria-label="Zur Primär-Eingabe">↑</button>
     `;
@@ -4890,9 +4940,14 @@ footer.footer {
           <span class="unit">mm</span>
         </div>
         <div class="cluster-job-pair">
-          <label>Neben × Anz</label>
-          <input type="text" inputmode="decimal" pattern="[0-9.,× ]*" data-cidx="${idx}" data-cf="neben" value="${job.neben || ""}" placeholder="z. B. 50×2">
+          <label>Neben</label>
+          <input type="text" inputmode="decimal" pattern="[0-9.,]*" data-cidx="${idx}" data-cf="nebenBreite" value="${job.nebenBreite || ""}" placeholder="z. B. 50">
           <span class="unit">mm</span>
+        </div>
+        <div class="cluster-job-pair">
+          <label>Anz</label>
+          <input type="text" inputmode="numeric" pattern="[0-9]*" data-cidx="${idx}" data-cf="nebenAnz" value="${job.nebenAnz || ""}" placeholder="0">
+          <span class="unit">×</span>
         </div>
         <button type="button" class="cluster-job-remove" data-cremove="${idx}" tabindex="-1" aria-label="Auftrag entfernen">×</button>
       `;
@@ -4921,17 +4976,6 @@ footer.footer {
         if (lastValid) renderWelle(lastValid);
       });
     });
-  }
-
-  // Parse "60×2" oder "60 × 2" oder "60" → {breite, anz}
-  function parseNebenSpec(s) {
-    if (!s) return { breite: 0, anz: 0 };
-    const txt = String(s).trim();
-    if (!txt) return { breite: 0, anz: 0 };
-    const m = txt.match(/^([\d.,]+)\s*[×x*]\s*([\d]+)$/i);
-    if (m) return { breite: parseFloat(m[1].replace(",", ".")) || 0, anz: parseInt(m[2]) || 0 };
-    const single = parseFloat(txt.replace(",", "."));
-    return isFinite(single) && single > 0 ? { breite: single, anz: 1 } : { breite: 0, anz: 0 };
   }
 
   // ============== Master-Welle-Engine (port aus Wellenbestückungs-Tool) ==============
@@ -5265,11 +5309,12 @@ footer.footer {
       };
       // Folgeaufträge umwandeln
       const followJobs = clusterValidJobs.map(j => {
-        const nspec = parseNebenSpec(j.neben);
+        const nb = parseFloat((j.nebenBreite || "").replace(",", ".")) || 0;
+        const na = parseInt(j.nebenAnz || "0") || 0;
         return {
           mr: parseFloat((j.mr || "").replace(",", ".")) || 0,
           haupt: parseFloat((j.haupt || "").replace(",", ".")) || 0,
-          nebenSlots: nspec.breite > 0 && nspec.anz > 0 ? [nspec] : []
+          nebenSlots: nb > 0 && na > 0 ? [{ breite: nb, anz: na }] : []
         };
       });
       const allJobs = [primaryJob, ...followJobs];
