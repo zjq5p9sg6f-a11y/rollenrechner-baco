@@ -1367,7 +1367,7 @@ header.bar {
 }
 .cluster-job {
   display: grid;
-  grid-template-columns: 36px 1fr 1fr 1fr 0.7fr 36px;
+  grid-template-columns: 36px 1fr 1fr 1fr 0.7fr 28px 28px;
   gap: 8px;
   align-items: center;
   padding: 10px 14px;
@@ -1375,6 +1375,100 @@ header.bar {
   border-radius: var(--r-2);
   background: linear-gradient(180deg, rgba(66,165,245,0.04), rgba(66,165,245,0.01));
   position: relative;
+}
+/* Voll-Auftrag-Extras (Mengen + Header + Output) — nur sichtbar wenn expanded */
+.cluster-job .cluster-job-extras {
+  grid-column: 1 / -1;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(66,165,245,0.18);
+}
+.cluster-job-expanded .cluster-job-extras { display: flex; }
+.cje-row {
+  display: grid;
+  gap: 8px;
+}
+.cje-mengen { grid-template-columns: 1fr 1fr; }
+.cje-header { grid-template-columns: 0.9fr 1fr 1fr; }
+.cje-bem { grid-template-columns: 1fr; }
+.cluster-job-extras .cluster-job-pair input {
+  font-size: 14px;
+  font-weight: 600;
+}
+.cluster-job-expand {
+  width: 28px; height: 28px;
+  border: 1px solid rgba(66,165,245,0.30);
+  background: rgba(0,0,0,0.30);
+  color: #42a5f5;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  display: grid; place-items: center;
+  transition: all var(--t-fast);
+  font-family: inherit;
+  padding: 0;
+}
+.cluster-job-expand:hover {
+  background: rgba(66,165,245,0.20);
+  border-color: #42a5f5;
+}
+.cluster-job-expanded .cluster-job-expand {
+  background: rgba(66,165,245,0.20);
+  border-color: #42a5f5;
+}
+/* Output-Block · Mini-Kacheln pro Slot */
+.cluster-job-output {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 10px 12px;
+  background: rgba(0,230,118,0.06);
+  border: 1px solid rgba(0,230,118,0.25);
+  border-radius: 7px;
+  margin-top: 4px;
+}
+.cluster-job-output.cjo-empty {
+  background: rgba(255,255,255,0.03);
+  border-color: rgba(255,255,255,0.08);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  justify-content: center;
+}
+.cluster-job-output.cjo-warn {
+  background: rgba(255,77,109,0.08);
+  border-color: rgba(255,77,109,0.30);
+  color: var(--danger-color);
+  font-size: 12px;
+  font-weight: 700;
+  justify-content: center;
+}
+.cjo-item {
+  display: inline-flex; flex-direction: column; align-items: flex-start;
+  padding: 2px 10px 2px 0;
+  border-right: 1px solid rgba(0,230,118,0.18);
+}
+.cjo-item:last-child { border-right: none; padding-right: 0; }
+.cjo-val {
+  font-size: 16px; font-weight: 800;
+  color: var(--accent-primary);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.cjo-lbl {
+  font-size: 9px; font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+@media (max-width: 800px) {
+  .cje-header { grid-template-columns: 1fr; }
+  .cluster-job-output { padding: 8px; }
+  .cjo-val { font-size: 14px; }
 }
 .cluster-job:focus-within {
   border-color: #42a5f5;
@@ -1902,6 +1996,69 @@ header.bar {
   letter-spacing: 0.03em;
   padding: 6px 0;
 }
+/* Tages-Aggregat (Σ über Primary + alle Cluster-Aufträge) */
+.cluster-aggregate {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, rgba(255,180,0,0.08), rgba(255,180,0,0.02));
+  border: 1px solid rgba(255,180,0,0.40);
+  border-radius: var(--r-2);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.cluster-aggregate[hidden] { display: none !important; }
+.ca-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  flex-wrap: wrap; gap: 8px;
+}
+.ca-label {
+  font-size: 12px; font-weight: 800;
+  color: #ffb400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ca-incomplete {
+  font-size: 10px; font-weight: 700;
+  color: var(--text-secondary);
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+.ca-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px;
+}
+.ca-item {
+  padding: 8px 10px;
+  background: rgba(0,0,0,0.30);
+  border: 1px solid rgba(255,180,0,0.20);
+  border-radius: 6px;
+  display: flex; flex-direction: column;
+}
+.ca-item.ca-brutto {
+  background: rgba(255,180,0,0.14);
+  border-color: rgba(255,180,0,0.50);
+}
+.ca-val {
+  font-size: 20px; font-weight: 800;
+  color: #ffd76a;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.ca-item.ca-brutto .ca-val { color: #ffb400; }
+.ca-unit {
+  font-size: 11px; font-weight: 700;
+  color: var(--text-secondary);
+  margin-left: 2px;
+  letter-spacing: 0.04em;
+}
+.ca-lbl {
+  font-size: 9px; font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
 @media (max-width: 700px) {
   .proposal-head {
     grid-template-columns: auto 1fr;
@@ -1921,19 +2078,22 @@ header.bar {
 /* Mobile: cluster-job auf 2 Spalten kollabieren */
 @media (max-width: 800px) {
   .cluster-job {
-    grid-template-columns: 36px 1fr 1fr 36px;
+    grid-template-columns: 36px 1fr 1fr 28px 28px;
     grid-template-areas:
-      "num   mr     haupt  rm"
-      "num   neben  anz    rm";
+      "num   mr     haupt  exp  rm"
+      "num   neben  anz    exp  rm";
     row-gap: 6px;
   }
   .cluster-job .cluster-job-num { grid-area: num; }
+  .cluster-job .cluster-job-expand { grid-area: exp; align-self: center; }
   .cluster-job .cluster-job-remove,
   .cluster-job .cluster-job-jump { grid-area: rm; }
   .cluster-job .cluster-job-pair:nth-of-type(1) { grid-area: mr; }
   .cluster-job .cluster-job-pair:nth-of-type(2) { grid-area: haupt; }
   .cluster-job .cluster-job-pair:nth-of-type(3) { grid-area: neben; }
   .cluster-job .cluster-job-pair:nth-of-type(4) { grid-area: anz; }
+  /* Extras im Expanded-Mode überschreiben grid-area-Logik (sind direct children) */
+  .cluster-job .cluster-job-extras .cluster-job-pair { grid-area: auto; }
 }
 .cluster-add-icon {
   display: inline-flex; align-items: center; justify-content: center;
@@ -3736,6 +3896,8 @@ footer.footer {
           </div>
           <div class="cluster-auto-results" id="clusterAutoResults" hidden></div>
         </div>
+        <!-- Tages-Aggregat: Σ Hülsen / Σ Maschinenzeit / Σ Sätze / Σ MR-Menge über Primary + alle Cluster-Aufträge -->
+        <div class="cluster-aggregate" id="clusterAggregate" hidden></div>
       </div>
 
       <!-- Maschinen-Konstanten + Schneideeinheit-CAD-Detail (operator-orientiert) -->
@@ -4206,10 +4368,11 @@ footer.footer {
     drawViz(out);
     renderFulfillment(out);
     renderWelle(out);
-    // A1-Read-Only-Zeile + Save-Template-Btn IMMER live updaten — auch wenn
-    // Welle-Section closed ist (Cluster-Section kann allein offen sein)
+    // A1-Read-Only-Zeile + Save-Template-Btn + Σ-Aggregat IMMER live updaten —
+    // auch wenn Welle-Section closed (Cluster-Section kann allein offen sein)
     if (typeof updatePrimaryRow === "function") updatePrimaryRow();
     if (typeof updateSaveTemplateBtn === "function") updateSaveTemplateBtn();
+    if (typeof renderClusterAggregate === "function") renderClusterAggregate();
 
     els.statusBadge.textContent = "Live · aktualisiert";
     els.statusBadge.style.color = "var(--accent-primary)";
@@ -5283,13 +5446,25 @@ footer.footer {
   // ============== Cluster-State (Folgeaufträge) ==============
   const CLUSTER_KEY = "rr.clusterJobs";
   const MAX_CLUSTER = 8; // physisch limitiert durch DCM-Welle 1000mm Bestückungsbereich
-  let clusterJobs = []; // {mr, haupt, nebenBreite, nebenAnz}
+  // Felder pro Cluster-Slot:
+  //   Geometrie: mr, haupt, nebenBreite, nebenAnz
+  //   Mengen:    flaeche (qm), lfm (LFM/Schmalrolle)
+  //   Header:    auftragsNr, kunde, material, bemerkung
+  //   UI-State:  expanded (▼-Toggle)
+  let clusterJobs = [];
+  const CLUSTER_FIELDS = ["mr","haupt","nebenBreite","nebenAnz","flaeche","lfm","auftragsNr","kunde","material","bemerkung"];
+  function ensureClusterJobShape(j) {
+    if (!j || typeof j !== "object") j = {};
+    CLUSTER_FIELDS.forEach(f => { if (j[f] == null) j[f] = ""; });
+    if (typeof j.expanded !== "boolean") j.expanded = false;
+    return j;
+  }
   function loadClusterJobs() {
     try {
       const saved = JSON.parse(localStorage.getItem(CLUSTER_KEY) || "[]");
       if (Array.isArray(saved)) {
         clusterJobs = saved.slice(0, MAX_CLUSTER).map(j => {
-          // Migration: alte Felder "neben: '60×2'" → nebenBreite + nebenAnz
+          // Migration v1.19→v1.20: alte Felder "neben: '60×2'" → nebenBreite + nebenAnz
           if (j && j.neben && (!j.nebenBreite && !j.nebenAnz)) {
             const m = String(j.neben).trim().match(/^([\d.,]+)\s*[×x*]\s*([\d]+)$/i);
             if (m) {
@@ -5304,13 +5479,67 @@ footer.footer {
             }
             delete j.neben;
           }
-          return j;
+          // Migration v1.26→v1.27: ergänze fehlende Voll-Auftrags-Felder
+          return ensureClusterJobShape(j);
         });
       }
     } catch(e) { clusterJobs = []; }
   }
   function saveClusterJobs() {
     try { localStorage.setItem(CLUSTER_KEY, JSON.stringify(clusterJobs)); } catch(e) {}
+  }
+
+  // ============== Per-Slot Compute · liefert Outputs pro Cluster-Auftrag ==============
+  // Spiegelt calc()-Logik in kompakter Form. Maschinen-Settings werden global
+  // (speed/ruestBase/ruestPerSatz) gezogen, nicht pro Slot überschrieben (Phase 2).
+  function getMachineSettings() {
+    const speedEl = document.getElementById("speed");
+    const grundEl = document.getElementById("ruestBase");
+    const perEl = document.getElementById("ruestPerSatz");
+    return {
+      speed: parseFloat((speedEl && speedEl.value || "250").replace(",", ".")) || 250,
+      ruestBase: parseFloat((grundEl && grundEl.value || "20").replace(",", ".")) || 20,
+      ruestPerSatz: parseFloat((perEl && perEl.value || "5").replace(",", ".")) || 5
+    };
+  }
+  function computeJobOutput(job, settings) {
+    const mr = parseFloat((job.mr || "").replace(",", ".")) || 0;
+    const haupt = parseFloat((job.haupt || "").replace(",", ".")) || 0;
+    const nb = parseFloat((job.nebenBreite || "").replace(",", ".")) || 0;
+    const na = parseInt(job.nebenAnz || "0") || 0;
+    const flaeche = parseFloat((job.flaeche || "").replace(",", ".")) || 0;
+    const lfm = parseFloat((job.lfm || "").replace(",", ".")) || 0;
+    if (mr <= 0 || haupt <= 0) return { ok: false, reason: "Geometrie unvollständig" };
+    const nebenSpace = nb > 0 && na > 0 ? nb * na : 0;
+    const nutzen = Math.floor((mr - nebenSpace) / haupt);
+    if (nutzen < 1) return { ok: false, reason: "Keine Schmalrolle passt in MR" };
+    const restMM = mr - nutzen * haupt - nebenSpace;
+    const out = { ok: true, mr, haupt, nebenBreite: nb, nebenAnz: na, nutzen, restMM };
+    // Mengen-Berechnung nur möglich wenn Fläche + LFM vorhanden
+    if (flaeche > 0 && lfm > 0) {
+      const gesamtLFM = flaeche / (haupt / 1000);
+      const prodPerSatz = nutzen * lfm;
+      const volleSaetze = Math.floor(gesamtLFM / prodPerSatz);
+      const restsatzLFM = gesamtLFM - volleSaetze * prodPerSatz;
+      const saetzeGesamt = volleSaetze + (restsatzLFM > 0.5 ? 1 : 0);
+      const mrMengeLFM = Math.ceil(gesamtLFM / nutzen);
+      const huelsenHaupt = saetzeGesamt * nutzen;
+      const huelsenNeben = saetzeGesamt * (na || 0);
+      const huelsenGesamt = huelsenHaupt + huelsenNeben;
+      const laufzeitNettoMin = settings.speed > 0 ? mrMengeLFM / settings.speed : 0;
+      const ruestGesamtMin = settings.ruestBase + saetzeGesamt * settings.ruestPerSatz;
+      const laufzeitBruttoMin = laufzeitNettoMin + ruestGesamtMin;
+      Object.assign(out, {
+        flaeche, lfm,
+        gesamtLFM, prodPerSatz, volleSaetze, restsatzLFM, saetzeGesamt,
+        mrMengeLFM, huelsenHaupt, huelsenNeben, huelsenGesamt,
+        laufzeitNettoMin, ruestGesamtMin, laufzeitBruttoMin,
+        hasMengen: true
+      });
+    } else {
+      out.hasMengen = false;
+    }
+    return out;
   }
   // Berechnet Primary-Werte aus aktueller calc-Sicht (für A1 read-only Zeile)
   function getPrimaryValues() {
@@ -5382,11 +5611,23 @@ footer.footer {
       const f = document.getElementById("flaeche");
       if (f) { f.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => f.focus(), 400); }
     });
-    // === A2..A4 Folgeaufträge ===
+    // === A2..A8 Folgeaufträge — kompakt + ggf. expanded mit Voll-Auftrag-Feldern ===
+    const settings = getMachineSettings();
     clusterJobs.forEach((job, idx) => {
       const slotNum = idx + 2; // primary ist #1
       const div = document.createElement("div");
       div.className = "cluster-job";
+      if (job.expanded) div.classList.add("cluster-job-expanded");
+      const out = computeJobOutput(job, settings);
+      const outputHtml = (out.ok && out.hasMengen) ? `
+        <div class="cluster-job-output">
+          <span class="cjo-item"><span class="cjo-val">${out.huelsenGesamt}</span><span class="cjo-lbl">Hülsen</span></span>
+          <span class="cjo-item"><span class="cjo-val">${out.saetzeGesamt}</span><span class="cjo-lbl">Sätze</span></span>
+          <span class="cjo-item"><span class="cjo-val">${Math.round(out.mrMengeLFM).toLocaleString("de-DE")}</span><span class="cjo-lbl">LFM MR</span></span>
+          <span class="cjo-item"><span class="cjo-val">${out.laufzeitNettoMin.toFixed(0)}</span><span class="cjo-lbl">min netto</span></span>
+          <span class="cjo-item"><span class="cjo-val">${out.laufzeitBruttoMin.toFixed(0)}</span><span class="cjo-lbl">min brutto</span></span>
+        </div>
+      ` : (out.ok ? `<div class="cluster-job-output cjo-empty">Fläche + LFM/SR ergänzen für Mengen-Output</div>` : `<div class="cluster-job-output cjo-warn">${out.reason || "—"}</div>`);
       div.innerHTML = `
         <div class="cluster-job-num">A${slotNum}</div>
         <div class="cluster-job-pair">
@@ -5409,7 +5650,43 @@ footer.footer {
           <input type="text" inputmode="numeric" pattern="[0-9]*" data-cidx="${idx}" data-cf="nebenAnz" value="${job.nebenAnz || ""}" placeholder="0">
           <span class="unit">×</span>
         </div>
+        <button type="button" class="cluster-job-expand" data-cexpand="${idx}" tabindex="-1" aria-label="Voll-Auftrag aufklappen" title="Fläche, LFM, Auftrags-Daten">${job.expanded ? "▲" : "▼"}</button>
         <button type="button" class="cluster-job-remove" data-cremove="${idx}" tabindex="-1" aria-label="Auftrag entfernen">×</button>
+        <div class="cluster-job-extras">
+          <div class="cje-row cje-mengen">
+            <div class="cluster-job-pair">
+              <label>Fläche</label>
+              <input type="text" inputmode="decimal" pattern="[0-9.,]*" data-cidx="${idx}" data-cf="flaeche" value="${job.flaeche || ""}" placeholder="z. B. 2500">
+              <span class="unit">qm</span>
+            </div>
+            <div class="cluster-job-pair">
+              <label>LFM/SR</label>
+              <input type="text" inputmode="decimal" pattern="[0-9.,]*" data-cidx="${idx}" data-cf="lfm" value="${job.lfm || ""}" placeholder="z. B. 500">
+              <span class="unit">m</span>
+            </div>
+          </div>
+          <div class="cje-row cje-header">
+            <div class="cluster-job-pair">
+              <label>Auftrags-Nr</label>
+              <input type="text" data-cidx="${idx}" data-cf="auftragsNr" value="${escHtml(job.auftragsNr || "")}" placeholder="—">
+            </div>
+            <div class="cluster-job-pair">
+              <label>Kunde</label>
+              <input type="text" data-cidx="${idx}" data-cf="kunde" value="${escHtml(job.kunde || "")}" placeholder="—">
+            </div>
+            <div class="cluster-job-pair">
+              <label>Material</label>
+              <input type="text" data-cidx="${idx}" data-cf="material" value="${escHtml(job.material || "")}" placeholder="—">
+            </div>
+          </div>
+          <div class="cje-row cje-bem">
+            <div class="cluster-job-pair">
+              <label>Bemerkung</label>
+              <input type="text" data-cidx="${idx}" data-cf="bemerkung" value="${escHtml(job.bemerkung || "")}" placeholder="optional">
+            </div>
+          </div>
+          ${outputHtml}
+        </div>
       `;
       cont.appendChild(div);
     });
@@ -5436,6 +5713,17 @@ footer.footer {
         if (lastValid) renderWelle(lastValid);
       });
     });
+    cont.querySelectorAll("[data-cexpand]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const i = parseInt(btn.dataset.cexpand);
+        if (!clusterJobs[i]) return;
+        clusterJobs[i].expanded = !clusterJobs[i].expanded;
+        saveClusterJobs();
+        renderClusterJobs();
+      });
+    });
+    // Σ-Aggregat-Zeile updaten
+    if (typeof renderClusterAggregate === "function") renderClusterAggregate();
   }
 
   // ============== Master-Welle-Engine (port aus Wellenbestückungs-Tool) ==============
@@ -5813,6 +6101,67 @@ footer.footer {
       excluded,
       reached: candidates.map(c => c._origIdx)
     };
+  }
+
+  // Σ-Aggregat-Zeile: summiert Hülsen / Maschinenzeit / Sätze / MR-Menge
+  // über Primary (lastValid) + alle Cluster-Aufträge mit Mengen-Daten
+  function renderClusterAggregate() {
+    const root = document.getElementById("clusterAggregate");
+    if (!root) return;
+    const clusterToggle = document.getElementById("clusterToggle");
+    const clusterOn = clusterToggle && clusterToggle.getAttribute("aria-expanded") === "true";
+    if (!clusterOn) { root.hidden = true; return; }
+    const settings = getMachineSettings();
+    let huelsenSum = 0, saetzeSum = 0, mrLfmSum = 0, nettoSum = 0, bruttoSum = 0;
+    let countWithMengen = 0, countTotal = 0;
+    // Primary aus lastValid (Field-Namen: huelsen / totalSaetze / mrMengeLFM / tNettoMin / tBruttoMin)
+    if (lastValid && lastValid.huelsen != null && lastValid.huelsen > 0) {
+      countTotal++;
+      countWithMengen++;
+      huelsenSum += (lastValid.huelsen || 0);
+      saetzeSum += (lastValid.totalSaetze || 0);
+      mrLfmSum += (lastValid.mrMengeLFM || 0);
+      nettoSum += (lastValid.tNettoMin || 0);
+      bruttoSum += (lastValid.tBruttoMin || 0);
+    } else if (lastValid && lastValid.mutter) {
+      countTotal++; // Primary geometrisch da, aber keine Mengen
+    }
+    // Cluster-Aufträge
+    clusterJobs.forEach(j => {
+      const out = computeJobOutput(j, settings);
+      if (out.ok) {
+        countTotal++;
+        if (out.hasMengen) {
+          countWithMengen++;
+          huelsenSum += out.huelsenGesamt;
+          saetzeSum += out.saetzeGesamt;
+          mrLfmSum += out.mrMengeLFM;
+          nettoSum += out.laufzeitNettoMin;
+          bruttoSum += out.laufzeitBruttoMin;
+        }
+      }
+    });
+    if (countTotal === 0 || countWithMengen === 0) {
+      root.hidden = true;
+      return;
+    }
+    root.hidden = false;
+    const incomplete = countWithMengen < countTotal
+      ? `<span class="ca-incomplete">${countTotal - countWithMengen} Auftr${(countTotal-countWithMengen)===1?"ag":"äge"} ohne Mengen-Daten — Fläche+LFM ergänzen</span>`
+      : "";
+    root.innerHTML = `
+      <div class="ca-header">
+        <span class="ca-label">Σ Tagesplan · ${countWithMengen}/${countTotal} Auftr${countTotal===1?"ag":"äge"}</span>
+        ${incomplete}
+      </div>
+      <div class="ca-grid">
+        <div class="ca-item"><span class="ca-val">${huelsenSum.toLocaleString("de-DE")}</span><span class="ca-lbl">Hülsen gesamt</span></div>
+        <div class="ca-item"><span class="ca-val">${saetzeSum}</span><span class="ca-lbl">Sätze gesamt</span></div>
+        <div class="ca-item"><span class="ca-val">${Math.round(mrLfmSum).toLocaleString("de-DE")}</span><span class="ca-lbl">LFM MR gesamt</span></div>
+        <div class="ca-item"><span class="ca-val">${(nettoSum/60).toFixed(1)}<span class="ca-unit">h</span></span><span class="ca-lbl">Netto-Laufzeit</span></div>
+        <div class="ca-item ca-brutto"><span class="ca-val">${(bruttoSum/60).toFixed(1)}<span class="ca-unit">h</span></span><span class="ca-lbl">Brutto-Maschinenzeit</span></div>
+      </div>
+    `;
   }
 
   function clearClusterJobStatus() {
@@ -7270,6 +7619,8 @@ footer.footer {
         saveClusterJobs();
         renderClusterJobs();
       }
+      // Aggregat-Anzeige aktualisieren (zeigt/versteckt sich je nach Cluster-State)
+      if (typeof renderClusterAggregate === "function") renderClusterAggregate();
     });
   }
   const clusterAddBtn = document.getElementById("clusterAddBtn");
