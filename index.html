@@ -2855,10 +2855,9 @@ footer.footer {
     });
   }
 
-  // Tab-Order säubern: Stepper/Copy/Unit/Reset/Demo aus dem Tab-Pfad nehmen,
-  // damit Operator mit Tab direkt von Eingabe zu Eingabe springt.
-  // Klick mit der Maus geht weiter — tabindex=-1 deaktiviert NUR Tab-Fokus.
-  document.querySelectorAll(".stepper, .copy-btn, .unit-toggle, .icon-btn, #exampleBtn")
+  // Tab-Order säubern: Lean-Flow → NUR die 7 Eingabefelder im Tab-Pfad,
+  // alle anderen Buttons aus dem Tab-Pfad raus (Klick mit Maus weiter möglich).
+  document.querySelectorAll(".stepper, .copy-btn, .unit-toggle, .icon-btn, #exampleBtn, #calcBtn")
     .forEach(b => b.setAttribute("tabindex", "-1"));
 
   // keyboard: Enter UND Tab springen zum nächsten Feld (Operator-Wunsch)
@@ -2927,10 +2926,18 @@ footer.footer {
   const PW_KEY = "rr.unlocked";
 
   function focusFirstInput() {
-    if (els.flaeche) {
-      // small delay so focus happens after layout settle
-      setTimeout(() => els.flaeche.focus(), 80);
-    }
+    if (!els.flaeche) return;
+    // Triple-attempt für Lean-Flow: sofort + nach Layout + nach Animation
+    // (manche Browser/Firefox brauchen einen späteren Tick um Focus zu setzen)
+    const tryFocus = () => {
+      els.flaeche.focus();
+      // Cursor ans Ende statt Select-All (konsistent mit Edit-statt-Replace-Verhalten)
+      const len = els.flaeche.value.length;
+      try { els.flaeche.setSelectionRange(len, len); } catch(e) {}
+    };
+    tryFocus();
+    setTimeout(tryFocus, 80);
+    setTimeout(tryFocus, 320);
   }
 
   function unlockApp(animated) {
