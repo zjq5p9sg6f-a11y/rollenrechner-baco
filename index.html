@@ -860,6 +860,212 @@ header.bar {
   opacity: 1;
 }
 
+/* ============== Wellenbestückung Beta (DCM) — Toggle + Section ============== */
+.welle-toggle {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%;
+  padding: 14px 22px;
+  margin-top: var(--s-3);
+  background: linear-gradient(90deg, rgba(0,230,118,0.04), transparent);
+  border: 1px dashed rgba(0,230,118,0.4);
+  border-radius: var(--r-2);
+  color: var(--accent-primary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--t-fast) var(--ease-out-expo);
+}
+.welle-toggle:hover {
+  border-style: solid;
+  background: linear-gradient(90deg, rgba(0,230,118,0.08), rgba(0,230,118,0.02));
+  box-shadow: 0 0 24px rgba(0,230,118,0.18);
+}
+.welle-toggle-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  flex-shrink: 0;
+  transition: transform var(--t-fast) var(--ease-out-expo);
+}
+.welle-toggle-icon svg { width: 14px; height: 14px; }
+.welle-toggle[aria-expanded="true"] .welle-toggle-icon {
+  transform: rotate(45deg);
+  background: var(--accent-primary);
+  color: #062b14;
+}
+.welle-toggle-text { flex: 1; text-align: left; }
+.welle-toggle-beta {
+  font-size: 11px; font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: rgba(255,180,0,0.15);
+  color: #ffb400;
+  border: 1px solid rgba(255,180,0,0.45);
+  letter-spacing: 0.08em;
+}
+
+.welle-section {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 320ms var(--ease-out-expo), opacity 200ms ease, padding 320ms var(--ease-out-expo), margin-top 320ms var(--ease-out-expo);
+  padding: 0 24px;
+  margin-top: 0;
+}
+.welle-section[aria-hidden="false"] {
+  max-height: 2400px;
+  opacity: 1;
+  padding: 24px;
+  margin-top: var(--s-2);
+}
+.welle-head {
+  display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.welle-head-left { flex: 1; min-width: 200px; }
+.welle-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 17px; font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.welle-title .panel-title-dot { background: var(--accent-primary); }
+.welle-machine {
+  font-size: 13px; font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  opacity: 0.85;
+}
+.welle-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+.welle-head-actions { display: flex; gap: 8px; }
+.btn-print {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  background: transparent;
+  border: 1px solid var(--accent-primary);
+  border-radius: 8px;
+  color: var(--accent-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.btn-print:hover { background: var(--accent-primary); color: #062b14; box-shadow: 0 0 16px var(--accent-glow); }
+.btn-print svg { width: 16px; height: 16px; }
+
+#welleSvg {
+  width: 100%;
+  height: auto;
+  min-height: 280px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-top: 8px;
+}
+
+/* Hol-Liste */
+.welle-holliste {
+  margin-top: 18px;
+  padding: 16px 18px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.welle-holliste h4 {
+  font-size: 13px; font-weight: 800;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent-primary);
+  margin: 0 0 12px 0;
+}
+.welle-holliste-grid {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 6px 18px;
+  font-size: 14px;
+}
+.welle-holliste-row { display: contents; }
+.welle-holliste-row > * {
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.06);
+}
+.welle-holliste-row:last-child > * { border-bottom: 0; }
+.welle-holliste .hl-name { color: var(--text-primary); font-weight: 600; }
+.welle-holliste .hl-anz {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  color: var(--accent-primary);
+  text-align: right;
+  font-size: 16px;
+}
+.welle-holliste .hl-unit { color: var(--text-secondary); font-size: 12px; align-self: center; }
+
+.welle-alerts {
+  margin-top: 12px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.welle-alerts .welle-alert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.welle-alerts .welle-alert.warn {
+  background: rgba(255,107,53,0.10);
+  border: 1px solid rgba(255,107,53,0.3);
+  color: var(--warn-color);
+}
+.welle-alerts .welle-alert.danger {
+  background: rgba(255,77,109,0.12);
+  border: 1px solid rgba(255,77,109,0.4);
+  color: var(--danger-color);
+}
+
+/* Print-Stylesheet — nur Welle + Holliste drucken */
+@media print {
+  body * { visibility: hidden; }
+  #welleSection, #welleSection * { visibility: visible; }
+  #welleSection {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%;
+    max-height: none !important;
+    padding: 20mm !important;
+    background: white !important;
+    color: black !important;
+    margin: 0 !important;
+    border: 0;
+    opacity: 1 !important;
+  }
+  #welleSection .welle-title,
+  #welleSection .welle-machine,
+  #welleSection .welle-sub,
+  #welleSection .welle-holliste h4,
+  #welleSection .welle-holliste .hl-name,
+  #welleSection .welle-holliste .hl-anz,
+  #welleSection .welle-holliste .hl-unit { color: black !important; }
+  #welleSection .welle-holliste {
+    background: white !important;
+    border: 1px solid #999 !important;
+  }
+  #welleSection .btn-print { display: none !important; }
+  #welleSvg { background: white !important; border-color: #999 !important; }
+  #welleSection .welle-alert { color: #555 !important; background: #f5f5f5 !important; border-color: #ccc !important; }
+}
+
 /* ============== Auftragserfüllungs-Tabelle (Bottleneck-View) ============== */
 .fulfillment-card {
   background: linear-gradient(180deg, rgba(20,20,20,0.7), rgba(10,10,10,0.5));
@@ -2276,6 +2482,34 @@ footer.footer {
         <g id="vizGroup"></g>
       </svg>
     </section>
+
+    <!-- ============== WELLENBESTÜCKUNG (Beta · DCM) ============== -->
+    <button type="button" class="welle-toggle" id="welleToggle" aria-expanded="false" aria-controls="welleSection" tabindex="-1">
+      <span class="welle-toggle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
+      <span class="welle-toggle-text">Wellenbestückung anzeigen</span>
+      <span class="welle-toggle-beta">BETA · nur DCM</span>
+    </button>
+    <section class="panel glass welle-section" id="welleSection" aria-hidden="true" aria-labelledby="welle-title">
+      <div class="welle-head">
+        <div class="welle-head-left">
+          <div class="welle-title" id="welle-title">
+            <span class="panel-title-dot"></span>
+            Bestückte Welle <span class="welle-machine">DCM Untermesserwelle · 1472 mm</span>
+          </div>
+          <div class="welle-sub" id="welleSubtitle">Werte eingeben um Bestückung zu berechnen</div>
+        </div>
+        <div class="welle-head-actions">
+          <button class="btn-print" id="printWelleBtn" type="button" tabindex="-1" title="Stückliste drucken">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            <span>Stückliste drucken</span>
+          </button>
+        </div>
+      </div>
+      <svg id="welleSvg" viewBox="0 0 1500 280" preserveAspectRatio="xMidYMid meet" aria-label="Bestückte Welle DCM"></svg>
+      <div class="welle-holliste" id="welleHolliste"></div>
+      <div class="welle-alerts" id="welleAlerts"></div>
+    </section>
+    <!-- ============== /WELLENBESTÜCKUNG ============== -->
   </div>
 
   <div class="footer-actions">
@@ -2685,6 +2919,7 @@ footer.footer {
     renderWarnings(inputs, out);
     drawViz(out);
     renderFulfillment(out);
+    renderWelle(out);
 
     els.statusBadge.textContent = "Live · aktualisiert";
     els.statusBadge.style.color = "var(--accent-primary)";
@@ -2848,6 +3083,330 @@ footer.footer {
         : `<strong>${fulfilled + (hauptOk ? 1 : 0)} / ${total + 1} Aufträge erfüllt</strong> · Untererfüllte in nächstem Cluster nachholen oder Anzahl anpassen`;
     }
     if (saetzeEl) saetzeEl.textContent = `${o.totalSaetze} Sätze`;
+  }
+
+  // ============== DCM-Wellenbestückungs-Engine (portiert aus Wellenbestückungs-Tool) ==============
+  const DCM = {
+    WELLE: 1472,
+    WELLE_MITTE: 736,
+    BESTUECKUNGS_BREITE: 1000,
+    PARK_RING: 59,
+    PARK_PRO_SEITE: 4,
+    PARK_TOTAL: 4 * 59,
+    DISTANZRINGE: [300, 200, 100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
+    SCHNEIDEEINHEIT: 20,
+    SCHNITT_OFFSET: 13,
+    BESAEUMUNG_MIN_SOFT: 5,
+    BESAEUMUNG_MAX: 20
+  };
+
+  function distanzringeForDCM(ziel) {
+    const tol = 0.001;
+    const result = {};
+    let rest = ziel;
+    for (const r of DCM.DISTANZRINGE) {
+      while (rest >= r - tol) {
+        result[r] = (result[r] || 0) + 1;
+        rest -= r;
+      }
+    }
+    return { rings: result, rest };
+  }
+
+  function calcWelleJob(out) {
+    if (!out || !out.mutter || !out.schmal) return { ok: false, empty: true, alerts: [] };
+    const mr = out.mutter, haupt = out.schmal;
+    const slots = out.nebenSlots || [];
+    const alerts = [];
+
+    if (haupt < DCM.SCHNEIDEEINHEIT)
+      return { ok: false, alerts: [{type:"danger", msg:`Hauptschnitt ${haupt} mm < Schneideeinheit ${DCM.SCHNEIDEEINHEIT} mm — auf DCM nicht fahrbar.`}] };
+    for (const s of slots) {
+      if (s.breite < DCM.SCHNEIDEEINHEIT)
+        return { ok: false, alerts: [{type:"danger", msg:`Neben-Breite N${s.slotIdx}=${s.breite} mm < ${DCM.SCHNEIDEEINHEIT} mm — auf DCM nicht fahrbar.`}] };
+    }
+
+    const N = out.nutzen;
+    const distHaupt = haupt - DCM.SCHNEIDEEINHEIT;
+    const innerSegs = [];
+
+    // Erste SE links (Besäumung-L)
+    innerSegs.push({ kind: "schneid", breite: DCM.SCHNEIDEEINHEIT, name: "Schneideeinheit Besäumung-L", short: "SE-L" });
+    // N Haupt-Cuts
+    for (let i = 0; i < N; i++) {
+      if (distHaupt > 0.001)
+        innerSegs.push({ kind: "distanz", breite: distHaupt, name: "Distanzring Hauptschnitt", short: "D" });
+      const isLast = (i === N - 1);
+      innerSegs.push({
+        kind: "schneid",
+        breite: DCM.SCHNEIDEEINHEIT,
+        name: isLast ? (slots.length > 0 ? "SE Haupt/Neben-Übergang" : "SE Besäumung-R") : "Schneideeinheit innen",
+        short: "SE"
+      });
+    }
+    // Neben-Slots am rechten Rand
+    for (const slot of slots) {
+      const distNeben = slot.breite - DCM.SCHNEIDEEINHEIT;
+      for (let n = 0; n < slot.anz; n++) {
+        if (distNeben > 0.001)
+          innerSegs.push({ kind: "distanz", breite: distNeben, name: `Distanzring Neben N${slot.slotIdx} ${n+1}/${slot.anz}`, short: "Dn" });
+        const isLastNeben = (slot === slots[slots.length-1] && n === slot.anz - 1);
+        innerSegs.push({
+          kind: "neben",
+          slotIdx: slot.slotIdx,
+          breite: DCM.SCHNEIDEEINHEIT,
+          name: isLastNeben ? "Schneideeinheit Besäumung-R (Neben)" : `Schneideeinheit Neben N${slot.slotIdx}-${n+1}`,
+          short: "SE-N"
+        });
+      }
+    }
+
+    const innerLen = innerSegs.reduce((s,x)=>s+x.breite, 0);
+
+    if (innerLen > DCM.BESTUECKUNGS_BREITE + 0.001) {
+      return { ok: false, alerts: [{type:"danger", msg:`Bestückung ${innerLen.toFixed(1)} mm überschreitet DCM-Bereich ${DCM.BESTUECKUNGS_BREITE} mm. Reduziere Anzahl oder wechsle auf Euromac.`}] };
+    }
+
+    const restProSeite = (DCM.BESTUECKUNGS_BREITE - innerLen) / 2;
+    const restFill = distanzringeForDCM(restProSeite);
+    if (restFill.rest > 0.01) {
+      alerts.push({type:"warn", msg:`Reststrecke ${restProSeite.toFixed(2)} mm pro Seite nicht exakt mit Distanzringen füllbar — Differenz ${restFill.rest.toFixed(2)} mm.`});
+    }
+
+    // Vollständiges Layout LR
+    const layoutLR = [];
+    for (let i = 0; i < DCM.PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: DCM.PARK_RING, name: "Parkplatz-Ring (L)", short: "P" });
+    if (restProSeite > 0.001) layoutLR.push({ kind: "rest", breite: restProSeite, name: "Distanzring-Auffüllung L", short: "Rest", fill: restFill.rings });
+    for (const s of innerSegs) layoutLR.push({...s});
+    if (restProSeite > 0.001) layoutLR.push({ kind: "rest", breite: restProSeite, name: "Distanzring-Auffüllung R", short: "Rest", fill: restFill.rings });
+    for (let i = 0; i < DCM.PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: DCM.PARK_RING, name: "Parkplatz-Ring (R)", short: "P" });
+
+    // MR-Position auf der Welle
+    const innerStart = restProSeite + DCM.PARK_TOTAL;
+    const innerEnd = innerStart + innerLen;
+    const mrStart = innerStart + DCM.SCHNITT_OFFSET - (out.restL || (out.restMM || 0)/2);
+    const mrEnd = mrStart + mr;
+
+    // Hol-Liste
+    const totalSE = innerSegs.filter(s => s.kind === "schneid" || s.kind === "neben").length;
+    const holliste = [
+      { name: "Schneideeinheit", spec: "20 mm (10 Schneidring + 10 Nutmesser)", anz: totalSE },
+      { name: "Parkplatz-Ring", spec: "59 mm", anz: DCM.PARK_PRO_SEITE * 2 }
+    ];
+    const distMap = {};
+    for (const seg of innerSegs) {
+      if (seg.kind === "distanz" && seg.breite > 0) {
+        const f = distanzringeForDCM(seg.breite);
+        for (const [k,v] of Object.entries(f.rings)) distMap[k] = (distMap[k] || 0) + v;
+      }
+    }
+    for (const [k,v] of Object.entries(restFill.rings)) distMap[k] = (distMap[k] || 0) + v * 2;
+    const distKeys = Object.keys(distMap).map(parseFloat).sort((a,b)=>b-a);
+    for (const k of distKeys) holliste.push({ name: "Distanzring", spec: `${k} mm`, anz: distMap[k] });
+
+    return {
+      ok: true,
+      mr, haupt, N, slots, innerLen, restProSeite,
+      layoutLR, innerSegs, holliste,
+      innerStart, innerEnd, mrStart, mrEnd,
+      alerts
+    };
+  }
+
+  // SVG-Render der bestückten Welle
+  const SVG_NS_W = "http://www.w3.org/2000/svg";
+  function svgW(parent, tag, attrs, text) {
+    const el = document.createElementNS(SVG_NS_W, tag);
+    for (const [k,v] of Object.entries(attrs || {})) el.setAttribute(k, v);
+    if (text != null) el.textContent = text;
+    if (parent) parent.appendChild(el);
+    return el;
+  }
+
+  function renderWelleSvg(result) {
+    const svg = document.getElementById("welleSvg");
+    if (!svg) return;
+    svg.innerHTML = "";
+    if (!result || !result.ok) return;
+
+    const W = 1500, H = 280;
+    const padX = 50, padY = 40;
+    const innerW = W - padX * 2;
+    const pxPerMM = innerW / DCM.WELLE;
+    const barTop = 110;
+    const barH = 90;
+    const barBottom = barTop + barH;
+    const dimTopY = 36;
+    const dimBottomY = barBottom + 30;
+
+    // Welle-Hintergrund (Industrial-Rahmen)
+    svgW(svg, "rect", {
+      x: padX - 4, y: barTop - 6,
+      width: innerW + 8, height: barH + 12,
+      rx: 8,
+      fill: "rgba(20,20,20,0.6)",
+      stroke: "rgba(255,255,255,0.08)", "stroke-width": "1"
+    });
+
+    // Welle-Achse (1472 mm) — Top-Bemaßung
+    const dimColor = "rgba(220,220,220,0.65)";
+    svgW(svg, "line", { x1: padX, y1: dimTopY, x2: W - padX, y2: dimTopY, stroke: dimColor, "stroke-width": "1" });
+    svgW(svg, "path", { d: `M${padX} ${dimTopY} L${padX+8} ${dimTopY-5} L${padX+8} ${dimTopY+5} Z`, fill: dimColor });
+    svgW(svg, "path", { d: `M${W-padX} ${dimTopY} L${W-padX-8} ${dimTopY-5} L${W-padX-8} ${dimTopY+5} Z`, fill: dimColor });
+    // Anchor-Lines
+    svgW(svg, "line", { x1: padX, y1: dimTopY, x2: padX, y2: barTop-6, stroke: dimColor, "stroke-width": "0.6", "stroke-dasharray": "3 3" });
+    svgW(svg, "line", { x1: W-padX, y1: dimTopY, x2: W-padX, y2: barTop-6, stroke: dimColor, "stroke-width": "0.6", "stroke-dasharray": "3 3" });
+    // Label "Welle 1472 mm"
+    const wlbl = "Welle 1472 mm";
+    const wlW = wlbl.length * 7.5 + 24;
+    svgW(svg, "rect", { x: W/2 - wlW/2, y: dimTopY - 11, width: wlW, height: 22, rx: 5, fill: "rgba(8,8,8,0.95)", stroke: "var(--accent-primary)", "stroke-width": "1" });
+    svgW(svg, "text", { x: W/2, y: dimTopY + 5, "text-anchor": "middle", fill: "var(--accent-primary)", "font-size": "12", "font-weight": "700", "font-family": "inherit", "letter-spacing": "0.04em" }, wlbl);
+
+    // Layout segments (von links nach rechts)
+    let cursor = padX;
+    result.layoutLR.forEach((seg, i) => {
+      const w = seg.breite * pxPerMM;
+      let fill, stroke, strokeColor;
+      switch (seg.kind) {
+        case "park":
+          fill = "rgba(140,140,140,0.18)";
+          stroke = "rgba(180,180,180,0.5)";
+          break;
+        case "rest":
+          fill = "url(#welleRestPattern)";
+          stroke = "rgba(180,180,180,0.4)";
+          break;
+        case "schneid":
+          fill = "url(#welleSchneidGrad)";
+          stroke = "#ff5e57";
+          break;
+        case "neben":
+          fill = "url(#welleNebenGrad)";
+          stroke = "#ffb400";
+          break;
+        case "distanz":
+          fill = "url(#welleDistanzGrad)";
+          stroke = "rgba(0,230,118,0.5)";
+          break;
+        default:
+          fill = "#333"; stroke = "#666";
+      }
+      svgW(svg, "rect", {
+        x: cursor, y: barTop, width: Math.max(0.5, w), height: barH,
+        fill, stroke, "stroke-width": "0.6"
+      });
+      // Park-Markierung mit "P"
+      if (seg.kind === "park" && w > 14) {
+        svgW(svg, "text", { x: cursor + w/2, y: barBottom - 8, "text-anchor": "middle", fill: "rgba(220,220,220,0.7)", "font-size": "10", "font-weight": "700", "font-family": "inherit" }, seg.short);
+      }
+      // Schneideeinheit-Markierung: kleine Linie
+      if ((seg.kind === "schneid" || seg.kind === "neben") && w >= 6) {
+        svgW(svg, "line", { x1: cursor + w/2, y1: barTop - 8, x2: cursor + w/2, y2: barTop, stroke: seg.kind === "neben" ? "#ffb400" : "#ff5e57", "stroke-width": "1.2" });
+        svgW(svg, "circle", { cx: cursor + w/2, cy: barTop - 11, r: 2.5, fill: seg.kind === "neben" ? "#ffb400" : "#ff5e57" });
+      }
+      cursor += w;
+    });
+
+    // Defs (Gradienten + Pattern) — nur einmal definieren
+    const defs = svgW(svg, "defs", {});
+    const gSchneid = svgW(defs, "linearGradient", { id: "welleSchneidGrad", x1: 0, y1: 0, x2: 0, y2: 1 });
+    svgW(gSchneid, "stop", { offset: "0%", "stop-color": "#ff8a7a" });
+    svgW(gSchneid, "stop", { offset: "100%", "stop-color": "#a01810" });
+    const gNeben = svgW(defs, "linearGradient", { id: "welleNebenGrad", x1: 0, y1: 0, x2: 0, y2: 1 });
+    svgW(gNeben, "stop", { offset: "0%", "stop-color": "#ffd370" });
+    svgW(gNeben, "stop", { offset: "100%", "stop-color": "#c08800" });
+    const gDist = svgW(defs, "linearGradient", { id: "welleDistanzGrad", x1: 0, y1: 0, x2: 0, y2: 1 });
+    svgW(gDist, "stop", { offset: "0%", "stop-color": "#00ff8a" });
+    svgW(gDist, "stop", { offset: "100%", "stop-color": "#009d4f" });
+    const restPat = svgW(defs, "pattern", { id: "welleRestPattern", patternUnits: "userSpaceOnUse", width: 6, height: 6, patternTransform: "rotate(45)" });
+    svgW(restPat, "rect", { width: 3, height: 6, fill: "rgba(0,230,118,0.4)" });
+
+    // MR-Bracket OBEN über dem Bestückungsbereich (zeigt MR-Position auf Welle)
+    const mrPxStart = padX + result.mrStart * pxPerMM;
+    const mrPxEnd = padX + result.mrEnd * pxPerMM;
+    const mrY = dimTopY + 28;
+    svgW(svg, "line", { x1: mrPxStart, y1: mrY, x2: mrPxEnd, y2: mrY, stroke: "var(--warn-color)", "stroke-width": "1.5" });
+    svgW(svg, "line", { x1: mrPxStart, y1: mrY-5, x2: mrPxStart, y2: mrY+5, stroke: "var(--warn-color)", "stroke-width": "1.5" });
+    svgW(svg, "line", { x1: mrPxEnd, y1: mrY-5, x2: mrPxEnd, y2: mrY+5, stroke: "var(--warn-color)", "stroke-width": "1.5" });
+    const mrTxt = `MR ${result.mr} mm`;
+    const mrW = mrTxt.length * 7.5 + 16;
+    svgW(svg, "rect", { x: (mrPxStart+mrPxEnd)/2 - mrW/2, y: mrY - 10, width: mrW, height: 18, rx: 4, fill: "rgba(8,8,8,0.92)", stroke: "var(--warn-color)", "stroke-width": "1" });
+    svgW(svg, "text", { x: (mrPxStart+mrPxEnd)/2, y: mrY + 4, "text-anchor": "middle", fill: "var(--warn-color)", "font-size": "11", "font-weight": "700", "font-family": "inherit" }, mrTxt);
+
+    // Bestückungs-Bereich Bemaßung BOTTOM "1000 mm" + L=R=736
+    const bestStartPx = padX + DCM.PARK_TOTAL * pxPerMM;
+    const bestEndPx = padX + (DCM.PARK_TOTAL + DCM.BESTUECKUNGS_BREITE) * pxPerMM;
+    svgW(svg, "line", { x1: bestStartPx, y1: dimBottomY, x2: bestEndPx, y2: dimBottomY, stroke: "var(--accent-primary)", "stroke-width": "1" });
+    svgW(svg, "path", { d: `M${bestStartPx} ${dimBottomY} L${bestStartPx+8} ${dimBottomY-5} L${bestStartPx+8} ${dimBottomY+5} Z`, fill: "var(--accent-primary)" });
+    svgW(svg, "path", { d: `M${bestEndPx} ${dimBottomY} L${bestEndPx-8} ${dimBottomY-5} L${bestEndPx-8} ${dimBottomY+5} Z`, fill: "var(--accent-primary)" });
+    svgW(svg, "line", { x1: bestStartPx, y1: barBottom + 4, x2: bestStartPx, y2: dimBottomY, stroke: "var(--accent-primary)", "stroke-width": "0.6", "stroke-dasharray": "3 3" });
+    svgW(svg, "line", { x1: bestEndPx, y1: barBottom + 4, x2: bestEndPx, y2: dimBottomY, stroke: "var(--accent-primary)", "stroke-width": "0.6", "stroke-dasharray": "3 3" });
+    const bestLbl = "Bestückungs-Bereich 1000 mm";
+    const bestW = bestLbl.length * 6.5 + 18;
+    svgW(svg, "rect", { x: (bestStartPx+bestEndPx)/2 - bestW/2, y: dimBottomY - 10, width: bestW, height: 18, rx: 4, fill: "rgba(8,8,8,0.95)", stroke: "var(--accent-primary)", "stroke-width": "1" });
+    svgW(svg, "text", { x: (bestStartPx+bestEndPx)/2, y: dimBottomY + 4, "text-anchor": "middle", fill: "var(--accent-primary)", "font-size": "11", "font-weight": "700", "font-family": "inherit" }, bestLbl);
+
+    // Welle-Mitte ⊕ Cross-Mark
+    const mittePx = padX + DCM.WELLE_MITTE * pxPerMM;
+    svgW(svg, "circle", { cx: mittePx, cy: barTop + barH/2, r: 7, fill: "none", stroke: "var(--accent-primary)", "stroke-width": "1.4" });
+    svgW(svg, "line", { x1: mittePx-9, y1: barTop + barH/2, x2: mittePx+9, y2: barTop + barH/2, stroke: "var(--accent-primary)", "stroke-width": "1.4" });
+    svgW(svg, "line", { x1: mittePx, y1: barTop + barH/2 - 9, x2: mittePx, y2: barTop + barH/2 + 9, stroke: "var(--accent-primary)", "stroke-width": "1.4" });
+  }
+
+  function renderWelleHolliste(result) {
+    const cont = document.getElementById("welleHolliste");
+    if (!cont) return;
+    if (!result || !result.ok) {
+      cont.innerHTML = `<h4>Bestückungs-Stückliste</h4><div style="color:var(--text-secondary);font-size:13px">— bei gültigen Werten</div>`;
+      return;
+    }
+    const totalParts = result.holliste.reduce((s,h)=>s+h.anz, 0);
+    let html = `<h4>Bestückungs-Stückliste · ${totalParts} Bauteile total</h4>`;
+    html += `<div class="welle-holliste-grid">`;
+    for (const h of result.holliste) {
+      html += `<div class="welle-holliste-row">`;
+      html += `<span class="hl-name">${h.name}</span>`;
+      html += `<span class="hl-anz">${h.anz}</span>`;
+      html += `<span class="hl-unit">× ${h.spec}</span>`;
+      html += `</div>`;
+    }
+    html += `</div>`;
+    cont.innerHTML = html;
+  }
+
+  function renderWelleAlerts(result) {
+    const cont = document.getElementById("welleAlerts");
+    if (!cont) return;
+    cont.innerHTML = "";
+    if (!result || !result.alerts) return;
+    for (const a of result.alerts) {
+      const div = document.createElement("div");
+      div.className = `welle-alert ${a.type}`;
+      div.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>${a.msg}</span>`;
+      cont.appendChild(div);
+    }
+  }
+
+  function renderWelle(out) {
+    const section = document.getElementById("welleSection");
+    if (!section || section.getAttribute("aria-hidden") === "true") return;
+    const sub = document.getElementById("welleSubtitle");
+    if (!out || !out.mutter) {
+      if (sub) sub.textContent = "Werte oben eingeben um Bestückung zu berechnen";
+      renderWelleSvg(null); renderWelleHolliste(null); renderWelleAlerts(null);
+      return;
+    }
+    const result = calcWelleJob(out);
+    if (!result.ok) {
+      if (sub) sub.innerHTML = `<span style="color:var(--danger-color)">${(result.alerts[0] && result.alerts[0].msg) || 'Bestückung nicht möglich'}</span>`;
+      renderWelleSvg(null); renderWelleHolliste(null); renderWelleAlerts(result);
+      return;
+    }
+    const slotsTxt = result.slots.length ? ` + ${result.slots.map(s=>`${s.anz}× ${s.breite} mm`).join(" + ")} Neben` : "";
+    if (sub) sub.textContent = `MR ${result.mr} mm → ${result.N}× ${result.haupt} mm${slotsTxt} · innen ${result.innerLen.toFixed(1)} mm · Rest ${result.restProSeite.toFixed(2)} mm/Seite`;
+    renderWelleSvg(result);
+    renderWelleHolliste(result);
+    renderWelleAlerts(result);
   }
 
   function render(o) {
@@ -3889,7 +4448,7 @@ footer.footer {
   }
 
   // Tab-Order säubern: Lean-Flow — alle Hilfs-Buttons aus dem Tab-Pfad raus.
-  document.querySelectorAll(".stepper, .copy-btn, .unit-toggle, .icon-btn, .hero-cta, #exampleBtn, #calcBtn, #heteroToggle")
+  document.querySelectorAll(".stepper, .copy-btn, .unit-toggle, .icon-btn, .hero-cta, #exampleBtn, #calcBtn, #heteroToggle, #asymToggle, #welleToggle, #printWelleBtn, .ml-copy")
     .forEach(b => b.setAttribute("tabindex", "-1"));
 
   // ============== Heterogene Einteilung — Toggle-Logik ==============
@@ -3994,6 +4553,42 @@ footer.footer {
     });
   }
   if (localStorage.getItem(ASYM_KEY) === "1") setAsymState(true, false);
+
+  // ============== Wellenbestückungs-Toggle (Beta · DCM) ==============
+  const WELLE_KEY = "rr.welle";
+  function setWelleState(open, persist) {
+    const toggle = document.getElementById("welleToggle");
+    const section = document.getElementById("welleSection");
+    if (!toggle || !section) return;
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    section.setAttribute("aria-hidden", open ? "false" : "true");
+    if (persist) localStorage.setItem(WELLE_KEY, open ? "1" : "0");
+    if (open && lastValid) renderWelle(lastValid);
+  }
+  const welleToggleEl = document.getElementById("welleToggle");
+  if (welleToggleEl) {
+    welleToggleEl.addEventListener("click", () => {
+      const isOpen = welleToggleEl.getAttribute("aria-expanded") === "true";
+      setWelleState(!isOpen, true);
+      if (!isOpen) {
+        setTimeout(() => {
+          const sec = document.getElementById("welleSection");
+          if (sec) sec.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 350);
+      }
+    });
+  }
+  if (localStorage.getItem(WELLE_KEY) === "1") setWelleState(true, false);
+
+  // Print-Handler
+  const printBtnEl = document.getElementById("printWelleBtn");
+  if (printBtnEl) {
+    printBtnEl.addEventListener("click", () => {
+      // Kurzer Toast vor Print-Dialog
+      toast("Druck-Dialog öffnet…");
+      setTimeout(() => window.print(), 200);
+    });
+  }
 
   // keyboard: Enter + Tab + Shift+Tab cyclen durch die aktiven Eingabefelder.
   // Bei Hetero-Open sind nebenBreite + nebenAnz im Loop, sonst nicht.
