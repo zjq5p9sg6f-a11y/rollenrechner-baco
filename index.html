@@ -5418,27 +5418,69 @@ footer.footer {
       validJobs.push({
         idx, mr, haupt, nebenSpec, N,
         cuts, mrLeft, mrRight: mrLeft + mr,
-        besaeumung, versatz: 0
+        besaeumung, besaeumungL: besaeumung, besaeumungR: besaeumung,
+        totalRest: mr - N*haupt - nebenSpace,
+        versatz: 0, asymmetric: false
       });
     }
     if (validJobs.length < 2) return null;
 
-    // MR-Versatz-Optimierung — pro Folgeauftrag bestes δ ∈ [-50, +50] mm
+    // 2D-Optimierung pro Folgeauftrag: bestes (δ × besL) für maximale Cut-Übereinstimmung
+    // δ      = MR-Versatz auf der Welle ∈ [-50, +50] mm
+    // besL   = linke Besäumung ∈ [0, totalRest] mm (rechts = totalRest - besL)
+    // → erlaubt asymmetrische Cluster-Bestückung wenn dadurch mehr Master-Cuts geteilt
     const ref = validJobs[0];
+    function rebuildCutsWithAsym(job, delta, besL) {
+      const mrLeft = (DCM.WELLE_MITTE - job.mr/2) + delta;
+      const cuts = [];
+      let p = mrLeft + besL;
+      cuts.push(p);
+      for (let i = 0; i < job.N; i++) { p += job.haupt; cuts.push(p); }
+      for (const sp of job.nebenSpec) {
+        for (let n = 0; n < sp.anz; n++) { p += sp.breite; cuts.push(p); }
+      }
+      return { cuts, mrLeft, mrRight: mrLeft + job.mr };
+    }
+    // Score-Funktion mit Tie-Breaker:
+    //   1. Primär: max common Cuts (DESC)
+    //   2. Sekundär: min |Δ| (weniger MR-Versatz bevorzugt)
+    //   3. Tertiär: min |besL - totalRest/2| (Symmetrie bevorzugt wenn alles andere gleich)
+    function scoreLayout(common, d, bL, totalRest) {
+      return common * 1e6 - Math.abs(d) * 100 - Math.abs(bL - totalRest/2);
+    }
     for (let i = 1; i < validJobs.length; i++) {
       const job = validJobs[i];
-      let bestDelta = 0, bestCommon = 0;
+      // Initial: symmetrische Besäumung, kein Versatz, common gegen ref zählen
+      const initCuts = rebuildCutsWithAsym(job, 0, job.totalRest/2).cuts;
+      let initCommon = 0;
+      for (const c of initCuts) if (ref.cuts.some(r => Math.abs(c-r) < tol)) initCommon++;
+      let bestDelta = 0, bestBesL = job.totalRest / 2;
+      let bestScore = scoreLayout(initCommon, 0, job.totalRest/2, job.totalRest);
+      // 2D-Grid-Search · 0.5mm Auflösung in besL · 1mm in δ
+      // Cap totalRest auf 60mm um Search-Space bei extrem-asymmetrischen Aufträgen zu begrenzen
+      const restMax = Math.min(job.totalRest, 60);
       for (let d = -50; d <= 50; d += 1) {
-        const shifted = job.cuts.map(c => c + d);
-        const common = shifted.filter(c => ref.cuts.some(r => Math.abs(c - r) < tol)).length;
-        if (common > bestCommon) { bestCommon = common; bestDelta = d; }
+        for (let bL = 0; bL <= restMax; bL += 0.5) {
+          const test = rebuildCutsWithAsym(job, d, bL);
+          let common = 0;
+          for (const c of test.cuts) {
+            if (ref.cuts.some(r => Math.abs(c - r) < tol)) common++;
+          }
+          const s = scoreLayout(common, d, bL, job.totalRest);
+          if (s > bestScore) {
+            bestScore = s; bestDelta = d; bestBesL = bL;
+          }
+        }
       }
-      if (bestDelta !== 0) {
-        job.mrLeft += bestDelta;
-        job.mrRight += bestDelta;
-        job.cuts = job.cuts.map(c => c + bestDelta);
-        job.versatz = bestDelta;
-      }
+      // Apply best
+      const final = rebuildCutsWithAsym(job, bestDelta, bestBesL);
+      job.cuts = final.cuts;
+      job.mrLeft = final.mrLeft;
+      job.mrRight = final.mrRight;
+      job.versatz = bestDelta;
+      job.besaeumungL = bestBesL;
+      job.besaeumungR = job.totalRest - bestBesL;
+      job.asymmetric = Math.abs(bestBesL - job.totalRest/2) > 0.05;
     }
 
     // Union aller Cuts (mit Toleranz für deckungsgleiche Positionen)
@@ -5636,7 +5678,8 @@ footer.footer {
       }
       // Job-Label links
       const versatzTxt = jw.versatz ? ` · Versatz ${jw.versatz > 0 ? '+' : ''}${jw.versatz}mm` : "";
-      svgW(svg, "text", { x: padX + 6, y: ty + trackH - 5, fill: color, "font-size": "10", "font-weight": "700", "font-family": "inherit" }, `A${jw.idx + 1}: MR ${jw.mr}/${jw.haupt} mm · ${jw.cuts.length} Cuts${versatzTxt}`);
+      const asymTxt = jw.asymmetric ? ` · Bes. ${jw.besaeumungL.toFixed(1)}/${jw.besaeumungR.toFixed(1)}mm` : "";
+      svgW(svg, "text", { x: padX + 6, y: ty + trackH - 5, fill: color, "font-size": "10", "font-weight": "700", "font-family": "inherit" }, `A${jw.idx + 1}: MR ${jw.mr}/${jw.haupt} mm · ${jw.cuts.length} Cuts${versatzTxt}${asymTxt}`);
     });
   }
 
@@ -5733,12 +5776,16 @@ footer.footer {
       const master = calcMasterWelle(allJobs);
       if (master && master.ok) {
         const versatzTxt = master.validJobs.filter(j => j.versatz).map(j => `A${j.idx+1}: ${j.versatz>0?"+":""}${j.versatz}mm`).join(", ");
+        const asymJobs = master.validJobs.filter(j => j.asymmetric);
+        const asymTxt = asymJobs.length > 0
+          ? ` · <span style="color:#ffb400;font-weight:700">⚖ Asym-Besäumung: ${asymJobs.map(j => `A${j.idx+1}: ${j.besaeumungL.toFixed(1)}/${j.besaeumungR.toFixed(1)}mm`).join(", ")}</span>`
+          : "";
         // Konflikt-Schwellwert: 0=perfekt, 1-5=ok, 6-15=schwierig, >15=kritisch
         const m = master.mergedCount;
         const konfliktLevel = m === 0 ? "ok" : m <= 5 ? "leicht" : m <= 15 ? "mittel" : "kritisch";
         const konfliktBadge = m === 0 ? "✓" : m <= 5 ? "⚠" : m <= 15 ? "⚠⚠" : "✗";
         const mergeTxt = m > 0 ? ` · <strong style="color:${m<=5?'var(--warn-color)':'var(--danger-color)'}">${konfliktBadge} ${m} Cut-Konflikt${m>1?"e":""} gemerged (${konfliktLevel})</strong>` : "";
-        if (sub) sub.innerHTML = `<strong style="color:var(--accent-primary)">✓ MEHRFACH-BESTÜCKUNG MÖGLICH</strong> · Master-Welle für ${master.validJobs.length} Aufträge · ${master.cuts.length} SE total · innen ${master.innerLen.toFixed(0)} mm${versatzTxt ? " · MR-Versatz: " + versatzTxt : ""}${mergeTxt}`;
+        if (sub) sub.innerHTML = `<strong style="color:var(--accent-primary)">✓ MEHRFACH-BESTÜCKUNG MÖGLICH</strong> · Master-Welle für ${master.validJobs.length} Aufträge · ${master.cuts.length} SE total · innen ${master.innerLen.toFixed(0)} mm${versatzTxt ? " · MR-Versatz: " + versatzTxt : ""}${asymTxt}${mergeTxt}`;
         renderWelleSvg(master);
         renderWelleSequenz(master);
         renderWelleHolliste(master);
