@@ -631,6 +631,146 @@ header.bar {
 .input-row.hetero .input-icon { color: #ffb400; }
 .input-row.hetero:focus-within label { color: #ffb400; }
 
+/* Neben-Slot-Grid: kompakte Zeilen für bis zu 4 verschiedene Neben-Breiten */
+.neben-slot-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+.neben-slot {
+  display: grid;
+  grid-template-columns: 44px 1fr 18px 1fr;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid rgba(255,180,0,0.18);
+  border-radius: var(--r-2);
+  background: linear-gradient(180deg, rgba(255,180,0,0.04), rgba(255,180,0,0.01));
+  transition: all var(--t-fast);
+}
+.neben-slot:focus-within {
+  border-color: #ffb400;
+  box-shadow: 0 0 0 1px rgba(255,180,0,0.5), 0 0 16px rgba(255,180,0,0.15);
+}
+.neben-slot.has-value { border-color: rgba(255,180,0,0.5); background: linear-gradient(180deg, rgba(255,180,0,0.08), rgba(255,180,0,0.02)); }
+.neben-slot-num {
+  width: 44px; height: 36px;
+  display: grid; place-items: center;
+  border-radius: 8px;
+  background: rgba(255,180,0,0.12);
+  border: 1px solid rgba(255,180,0,0.35);
+  color: #ffb400;
+  font-size: 14px; font-weight: 800;
+  letter-spacing: 0.04em;
+  font-family: inherit;
+}
+.neben-slot.has-value .neben-slot-num { background: #ffb400; color: #2a1d00; }
+.neben-slot-pair {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 4px 10px 4px 12px;
+  transition: border-color var(--t-fast);
+}
+.neben-slot-pair:focus-within { border-color: #ffb400; }
+.neben-slot-label {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  min-width: 50px;
+}
+.neben-slot-pair input {
+  flex: 1;
+  background: transparent;
+  border: 0; outline: 0;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  padding: 6px 0;
+  width: 100%;
+  min-width: 0;
+}
+.neben-slot-pair input::placeholder { color: var(--text-secondary); opacity: 0.4; }
+.neben-slot-unit {
+  font-size: 13px; font-weight: 700;
+  color: var(--text-unit);
+  flex-shrink: 0;
+}
+.neben-slot-x {
+  text-align: center;
+  font-size: 18px; font-weight: 700;
+  color: rgba(255,180,0,0.6);
+}
+@media (max-width: 700px) {
+  .neben-slot { grid-template-columns: 36px 1fr; gap: 6px; }
+  .neben-slot-x { display: none; }
+  .neben-slot-pair { grid-column: 2; }
+}
+
+/* ============== Multi-Line-Result Display (Nutzen + Hülsen bei Hetero) ============== */
+.multi-result {
+  display: flex; flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 10px;
+}
+.multi-result-line {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px dashed rgba(255,255,255,0.06);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.multi-result-line:last-child { border-bottom: 0; }
+.multi-result-line .ml-text {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px;
+  font-size: clamp(1.6rem, 2.3vw, 2.1rem);
+  font-weight: 800;
+  line-height: 1.0;
+}
+.multi-result-line.haupt .ml-text { color: var(--accent-primary); text-shadow: 0 0 14px var(--accent-glow-soft); }
+.multi-result-line.neben .ml-text { color: #ffb400; text-shadow: 0 0 12px rgba(255,180,0,0.18); }
+.multi-result-line .ml-num { font-size: 1em; }
+.multi-result-line .ml-unit { font-size: 0.5em; font-weight: 700; opacity: 0.85; letter-spacing: 0.02em; text-transform: uppercase; }
+.multi-result-line .ml-detail { font-size: 0.5em; font-weight: 600; opacity: 0.78; }
+.multi-result-line .ml-tag {
+  font-size: 0.38em; font-weight: 800;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  border: 1px solid currentColor;
+  padding: 3px 7px;
+  border-radius: 4px;
+  opacity: 0.7;
+  align-self: center;
+}
+.multi-result-line .ml-copy {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  align-self: center;
+  transition: all var(--t-fast);
+  opacity: 0.7;
+}
+.multi-result-line.haupt .ml-copy { color: var(--accent-primary); }
+.multi-result-line.neben .ml-copy { color: #ffb400; }
+.multi-result-line .ml-copy:hover { opacity: 1; transform: scale(1.05); }
+.multi-result-line.haupt .ml-copy:hover { background: var(--accent-primary); color: #062b14; box-shadow: 0 0 14px var(--accent-glow); }
+.multi-result-line.neben .ml-copy:hover { background: #ffb400; color: #2a1d00; box-shadow: 0 0 14px rgba(255,180,0,0.4); }
+.multi-result-line .ml-copy:active { transform: scale(0.92); }
+.multi-result-line .ml-copy svg { width: 14px; height: 14px; }
+
 .input-row.invalid {
   border-color: var(--danger-color);
   box-shadow: 0 0 0 2px var(--danger-color);
@@ -1529,43 +1669,85 @@ footer.footer {
           <!-- ============== Heterogene Einteilung (optional) ============== -->
           <button type="button" class="hetero-toggle" id="heteroToggle" aria-expanded="false" aria-controls="heteroFields">
             <span class="hetero-toggle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
-            <span class="hetero-toggle-text">Neben-Schnitte hinzufügen</span>
-            <span class="hetero-toggle-hint">heterogene Einteilung</span>
+            <span class="hetero-toggle-text">Schmalrollen in 2. Breite hinzufügen</span>
+            <span class="hetero-toggle-hint">z. B. max 29 mm + 1 × 60 mm</span>
           </button>
           <div class="hetero-fields" id="heteroFields" aria-hidden="true">
            <div class="inner-wrap">
-            <div class="input-row hetero" data-field="nebenBreite">
-              <span class="input-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
-                  <rect x="10" y="6" width="4" height="12" rx="2"/>
-                  <ellipse cx="12" cy="6.6" rx="1.8" ry="0.8" fill="currentColor" opacity="0.3"/>
-                  <ellipse cx="12" cy="17.4" rx="1.8" ry="0.8" fill="currentColor" opacity="0.3"/>
-                </svg>
-              </span>
-              <label for="nebenBreite">Breite Neben-Rolle</label>
-              <input id="nebenBreite" type="text" inputmode="decimal" pattern="[0-9.,]*" placeholder="z. B. 35" autocomplete="off">
-              <div class="steppers">
-                <button class="stepper" data-step="+1" data-target="nebenBreite" aria-label="Plus 1"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8l3-3 3 3"/></svg></button>
-                <button class="stepper" data-step="-1" data-target="nebenBreite" aria-label="Minus 1"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 4l3 3 3-3"/></svg></button>
+            <div class="neben-slot-grid">
+              <div class="neben-slot" data-slot="1">
+                <div class="neben-slot-num">N1</div>
+                <div class="neben-slot-pair">
+                  <label class="neben-slot-label">Breite</label>
+                  <input id="neben1Breite" type="text" inputmode="decimal" pattern="[0-9.,]*" placeholder="z. B. 60" autocomplete="off">
+                  <span class="neben-slot-unit">mm</span>
+                </div>
+                <div class="neben-slot-x">×</div>
+                <div class="neben-slot-pair">
+                  <label class="neben-slot-label">Anzahl</label>
+                  <input id="neben1Anz" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="1" autocomplete="off">
+                  <span class="neben-slot-unit">Stk</span>
+                </div>
               </div>
-              <div class="input-unit"><span class="input-unit-label">mm</span></div>
+              <div class="neben-slot" data-slot="2">
+                <div class="neben-slot-num">N2</div>
+                <div class="neben-slot-pair">
+                  <label class="neben-slot-label">Breite</label>
+                  <input id="neben2Breite" type="text" inputmode="decimal" pattern="[0-9.,]*" placeholder="—" autocomplete="off">
+                  <span class="neben-slot-unit">mm</span>
+                </div>
+                <div class="neben-slot-x">×</div>
+                <div class="neben-slot-pair">
+                  <label class="neben-slot-label">Anzahl</label>
+                  <input id="neben2Anz" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="—" autocomplete="off">
+                  <span class="neben-slot-unit">Stk</span>
+                </div>
+              </div>
+              <div class="neben-slot" data-slot="3">
+                <div class="neben-slot-num">N3</div>
+                <div class="neben-slot-pair">
+                  <label class="neben-slot-label">Breite</label>
+                  <input id="neben3Breite" type="text" inputmode="decimal" pattern="[0-9.,]*" placeholder="—" autocomplete="off">
+                  <span class="neben-slot-unit">mm</span>
+                </div>
+                <div class="neben-slot-x">×</div>
+                <div class="neben-slot-pair">
+                  <label class="neben-slot-label">Anzahl</label>
+                  <input id="neben3Anz" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="—" autocomplete="off">
+                  <span class="neben-slot-unit">Stk</span>
+                </div>
+              </div>
+              <div class="neben-slot" data-slot="4">
+                <div class="neben-slot-num">N4</div>
+                <div class="neben-slot-pair">
+                  <label class="neben-slot-label">Breite</label>
+                  <input id="neben4Breite" type="text" inputmode="decimal" pattern="[0-9.,]*" placeholder="—" autocomplete="off">
+                  <span class="neben-slot-unit">mm</span>
+                </div>
+                <div class="neben-slot-x">×</div>
+                <div class="neben-slot-pair">
+                  <label class="neben-slot-label">Anzahl</label>
+                  <input id="neben4Anz" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="—" autocomplete="off">
+                  <span class="neben-slot-unit">Stk</span>
+                </div>
+              </div>
             </div>
-            <div class="input-row hetero" data-field="nebenAnz">
+            <div class="input-row hetero" data-field="besaeumungL">
               <span class="input-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="6" width="3" height="12" rx="1"/>
-                  <rect x="9" y="6" width="3" height="12" rx="1"/>
-                  <rect x="15" y="6" width="3" height="12" rx="1"/>
-                  <text x="20" y="14" font-size="9" fill="currentColor" stroke="none">×</text>
+                  <rect x="3" y="6" width="4" height="12" rx="1" fill="currentColor" opacity="0.4"/>
+                  <line x1="9" y1="12" x2="20" y2="12"/>
+                  <path d="M9 12 L11 10 M9 12 L11 14"/>
+                  <path d="M20 12 L18 10 M20 12 L18 14"/>
                 </svg>
               </span>
-              <label for="nebenAnz">Anzahl Neben-Rollen</label>
-              <input id="nebenAnz" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="z. B. 2" autocomplete="off">
+              <label for="besaeumungL">Besäumung links <span class="label-hint">leer = symmetrisch</span></label>
+              <input id="besaeumungL" type="text" inputmode="decimal" pattern="[0-9.,]*" placeholder="auto = symmetrisch" autocomplete="off">
               <div class="steppers">
-                <button class="stepper" data-step="+1" data-target="nebenAnz" aria-label="Plus 1"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8l3-3 3 3"/></svg></button>
-                <button class="stepper" data-step="-1" data-target="nebenAnz" aria-label="Minus 1"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 4l3 3 3-3"/></svg></button>
+                <button class="stepper" data-step="+1" data-target="besaeumungL" aria-label="Plus 1"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8l3-3 3 3"/></svg></button>
+                <button class="stepper" data-step="-1" data-target="besaeumungL" aria-label="Minus 1"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 4l3 3 3-3"/></svg></button>
               </div>
-              <div class="input-unit"><span class="input-unit-label">×</span></div>
+              <div class="input-unit"><span class="input-unit-label">mm</span></div>
             </div>
            </div>
           </div>
@@ -1672,10 +1854,13 @@ footer.footer {
           </div>
 
           <div class="result-card">
-            <button class="copy-btn" data-copy-target="rNutzen" data-copy-label="Nutzen NTZ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <button class="copy-btn" data-copy-target="rNutzen" data-copy-label="Nutzen NTZ" id="nutzenClassicCopy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
             <span class="result-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="9" width="18" height="6" rx="1.5"/><line x1="8"  y1="9" x2="8"  y2="15"/><line x1="13" y1="9" x2="13" y2="15"/><line x1="18" y1="9" x2="18" y2="15"/></svg></span>
             <div class="result-label">Nutzen pro MR</div>
-            <div class="result-value"><span id="rNutzen">—</span><span class="result-unit">NTZ</span></div>
+            <!-- Klassisch (kein Hetero): EIN Big-Display -->
+            <div class="result-value" id="nutzenClassic"><span id="rNutzen">—</span><span class="result-unit">NTZ</span></div>
+            <!-- Hetero: Multi-Line mit pro-Zeile Schnellkopierer -->
+            <div class="multi-result" id="nutzenHetero" style="display:none"></div>
             <div class="result-sub" id="rNutzenSub">⌊ MR-Breite ÷ SR-Breite ⌋</div>
           </div>
 
@@ -1704,10 +1889,13 @@ footer.footer {
           </div>
 
           <div class="result-card" data-domain="brodbeck">
-            <button class="copy-btn" data-copy-target="rHuelsen" data-copy-label="Hülsen-Stk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <button class="copy-btn" data-copy-target="rHuelsen" data-copy-label="Hülsen-Stk" id="huelsenCopyBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
             <span class="result-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="8" ry="2.5"/><path d="M4 6 v12 a8 2.5 0 0 0 16 0 v-12"/><path d="M4 12 a8 2.5 0 0 0 16 0" opacity="0.4"/></svg></span>
             <div class="result-label">Hülsenbedarf <span style="opacity:0.55;font-weight:500;">(Brodbeck)</span></div>
-            <div class="result-value"><span id="rHuelsen">—</span><span class="result-unit">Stk</span></div>
+            <!-- Klassisch (kein Hetero): EIN Big-Display -->
+            <div class="result-value" id="huelsenClassic"><span id="rHuelsen">—</span><span class="result-unit">Stk</span></div>
+            <!-- Hetero: dynamische Multi-Line mit pro-Zeile Schnellkopierer -->
+            <div class="multi-result" id="huelsenHetero" style="display:none"></div>
             <div class="result-sub" id="rHuelsenSub">— Sätze × — NTZ á — mm</div>
           </div>
 
@@ -1797,8 +1985,19 @@ footer.footer {
     schmal:       document.getElementById("schmal"),
     lfm:          document.getElementById("lfm"),
     mutter:       document.getElementById("mutter"),
-    nebenBreite:  document.getElementById("nebenBreite"),
-    nebenAnz:     document.getElementById("nebenAnz"),
+    neben1Breite: document.getElementById("neben1Breite"),
+    neben1Anz:    document.getElementById("neben1Anz"),
+    neben2Breite: document.getElementById("neben2Breite"),
+    neben2Anz:    document.getElementById("neben2Anz"),
+    neben3Breite: document.getElementById("neben3Breite"),
+    neben3Anz:    document.getElementById("neben3Anz"),
+    neben4Breite: document.getElementById("neben4Breite"),
+    neben4Anz:    document.getElementById("neben4Anz"),
+    besaeumungL:  document.getElementById("besaeumungL"),
+    nutzenClassic: document.getElementById("nutzenClassic"),
+    nutzenHetero:  document.getElementById("nutzenHetero"),
+    huelsenClassic: document.getElementById("huelsenClassic"),
+    huelsenHetero:  document.getElementById("huelsenHetero"),
     speed:        document.getElementById("speed"),
     ruestBase:    document.getElementById("ruestBase"),
     ruestPerSatz: document.getElementById("ruestPerSatz"),
@@ -2001,26 +2200,40 @@ footer.footer {
       return;
     }
 
-    // ============== Heterogene Einteilung (optional) ==============
-    // Wenn Toggle aktiv UND Neben-Werte gesetzt: Mutterrolle-Aufteilung wird:
-    //   N_haupt × Haupt-Breite + n_neben × Neben-Breite + Rest
-    //   N_haupt = floor((MR − n_neben × neben) / haupt)
-    // Sonst (Toggle aus oder leer): klassisch nur Haupt.
+    // ============== Heterogene Einteilung (optional, bis zu 4 Neben-Breiten) ==============
+    // N_haupt × Haupt-Breite + Σ (anz_i × breite_i) + Rest
+    // N_haupt = floor((MR − Σ Neben-Space) / haupt)
     const heteroOn = els.heteroToggle && els.heteroToggle.getAttribute("aria-expanded") === "true";
-    const nebenBreite = heteroOn ? num(els.nebenBreite) : NaN;
-    const nebenAnzRaw = heteroOn ? num(els.nebenAnz) : NaN;
-    const hasNeben = heteroOn && isFinite(nebenBreite) && nebenBreite > 0
-                  && isFinite(nebenAnzRaw) && nebenAnzRaw >= 1;
-    const nebenAnz = hasNeben ? Math.floor(nebenAnzRaw) : 0;
-    const nebenSpace = hasNeben ? nebenAnz * nebenBreite : 0;
+    const nebenSlots = [];
+    if (heteroOn) {
+      for (let i = 1; i <= 4; i++) {
+        const b = num(els['neben' + i + 'Breite']);
+        const a = num(els['neben' + i + 'Anz']);
+        if (isFinite(b) && b > 0 && isFinite(a) && a >= 1) {
+          nebenSlots.push({ slotIdx: i, breite: b, anz: Math.floor(a) });
+        }
+      }
+    }
+    const hasNeben = nebenSlots.length > 0;
+    const nebenSpace = nebenSlots.reduce((s, x) => s + x.anz * x.breite, 0);
+    const nebenAnzTotal = nebenSlots.reduce((s, x) => s + x.anz, 0);
 
-    // Plausibilität: passt Neben überhaupt?
+    // Slot-Visual-State (border, badge active)
+    for (let i = 1; i <= 4; i++) {
+      const slotEl = document.querySelector(`.neben-slot[data-slot="${i}"]`);
+      if (slotEl) {
+        const active = nebenSlots.find(s => s.slotIdx === i);
+        slotEl.classList.toggle("has-value", !!active);
+      }
+    }
+
+    // Plausibilität
     if (hasNeben && nebenSpace >= mutter) {
       renderEmpty();
       renderWarnings(inputs, null);
       els.statusBadge.textContent = "Neben-Schnitte zu breit";
       els.statusBadge.style.color = "var(--danger-color)";
-      setSubtitle(`${nebenAnz} × ${nf0.format(nebenBreite)} mm = ${nf0.format(nebenSpace)} mm passt nicht in Mutterrolle ${nf0.format(mutter)} mm`);
+      setSubtitle(`Σ Neben ${nf0.format(nebenSpace)} mm passt nicht in Mutterrolle ${nf0.format(mutter)} mm`);
       return;
     }
 
@@ -2044,11 +2257,13 @@ footer.footer {
     const mrMengeLFM  = Math.ceil(gesamtLFM / nutzen);
 
     // Hülsenbedarf (Brodbeck): pro Satz ein Bund Hülsen, alle = NTZ Stk × (volle + (1 wenn restsatz > 0))
-    // Bei heterogener Einteilung produziert ein Satz auch Neben-Schmalrollen → eigene Hülsen á Neben-Breite.
+    // Bei heterogener Einteilung produziert ein Satz auch Neben-Schmalrollen → eigene Hülsen-Cuts pro Breite.
     const totalSaetze = volleSaetze + (restsatzLFM > 0.0001 ? 1 : 0);
     const huelsenHaupt = totalSaetze * nutzen;
-    const huelsenNeben = hasNeben ? totalSaetze * nebenAnz : 0;
-    const huelsen = huelsenHaupt + huelsenNeben;
+    // Per-Slot Hülsen
+    nebenSlots.forEach(s => { s.huelsen = totalSaetze * s.anz; });
+    const huelsenNebenTotal = nebenSlots.reduce((s, x) => s + x.huelsen, 0);
+    const huelsen = huelsenHaupt + huelsenNebenTotal;
 
     // Laufzeit (optional, nur wenn speed > 0)
     const speed = num(els.speed); // m/min
@@ -2076,11 +2291,16 @@ footer.footer {
       volleSaetze, restsatzLFM, mrMengeLFM,
       saetzeRaw,
       totalSaetze, huelsen,
-      hasNeben, nebenBreite: hasNeben ? nebenBreite : null, nebenAnz, nebenSpace,
-      huelsenHaupt, huelsenNeben,
-      // Neben-Output pro Satz (LFM, gleiche Maschinen-Geschwindigkeit wie Haupt)
-      nebenLFMperSatz: hasNeben ? nebenAnz * lfm : 0,
-      nebenLFMtotal:   hasNeben ? nebenAnz * lfm * totalSaetze : 0,
+      hasNeben, nebenSlots, nebenAnzTotal, nebenSpace,
+      huelsenHaupt, huelsenNebenTotal,
+      // Asymmetrische Besäumung-Logik (nur bei Hetero relevant — Default symmetrisch)
+      ...(function(){
+        if (!hasNeben) return { restL: restMM/2, restR: restMM/2, asymmetric: false };
+        const opL = num(els.besaeumungL);
+        if (!isFinite(opL) || opL < 0) return { restL: restMM/2, restR: restMM/2, asymmetric: false };
+        const clamped = Math.min(Math.max(0, opL), restMM);
+        return { restL: clamped, restR: restMM - clamped, asymmetric: Math.abs(clamped - restMM/2) > 0.05 };
+      })(),
       speed: hasSpeed ? speed : null,
       ruestBase:    hasBase    ? ruestBase    : null,
       ruestPerSatz: hasPerSatz ? ruestPerSatz : null,
@@ -2104,7 +2324,8 @@ footer.footer {
     els.statusBadge.textContent = "Live · aktualisiert";
     els.statusBadge.style.color = "var(--accent-primary)";
     if (hasNeben) {
-      setSubtitle(`MR ${nf0.format(mutter)} mm → ${nutzen}× ${nf0.format(schmal)} mm Haupt + ${nebenAnz}× ${nf0.format(nebenBreite)} mm Neben · Rest ${nf1.format(restMM)} mm`);
+      const slotTxt = nebenSlots.map(s => `${s.anz}× ${nf0.format(s.breite)} mm`).join(" + ");
+      setSubtitle(`MR ${nf0.format(mutter)} mm → ${nutzen}× ${nf0.format(schmal)} mm Haupt + ${slotTxt} Neben · Rest ${nf1.format(restMM)} mm`);
     } else {
       setSubtitle(`MR ${nf0.format(mutter)} mm → ${nutzen} × ${nf0.format(schmal)} mm Schmalrolle · Rest ${nf1.format(restMM)} mm`);
     }
@@ -2175,6 +2396,20 @@ footer.footer {
     return { val: `${h}:${String(m).padStart(2,"0")}`, unit: "h", sub: `≈ ${nf0.format(min)} min` };
   }
 
+  // Helper: rendert eine Multi-Result-Zeile mit Schnellkopier-Button
+  function renderResultLine(tone, value, unit, detail, tag) {
+    const copySvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    return `<div class="multi-result-line ${tone}">` +
+             `<div class="ml-text">` +
+               `<span class="ml-num">${nf0.format(value)}</span>` +
+               `<span class="ml-unit">${unit}</span>` +
+               `<span class="ml-detail">${detail}</span>` +
+               `<span class="ml-tag">${tag}</span>` +
+             `</div>` +
+             `<button class="ml-copy" type="button" tabindex="-1" data-copy-value="${value}" data-copy-label="${tag} (${unit} ${detail})" aria-label="Kopieren ${tag}">${copySvg}</button>` +
+           `</div>`;
+  }
+
   function render(o) {
     animateNumber(els.rHero,    o.mrMengeLFM);
     animateNumber(els.rGesamt,  o.gesamtLFM);
@@ -2186,10 +2421,28 @@ footer.footer {
 
     els.rHeroFormula.textContent = `${nf0.format(o.gesamtLFM)} ÷ ${o.nutzen} = ${nf0.format(o.mrMengeLFM)}`;
     els.rGesamtSub.textContent   = `${nf0.format(o.flaeche)} qm ÷ ${nf2.format(o.schmal/1000)} m`;
+
+    // ============== Nutzen-Card: klassisch vs. Hetero ==============
     if (o.hasNeben) {
-      els.rNutzenSub.innerHTML = `<span style="color:var(--accent-primary);font-weight:700">${o.nutzen}× Haupt</span> + <span style="color:#ffb400;font-weight:700">${o.nebenAnz}× Neben</span> á ${nf0.format(o.nebenBreite)} mm · Rest ${nf1.format(o.restMM)} mm`;
+      els.nutzenClassic.style.display = "none";
+      els.nutzenHetero.style.display = "";
+      // Build multi-line: Haupt + N Neben-Slots, jede Zeile mit eigenem Copy-Button
+      let html = renderResultLine("haupt", o.nutzen, "× Haupt", `á ${nf0.format(o.schmal)} mm`, "HAUPT");
+      o.nebenSlots.forEach(s => {
+        html += renderResultLine("neben", s.anz, `× Neben`, `á ${nf0.format(s.breite)} mm`, `N${s.slotIdx}`);
+      });
+      els.nutzenHetero.innerHTML = html;
+      els.rNutzenSub.textContent = `Σ ${o.nutzen + o.nebenAnzTotal} Schmalrollen pro MR · Rest ${nf1.format(o.restMM)} mm`;
+      // Copy-Btn der Card auf "Haupt-Nutzen" lenken (Default beim Card-Copy)
+      const copyBtn = document.getElementById("nutzenClassicCopy");
+      if (copyBtn) copyBtn.style.display = "none";
     } else {
+      els.nutzenClassic.style.display = "";
+      els.nutzenHetero.style.display = "none";
+      els.nutzenHetero.innerHTML = "";
       els.rNutzenSub.textContent = `⌊ ${nf0.format(o.mutter)} ÷ ${nf0.format(o.schmal)} ⌋ = ${o.nutzen}`;
+      const copyBtn = document.getElementById("nutzenClassicCopy");
+      if (copyBtn) copyBtn.style.display = "";
     }
 
     // Rest Besäumung sub: per-side breakdown as differentiated pills
@@ -2197,18 +2450,19 @@ footer.footer {
       els.rRestSub.innerHTML =
         `<div class="side-pills"><span class="side-pill" data-tone="good"><span class="side-tag">✓</span>Perfekt · keine Besäumung</span></div>`;
     } else {
-      const halfRest = o.restMM / 2;
-      const tone = o.restMM < 6 ? "danger" : "";
-      const halfFmt = nf1.format(halfRest);
+      // Asymmetrische Besäumung bei Hetero möglich — einzeln prüfen
+      const toneL = (o.restL > 0 && o.restL < 6) ? "danger" : "";
+      const toneR = (o.restR > 0 && o.restR < 6) ? "danger" : "";
+      const asymTag = o.asymmetric ? `<div style="font-size:11px;color:#ffb400;margin-top:6px;font-weight:700;letter-spacing:0.04em">⚖ ASYMMETRISCH</div>` : "";
       els.rRestSub.innerHTML =
         `<div class="side-pills">` +
-          `<span class="side-pill"${tone ? ` data-tone="${tone}"` : ""}>` +
-            `<span class="side-tag">L</span>${halfFmt} mm` +
+          `<span class="side-pill"${toneL ? ` data-tone="${toneL}"` : ""}>` +
+            `<span class="side-tag">L</span>${nf1.format(o.restL)} mm` +
           `</span>` +
-          `<span class="side-pill"${tone ? ` data-tone="${tone}"` : ""}>` +
-            `<span class="side-tag">R</span>${halfFmt} mm` +
+          `<span class="side-pill"${toneR ? ` data-tone="${toneR}"` : ""}>` +
+            `<span class="side-tag">R</span>${nf1.format(o.restR)} mm` +
           `</span>` +
-        `</div>`;
+        `</div>` + asymTag;
     }
 
     // Sätze-Aufschlüsselung: volle + Restsatz (oder nur volle wenn rest = 0)
@@ -2218,17 +2472,26 @@ footer.footer {
       els.rRestsatzSub.textContent = `${o.volleSaetze} volle Sätze · kein Restsatz`;
     }
 
-    if (els.rHuelsenSub) {
-      if (o.hasNeben) {
-        els.rHuelsenSub.innerHTML =
-          `<div style="line-height:1.6">` +
-            `<div><span style="color:var(--accent-primary);font-weight:700">${nf0.format(o.huelsenHaupt)} Stk</span> á <strong>${nf0.format(o.schmal)} mm</strong> · Haupt</div>` +
-            `<div><span style="color:#ffb400;font-weight:700">+ ${nf0.format(o.huelsenNeben)} Stk</span> á <strong>${nf0.format(o.nebenBreite)} mm</strong> · Neben</div>` +
-            `<div style="opacity:0.7;font-size:13px;margin-top:2px">${o.totalSaetze} Sätze × (${o.nutzen} + ${o.nebenAnz}) NTZ — 2 Brodbeck-Cuts nötig</div>` +
-          `</div>`;
-      } else {
-        els.rHuelsenSub.textContent = `${o.totalSaetze} Sätze × ${o.nutzen} NTZ · á ${nf0.format(o.schmal)} mm`;
-      }
+    // ============== Hülsen-Card: klassisch vs. Hetero ==============
+    if (o.hasNeben) {
+      els.huelsenClassic.style.display = "none";
+      els.huelsenHetero.style.display = "";
+      let html = renderResultLine("haupt", o.huelsenHaupt, "Stk", `á ${nf0.format(o.schmal)} mm`, "HAUPT");
+      o.nebenSlots.forEach(s => {
+        html += renderResultLine("neben", s.huelsen, "Stk", `á ${nf0.format(s.breite)} mm`, `N${s.slotIdx}`);
+      });
+      els.huelsenHetero.innerHTML = html;
+      const cuts = 1 + o.nebenSlots.length;
+      els.rHuelsenSub.textContent = `${o.totalSaetze} Sätze · ${cuts} Brodbeck-Cuts nötig (je Bestellposition 1 Cut)`;
+      const copyBtn = document.getElementById("huelsenCopyBtn");
+      if (copyBtn) copyBtn.style.display = "none";
+    } else if (els.rHuelsenSub) {
+      els.huelsenClassic.style.display = "";
+      els.huelsenHetero.style.display = "none";
+      els.huelsenHetero.innerHTML = "";
+      els.rHuelsenSub.textContent = `${o.totalSaetze} Sätze × ${o.nutzen} NTZ · á ${nf0.format(o.schmal)} mm`;
+      const copyBtn = document.getElementById("huelsenCopyBtn");
+      if (copyBtn) copyBtn.style.display = "";
     }
 
     // Laufzeit
@@ -2508,13 +2771,14 @@ footer.footer {
       return;
     }
 
-    const { mutter, schmal, nutzen, restMM, hasNeben, nebenBreite, nebenAnz } = o;
+    const { mutter, schmal, nutzen, restMM, hasNeben, nebenSlots: slots, restL, restR, asymmetric } = o;
     const pxPerMM = innerW / mutter;
     const segW = schmal * pxPerMM;
-    const nebenSegW = hasNeben ? nebenBreite * pxPerMM : 0;
-    const restPx = Math.max(0, restMM * pxPerMM);
     const restWarn = restMM < 6 && restMM > 0.0001;
-    const halfRestPx = restPx / 2;
+    const restLPx = Math.max(0, restL * pxPerMM);
+    const restRPx = Math.max(0, restR * pxPerMM);
+    const restWarnL = restL > 0 && restL < 6;
+    const restWarnR = restR > 0 && restR < 6;
 
     // === TOP: Mutterrolle dimension line with arrows + width label ===
     const dimColor = "rgba(240,240,240,0.55)";
@@ -2554,34 +2818,33 @@ footer.footer {
     }));
 
     // === Left besäumung ===
-    if (halfRestPx > 0) {
+    if (restLPx > 0) {
       const lr = svg("rect", {
-        x: padX, y: barTop, width: halfRestPx, height: barH, rx: 4,
+        x: padX, y: barTop, width: restLPx, height: barH, rx: 4,
         fill: "url(#restPattern)",
-        stroke: restWarn ? "rgba(255,77,109,0.7)" : "rgba(255,107,53,0.5)",
+        stroke: restWarnL ? "rgba(255,77,109,0.7)" : "rgba(255,107,53,0.5)",
         "stroke-width": "1", opacity: "0"
       });
       g.appendChild(lr);
       animateAttr(lr, "opacity", 0, 1, 320, 0);
 
-      // mini-label
-      if (halfRestPx > 26) {
+      if (restLPx > 26) {
         const lt = svg("text", {
-          x: padX + halfRestPx/2, y: barTop + barH/2 + 4,
+          x: padX + restLPx/2, y: barTop + barH/2 + 4,
           "text-anchor": "middle",
-          fill: restWarn ? "var(--danger-color)" : "var(--warn-color)",
+          fill: restWarnL ? "var(--danger-color)" : "var(--warn-color)",
           "font-size": "10", "font-weight": "700", "font-family": "inherit"
         });
-        lt.textContent = nf1.format(restMM/2);
+        lt.textContent = nf1.format(restL);
         g.appendChild(lt);
       }
     }
 
-    let cursor = padX + halfRestPx;
+    let cursor = padX + restLPx;
 
     // === Knife / cut markers above bar ===
     for (let i = 0; i <= nutzen; i++) {
-      const x = padX + halfRestPx + (i * segW);
+      const x = padX + restLPx + (i * segW);
       // tiny triangle
       const tri = svg("path", {
         d: `M${x} ${knifeY+8} L${x-3} ${knifeY} L${x+3} ${knifeY} Z`,
@@ -2669,127 +2932,110 @@ footer.footer {
       cursor += segW;
     }
 
-    // === Neben-Blöcke (heterogene Einteilung) ===
-    if (hasNeben && nebenAnz > 0) {
-      // Trenner-Linie zwischen Haupt-Block und Neben-Block (subtil)
+    // === Neben-Blöcke (heterogene Einteilung) — bis zu 4 verschiedene Breiten ===
+    const nebenGroupRanges = [];
+    if (hasNeben && slots.length > 0) {
+      // Trenner-Linie zwischen Haupt-Block und Neben-Block
       g.appendChild(svg("line", {
         x1: cursor, y1: barTop - 4, x2: cursor, y2: barBottom + 4,
         stroke: "rgba(255,180,0,0.4)", "stroke-width": "1", "stroke-dasharray": "4 3"
       }));
-      for (let j = 0; j < nebenAnz; j++) {
-        const xPos = cursor;
-        const segPad = nebenSegW > 12 ? 1 : 0.5;
-        // body
-        const rect = svg("rect", {
-          x: xPos + segPad, y: barTop,
-          width: Math.max(0, nebenSegW - segPad*2), height: barH,
-          rx: nebenSegW > 16 ? 4 : 2,
-          fill: "url(#gradNeben)",
-          opacity: "0",
-          transform: "translate(0, 6)"
-        });
-        g.appendChild(rect);
-        const delay = Math.min(18 * (nutzen + j), 700);
-        animateAttr(rect, "opacity", 0, 1, 260, delay);
-        animateTransform(rect, "translate(0, 6)", "translate(0, 0)", 320, delay);
-        // top edge highlight (white)
-        const edge = svg("rect", {
-          x: xPos + segPad, y: barTop,
-          width: Math.max(0, nebenSegW - segPad*2),
-          height: Math.max(2, barH * 0.20),
-          rx: nebenSegW > 16 ? 4 : 2,
-          fill: "url(#gradEdge)",
-          opacity: "0"
-        });
-        g.appendChild(edge);
-        animateAttr(edge, "opacity", 0, 0.7, 260, delay);
-        // segment label "N1, N2 ..." centered
-        if (nebenSegW > 26) {
-          const num = svg("text", {
-            x: xPos + nebenSegW/2, y: barTop + barH/2 - 4,
-            "text-anchor": "middle",
-            fill: "rgba(60,30,0,0.9)",
-            "font-size": nebenSegW > 50 ? "20" : nebenSegW > 36 ? "16" : "12",
-            "font-weight": "800",
-            "font-family": "inherit",
+      let segIdx = 0;
+      slots.forEach(slot => {
+        const groupX1 = cursor;
+        const slotSegW = slot.breite * pxPerMM;
+        for (let j = 0; j < slot.anz; j++) {
+          const xPos = cursor;
+          const segPad = slotSegW > 12 ? 1 : 0.5;
+          const rect = svg("rect", {
+            x: xPos + segPad, y: barTop,
+            width: Math.max(0, slotSegW - segPad*2), height: barH,
+            rx: slotSegW > 16 ? 4 : 2,
+            fill: "url(#gradNeben)",
+            opacity: "0",
+            transform: "translate(0, 6)"
+          });
+          g.appendChild(rect);
+          const delay = Math.min(18 * (nutzen + segIdx), 700);
+          animateAttr(rect, "opacity", 0, 1, 260, delay);
+          animateTransform(rect, "translate(0, 6)", "translate(0, 0)", 320, delay);
+          const edge = svg("rect", {
+            x: xPos + segPad, y: barTop,
+            width: Math.max(0, slotSegW - segPad*2),
+            height: Math.max(2, barH * 0.20),
+            rx: slotSegW > 16 ? 4 : 2,
+            fill: "url(#gradEdge)",
             opacity: "0"
           });
-          num.textContent = `N${j + 1}`;
-          g.appendChild(num);
-          animateAttr(num, "opacity", 0, 1, 220, delay + 80);
-          if (nebenSegW > 46) {
-            const sub = svg("text", {
-              x: xPos + nebenSegW/2, y: barTop + barH/2 + 14,
+          g.appendChild(edge);
+          animateAttr(edge, "opacity", 0, 0.7, 260, delay);
+          if (slotSegW > 26) {
+            const num = svg("text", {
+              x: xPos + slotSegW/2, y: barTop + barH/2 - 4,
               "text-anchor": "middle",
-              fill: "rgba(60,30,0,0.6)",
-              "font-size": "9", "font-weight": "700",
+              fill: "rgba(60,30,0,0.9)",
+              "font-size": slotSegW > 50 ? "20" : slotSegW > 36 ? "16" : "12",
+              "font-weight": "800",
               "font-family": "inherit",
-              "letter-spacing": "0.1em",
               opacity: "0"
             });
-            sub.textContent = "NEBEN";
-            g.appendChild(sub);
-            animateAttr(sub, "opacity", 0, 1, 220, delay + 100);
+            num.textContent = `N${slot.slotIdx}`;
+            g.appendChild(num);
+            animateAttr(num, "opacity", 0, 1, 220, delay + 80);
           }
-        }
-        // Knife marker oberhalb (gelblich)
-        const tri = svg("path", {
-          d: `M${xPos + nebenSegW} ${knifeY+8} L${xPos + nebenSegW - 3} ${knifeY} L${xPos + nebenSegW + 3} ${knifeY} Z`,
-          fill: "#ffb400",
-          opacity: "0"
-        });
-        g.appendChild(tri);
-        animateAttr(tri, "opacity", 0, 0.85, 200, delay);
-        cursor += nebenSegW;
-      }
-      // Width-Label unter Neben-Block (zentriert)
-      const nebenBlockX1 = padX + halfRestPx + (nutzen * segW);
-      const nebenBlockX2 = cursor;
-      const nebenBlockMid = (nebenBlockX1 + nebenBlockX2) / 2;
-      if (nebenSegW >= 36) {
-        // Pro-Block-Label
-        for (let j = 0; j < nebenAnz; j++) {
-          const lbl = svg("text", {
-            x: nebenBlockX1 + j * nebenSegW + nebenSegW/2, y: widthLabelY,
-            "text-anchor": "middle",
+          // Knife marker
+          const tri = svg("path", {
+            d: `M${xPos + slotSegW} ${knifeY+8} L${xPos + slotSegW - 3} ${knifeY} L${xPos + slotSegW + 3} ${knifeY} Z`,
             fill: "#ffb400",
-            "font-size": "11", "font-weight": "600", "font-family": "inherit"
+            opacity: "0"
           });
-          lbl.textContent = nf0.format(nebenBreite);
-          g.appendChild(lbl);
+          g.appendChild(tri);
+          animateAttr(tri, "opacity", 0, 0.85, 200, delay);
+          cursor += slotSegW;
+          segIdx++;
         }
-      } else if (nebenAnz <= 4) {
-        // Zentrales Sammel-Label
+        nebenGroupRanges.push({ slot, x1: groupX1, x2: cursor });
+        // Trenner-Linie zwischen verschiedenen Slot-Gruppen
+        if (slot !== slots[slots.length - 1]) {
+          g.appendChild(svg("line", {
+            x1: cursor, y1: barTop - 2, x2: cursor, y2: barBottom + 2,
+            stroke: "rgba(255,180,0,0.3)", "stroke-width": "0.8", "stroke-dasharray": "3 3"
+          }));
+        }
+      });
+      // Width-Labels pro Gruppe (zentral)
+      nebenGroupRanges.forEach(g_ => {
+        const mid = (g_.x1 + g_.x2) / 2;
         const lbl = svg("text", {
-          x: nebenBlockMid, y: widthLabelY,
+          x: mid, y: widthLabelY,
           "text-anchor": "middle",
           fill: "#ffb400",
           "font-size": "11", "font-weight": "700", "font-family": "inherit"
         });
-        lbl.textContent = `${nebenAnz}× ${nf0.format(nebenBreite)}`;
+        lbl.textContent = `${g_.slot.anz}× ${nf0.format(g_.slot.breite)}`;
         g.appendChild(lbl);
-      }
+      });
     }
 
     // === Right besäumung ===
-    if (halfRestPx > 0) {
+    if (restRPx > 0) {
       const rr = svg("rect", {
-        x: cursor, y: barTop, width: halfRestPx, height: barH, rx: 4,
+        x: cursor, y: barTop, width: restRPx, height: barH, rx: 4,
         fill: "url(#restPattern)",
-        stroke: restWarn ? "rgba(255,77,109,0.7)" : "rgba(255,107,53,0.5)",
+        stroke: restWarnR ? "rgba(255,77,109,0.7)" : "rgba(255,107,53,0.5)",
         "stroke-width": "1", opacity: "0"
       });
       g.appendChild(rr);
       animateAttr(rr, "opacity", 0, 1, 320, 0);
 
-      if (halfRestPx > 26) {
+      if (restRPx > 26) {
         const rt = svg("text", {
-          x: cursor + halfRestPx/2, y: barTop + barH/2 + 4,
+          x: cursor + restRPx/2, y: barTop + barH/2 + 4,
           "text-anchor": "middle",
-          fill: restWarn ? "var(--danger-color)" : "var(--warn-color)",
+          fill: restWarnR ? "var(--danger-color)" : "var(--warn-color)",
           "font-size": "10", "font-weight": "700", "font-family": "inherit"
         });
-        rt.textContent = nf1.format(restMM/2);
+        rt.textContent = nf1.format(restR);
         g.appendChild(rt);
       }
     }
@@ -2833,34 +3079,39 @@ footer.footer {
     // Klassisch: Beschnitt-L | NTZ-Block | Beschnitt-R
     // Heterogen: Beschnitt-L | NTZ-Block | NEBEN-Block | Beschnitt-R
     const dimColorBesaeumung = restWarn ? "var(--danger-color)" : "var(--warn-color)";
+    const dimColorBesaeumungL = restWarnL ? "var(--danger-color)" : "var(--warn-color)";
+    const dimColorBesaeumungR = restWarnR ? "var(--danger-color)" : "var(--warn-color)";
     const dimColorNutzen = "var(--accent-primary)";
     const dimColorNeben = "#ffb400";
-    const ntzBlockX1 = padX + halfRestPx;
-    const ntzBlockX2 = padX + halfRestPx + (nutzen * segW);
-    const nebenBlockX1 = ntzBlockX2;
-    const nebenBlockX2 = nebenBlockX1 + (hasNeben ? nebenAnz * nebenSegW : 0);
-    const restRX1 = hasNeben ? nebenBlockX2 : ntzBlockX2;
+    const ntzBlockX1 = padX + restLPx;
+    const ntzBlockX2 = padX + restLPx + (nutzen * segW);
+    const restRX1 = hasNeben && nebenGroupRanges.length > 0
+      ? nebenGroupRanges[nebenGroupRanges.length - 1].x2
+      : ntzBlockX2;
 
-    if (halfRestPx > 0) {
+    if (restLPx > 0) {
       dimCallout(g, padX, ntzBlockX1, dimRowY,
-        `${nf1.format(restMM/2)} mm`,
-        dimColorBesaeumung,
+        `${nf1.format(restL)} mm`,
+        dimColorBesaeumungL,
         { fontSize: 12, labelBg: "var(--bg-base)" });
     }
     dimCallout(g, ntzBlockX1, ntzBlockX2, dimRowY,
       `${nutzen} × ${nf0.format(schmal)} = ${nf0.format(nutzen * schmal)} mm`,
       dimColorNutzen,
       { fontSize: 13, labelBg: "var(--bg-base)" });
-    if (hasNeben && nebenBlockX2 > nebenBlockX1) {
-      dimCallout(g, nebenBlockX1, nebenBlockX2, dimRowY,
-        `${nebenAnz} × ${nf0.format(nebenBreite)} = ${nf0.format(nebenAnz * nebenBreite)} mm`,
-        dimColorNeben,
-        { fontSize: 12, labelBg: "var(--bg-base)" });
-    }
-    if (halfRestPx > 0) {
+    // Pro Neben-Gruppe eine eigene Dimension-Callout
+    nebenGroupRanges.forEach(grp => {
+      if (grp.x2 > grp.x1) {
+        dimCallout(g, grp.x1, grp.x2, dimRowY,
+          `${grp.slot.anz} × ${nf0.format(grp.slot.breite)} = ${nf0.format(grp.slot.anz * grp.slot.breite)} mm`,
+          dimColorNeben,
+          { fontSize: 11, labelBg: "var(--bg-base)" });
+      }
+    });
+    if (restRPx > 0) {
       dimCallout(g, restRX1, W - padX, dimRowY,
-        `${nf1.format(restMM/2)} mm`,
-        dimColorBesaeumung,
+        `${nf1.format(restR)} mm`,
+        dimColorBesaeumungR,
         { fontSize: 12, labelBg: "var(--bg-base)" });
     }
 
@@ -2991,6 +3242,18 @@ footer.footer {
       return ok;
     }
   }
+
+  // Multi-Result-Line Copy-Buttons (delegated, direkter Wert)
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-copy-value]");
+    if (!btn) return;
+    const value = btn.dataset.copyValue;
+    const label = btn.dataset.copyLabel || "Wert";
+    if (value === undefined || value === "") return;
+    const ok = await copyText(value);
+    if (ok) toast(`${label}: ${value} kopiert`);
+    else toast("Kopieren fehlgeschlagen", "err");
+  });
 
   // result-card + hero copy buttons (delegated)
   document.addEventListener("click", async (e) => {
@@ -3131,7 +3394,7 @@ footer.footer {
     [els.ruestBase,    "rr.ruestBase"],
     [els.ruestPerSatz, "rr.ruestPerSatz"],
   ]);
-  [els.flaeche, els.schmal, els.lfm, els.mutter, els.nebenBreite, els.nebenAnz, els.speed, els.ruestBase, els.ruestPerSatz].forEach(el => {
+  ALL_INPUTS.forEach(el => {
     if (!el) return;
     const handle = () => {
       const key = persistMap.get(el);
@@ -3181,9 +3444,9 @@ footer.footer {
     els.heteroToggle.setAttribute("aria-expanded", open ? "true" : "false");
     els.heteroFields.setAttribute("aria-hidden", open ? "false" : "true");
     if (!open) {
-      // Werte beim Schließen leeren — sonst rechnet sie heimlich weiter
-      if (els.nebenBreite) els.nebenBreite.value = "";
-      if (els.nebenAnz)    els.nebenAnz.value = "";
+      // Werte beim Schließen leeren
+      ["neben1Breite","neben1Anz","neben2Breite","neben2Anz","neben3Breite","neben3Anz","neben4Breite","neben4Anz","besaeumungL"]
+        .forEach(k => { if (els[k]) els[k].value = ""; });
     }
     if (persist) localStorage.setItem(HETERO_KEY, open ? "1" : "0");
     rebuildTabOrder();
@@ -3193,8 +3456,8 @@ footer.footer {
     els.heteroToggle.addEventListener("click", () => {
       const isOpen = els.heteroToggle.getAttribute("aria-expanded") === "true";
       setHeteroState(!isOpen, true);
-      // Bei Öffnen direkt in nebenBreite springen
-      if (!isOpen && els.nebenBreite) setTimeout(() => els.nebenBreite.focus(), 200);
+      // Bei Öffnen direkt in N1-Breite springen
+      if (!isOpen && els.neben1Breite) setTimeout(() => els.neben1Breite.focus(), 200);
     });
   }
   // Restore Toggle-State bei Page-Load
@@ -3205,15 +3468,28 @@ footer.footer {
   let order = [];
   function rebuildTabOrder() {
     const heteroOn = els.heteroToggle && els.heteroToggle.getAttribute("aria-expanded") === "true";
+    const heteroFields = heteroOn ? [
+      els.neben1Breite, els.neben1Anz,
+      els.neben2Breite, els.neben2Anz,
+      els.neben3Breite, els.neben3Anz,
+      els.neben4Breite, els.neben4Anz,
+      els.besaeumungL
+    ] : [];
     order = [
       els.flaeche, els.mutter, els.schmal,
-      ...(heteroOn ? [els.nebenBreite, els.nebenAnz] : []),
+      ...heteroFields,
       els.lfm, els.speed, els.ruestBase, els.ruestPerSatz
     ].filter(Boolean);
   }
   rebuildTabOrder();
-  // Listener auf ALLE 9 möglichen Inputs registrieren (auch wenn aktuell nicht im order):
-  [els.flaeche, els.mutter, els.schmal, els.nebenBreite, els.nebenAnz, els.lfm, els.speed, els.ruestBase, els.ruestPerSatz].forEach(el => {
+  const ALL_INPUTS = [
+    els.flaeche, els.mutter, els.schmal,
+    els.neben1Breite, els.neben1Anz, els.neben2Breite, els.neben2Anz,
+    els.neben3Breite, els.neben3Anz, els.neben4Breite, els.neben4Anz,
+    els.besaeumungL,
+    els.lfm, els.speed, els.ruestBase, els.ruestPerSatz
+  ].filter(Boolean);
+  ALL_INPUTS.forEach(el => {
     if (!el) return;
     el.addEventListener("keydown", (e) => {
       const idx = order.indexOf(el);
@@ -3242,7 +3518,10 @@ footer.footer {
 
     // Firefox-Defensive: Auftragsdaten-Felder bei jedem Page-Load explizit leeren.
     // Verhindert dass Firefox-Form-Restore alte Werte aus letzter Session wieder einsetzt.
-    [els.flaeche, els.mutter, els.schmal, els.lfm].forEach(el => { if (el) el.value = ""; });
+    [els.flaeche, els.mutter, els.schmal, els.lfm,
+     els.neben1Breite, els.neben1Anz, els.neben2Breite, els.neben2Anz,
+     els.neben3Breite, els.neben3Anz, els.neben4Breite, els.neben4Anz,
+     els.besaeumungL].forEach(el => { if (el) el.value = ""; });
 
     // Operator-preference fields stick across reloads
     const savedSpeed = localStorage.getItem("rr.speed");
@@ -3270,7 +3549,10 @@ footer.footer {
   // Auftragsdaten leeren, damit jede Session sauber startet.
   window.addEventListener("pageshow", (e) => {
     if (e.persisted) {
-      [els.flaeche, els.mutter, els.schmal, els.lfm].forEach(el => { if (el) el.value = ""; });
+      [els.flaeche, els.mutter, els.schmal, els.lfm,
+     els.neben1Breite, els.neben1Anz, els.neben2Breite, els.neben2Anz,
+     els.neben3Breite, els.neben3Anz, els.neben4Breite, els.neben4Anz,
+     els.besaeumungL].forEach(el => { if (el) el.value = ""; });
       calc();
     }
   });
