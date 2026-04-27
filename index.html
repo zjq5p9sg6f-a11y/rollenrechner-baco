@@ -610,13 +610,17 @@ header.bar {
   font-weight: 800;
 }
 
+/* Collapsible-Container: max-height-Transition (Firefox-bulletproof) */
 .hetero-fields {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 280ms var(--ease-out-expo);
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 320ms var(--ease-out-expo), opacity 200ms ease;
+  opacity: 0;
 }
-.hetero-fields > .inner-wrap { overflow: hidden; min-height: 0; }
-.hetero-fields[aria-hidden="false"] { grid-template-rows: 1fr; }
+.hetero-fields[aria-hidden="false"] {
+  max-height: 1600px;
+  opacity: 1;
+}
 
 /* Neben-Inputs visuell von Haupt-Inputs unterschieden — leicht orangener Akzent */
 .input-row.hetero {
