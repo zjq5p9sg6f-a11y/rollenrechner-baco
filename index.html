@@ -1751,10 +1751,10 @@ footer.footer {
     if (els[fieldKey] && placeholderMap[fieldKey]) {
       els[fieldKey].placeholder = placeholderMap[fieldKey][unit] || "";
     }
-    // Set HTML max attribute (unit-aware) so steppers respect machine limit
+    // KEIN Stepper-Max-Cap mehr — Operator soll auch Sondergrößen >1300 mm eingeben können
+    // Soft-Warnungen in renderWarnings() informieren über Machine-Routing
     if (fieldKey === "mutter" && els.mutter) {
-      const maxInUnit = MAX_MR_MM / FACTORS[unit];
-      els.mutter.setAttribute("max", String(maxInUnit));
+      els.mutter.removeAttribute("max");
     }
   }
   function fmtNum(v) {
@@ -1849,8 +1849,9 @@ footer.footer {
       return;
     }
 
-    // Maschinen-Limit hard cap (BaCo): MR > 1300 mm passt in keine Maschine
-    if (mutter > MAX_MR_MM) {
+    // Maschinen-Limits sind WARNUNGEN, kein Block — Operator soll IMMER rechnen können.
+    // Echter Hard-Block nur bei physikalisch unsinnigen Werten (>5000 mm).
+    if (mutter > 5000) {
       renderEmpty();
       const w = els.warnings;
       w.innerHTML = "";
@@ -1858,11 +1859,11 @@ footer.footer {
       div.className = "warn"; div.dataset.level = "danger";
       div.innerHTML =
         `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>` +
-        `<span><strong>Mutterrolle ${nf0.format(mutter)} mm überschreitet Maschinen-Limit.</strong> Maximum: <strong>${MAX_MR_MM} mm</strong> (Euromac) · ${MAX_DCM_MM} mm (DCM Panther). Bitte Wert korrigieren.</span>`;
+        `<span><strong>Mutterrolle ${nf0.format(mutter)} mm — Wert prüfen.</strong> Über 5000 mm ist physikalisch unrealistisch — meintest du cm statt mm? (Einheit-Toggle rechts neben dem Feld)</span>`;
       w.appendChild(div);
-      els.statusBadge.textContent = `MR > ${MAX_MR_MM} mm`;
+      els.statusBadge.textContent = `MR ${nf0.format(mutter)} mm prüfen`;
       els.statusBadge.style.color = "var(--danger-color)";
-      setSubtitle("Über Maschinen-Limit — keine Schneidemaschine fährt diese Breite");
+      setSubtitle("Wert plausibilisieren — über 5 m Mutterrolle?");
       return;
     }
 
@@ -2137,6 +2138,10 @@ footer.footer {
     // Maschinen-Routing: MR > 1000 mm geht NUR auf Euromac (DCM Panther limit)
     if (out.mutter > MAX_DCM_MM && out.mutter <= MAX_MR_MM) {
       add("warn", `Mutterrolle ${nf0.format(out.mutter)} mm: nur Euromac fahrbar — DCM Panther Limit ${MAX_DCM_MM} mm.`);
+    }
+    // Über bekanntem Euromac-Limit: rechnen lassen, aber klar warnen
+    if (out.mutter > MAX_MR_MM) {
+      add("warn", `Mutterrolle ${nf0.format(out.mutter)} mm über typischem Euromac-Limit ${MAX_MR_MM} mm — Maschine prüfen, ob Sondergröße fahrbar.`);
     }
 
     // Geschwindigkeit über Maschinen-Maximum
