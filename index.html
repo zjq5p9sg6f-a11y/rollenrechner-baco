@@ -4184,7 +4184,7 @@ footer.footer {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.11 · offline-fähig · localStorage</div>
+    <div>v1.37 · Maschinen-Lookup · offline-fähig · localStorage</div>
   </footer>
 </div>
 
@@ -4985,20 +4985,49 @@ footer.footer {
     sfCell(700, 80, "MASS-EINHEIT", "alle in mm", false);
   }
 
-  // ============== DCM-Wellenbestückungs-Engine (portiert aus Wellenbestückungs-Tool) ==============
-  const DCM = {
-    WELLE: 1472,
-    WELLE_MITTE: 736,
-    BESTUECKUNGS_BREITE: 1000,
-    PARK_RING: 59,
-    PARK_PRO_SEITE: 4,
-    PARK_TOTAL: 4 * 59,
-    DISTANZRINGE: [300, 200, 100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
-    SCHNEIDEEINHEIT: 20,
-    SCHNITT_OFFSET: 13,
-    BESAEUMUNG_MIN_SOFT: 5,
-    BESAEUMUNG_MAX: 20
+  // ============== Maschinen-Lookup (Phase 1: Konstanten-Extraktion v1.37) ==============
+  // Foundation für Multi-Maschinen-Support. Phase 1 verändert KEIN Verhalten —
+  // nur die interne Datenstruktur. DCM-Alias bleibt erhalten, alle bestehenden
+  // DCM.X-Bezüge funktionieren weiter über MACHINES.DCM.
+  const MACHINES = {
+    DCM: {
+      id: "DCM",
+      label: "DCM Panther",
+      welleRenderMode: "left",        // links-bündig (0 → WELLE)
+      parkRingMode: "external",       // 4×59mm/Seite, vom Operator bestückt
+      WELLE: 1472,
+      WELLE_MITTE: 736,
+      BESTUECKUNGS_BREITE: 1000,
+      PARK_RING: 59,
+      PARK_PRO_SEITE: 4,
+      PARK_TOTAL: 4 * 59,
+      DISTANZRINGE: [300, 200, 100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
+      SCHNEIDEEINHEIT: 20,
+      SCHNITT_OFFSET: 13,
+      SE_SORTIMENT: [
+        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 13, cuts: 1 }
+      ],
+      MAX_MR_MM: 1000,                // DCM Panther Limit
+      MAX_SPEED_MMIN: 500,
+      BESAEUMUNG_MIN_SOFT: 5,
+      BESAEUMUNG_MAX: 20
+    }
+    // EUROMAC kommt in Phase 2
   };
+
+  // Maschinen-übergreifende Operator-Regeln (gelten für ALLE Maschinen,
+  // damit Werte nicht pro Maschine driften)
+  const OPERATOR_RULES = {
+    teleskopThresholdMm: 50           // < 50 mm Schmalrolle = Teleskop-Risiko außen
+  };
+
+  // Aktive Maschine (Phase 2 wird das vom UI-Toggle gesetzt)
+  let activeMachineId = "DCM";
+  function getMachine() { return MACHINES[activeMachineId]; }
+
+  // Backward-Compat-Alias: alle bestehenden DCM.X-Bezüge im Code funktionieren weiter.
+  // In späteren Phasen schrittweise auf getMachine().X migrieren.
+  const DCM = MACHINES.DCM;
 
   function distanzringeForDCM(ziel) {
     const tol = 0.001;
