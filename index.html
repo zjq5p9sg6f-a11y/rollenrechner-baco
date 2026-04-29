@@ -318,6 +318,43 @@ header.bar {
 .icon-btn:active { transform: scale(0.95); }
 .icon-btn svg { width: 20px; height: 20px; }
 
+/* Maschinen-Toggle (Segmented-Control) */
+.machine-toggle {
+  display: inline-flex;
+  border-radius: var(--r-2);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  padding: 3px;
+  gap: 2px;
+}
+.machine-btn {
+  padding: 6px 14px;
+  border-radius: calc(var(--r-2) - 3px);
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary, #b0b0b0);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.1;
+  transition: all var(--t-fast) var(--ease-out-expo);
+  font-family: inherit;
+}
+.machine-btn-label { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
+.machine-btn-sub   { font-size: 10px; opacity: 0.65; margin-top: 1px; }
+.machine-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+.machine-btn[aria-selected="true"] {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-dark) 100%);
+  color: #062b14;
+  box-shadow: 0 2px 8px var(--accent-glow-soft);
+}
+.machine-btn[aria-selected="true"] .machine-btn-sub { opacity: 0.85; color: #062b14; }
+@media (max-width: 600px) {
+  .machine-btn { padding: 5px 10px; }
+  .machine-btn-sub { display: none; }
+}
+
 /* ------- card panels ------- */
 .glass {
   background: var(--bg-card);
@@ -3515,6 +3552,16 @@ footer.footer {
       </div>
     </div>
     <div class="bar-actions">
+      <div class="machine-toggle" role="tablist" aria-label="Maschinen-Auswahl">
+        <button type="button" class="machine-btn" data-machine="DCM" role="tab" aria-selected="true">
+          <span class="machine-btn-label">DCM</span>
+          <span class="machine-btn-sub">Panther</span>
+        </button>
+        <button type="button" class="machine-btn" data-machine="EUROMAC" role="tab" aria-selected="false">
+          <span class="machine-btn-label">Euromac</span>
+          <span class="machine-btn-sub">1300 mm</span>
+        </button>
+      </div>
       <button class="icon-btn" id="resetBtn" title="Werte zurücksetzen" aria-label="Zurücksetzen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
       </button>
@@ -4131,23 +4178,26 @@ footer.footer {
       <!-- Maschinen-Konstanten + Schneideeinheit-CAD-Detail (operator-orientiert) -->
       <div class="welle-info-grid">
         <div class="welle-info-box">
-          <h4>Maschinen-Konstanten · DCM</h4>
-          <div class="info-row"><span>Welle-Länge</span><strong>1472 mm</strong></div>
-          <div class="info-row"><span>Bestückungsbereich</span><strong>1000 mm</strong></div>
-          <div class="info-row"><span>Park-Ring</span><strong>59 mm · 4/Seite</strong></div>
-          <div class="info-row"><span>Schneideeinheit</span><strong>20 mm</strong></div>
-          <div class="info-row"><span>Schnittkante v. links</span><strong>13 mm</strong></div>
-          <div class="info-row"><span>Distanzringe</span><strong>0,3 / 0,5 / 1 / 2 / 5 / 10 / 20 / 30 / 50 / 100 / 200 / 300 mm</strong></div>
+          <h4 id="machineConstHead">Maschinen-Konstanten · DCM</h4>
+          <div class="info-row"><span>Welle-Länge</span><strong id="mcWelleLen">1472 mm</strong></div>
+          <div class="info-row"><span>Bestückungsbereich</span><strong id="mcBestueckung">1000 mm</strong></div>
+          <div class="info-row" id="mcParkRow"><span>Park-Ring</span><strong id="mcParkRing">59 mm · 4/Seite</strong></div>
+          <div class="info-row"><span>Schneideeinheit</span><strong id="mcSeLen">20 mm</strong></div>
+          <div class="info-row"><span>Schnittkante v. links</span><strong id="mcSchnitt">13 mm</strong></div>
+          <div class="info-row"><span>Distanzringe</span><strong id="mcDistRings">0,3 / 0,5 / 1 / 2 / 5 / 10 / 20 / 30 / 50 / 100 / 200 / 300 mm</strong></div>
+          <div class="info-row" id="mcMrCenterRow" style="display:none"><span>MR-Center-Versatz</span><strong id="mcMrCenter">±20 mm Standard · ±50 mm Trick</strong></div>
         </div>
         <div class="welle-info-box">
-          <h4>Schneideeinheit</h4>
-          <div class="info-row"><span>Gesamt-Länge</span><strong>20 mm</strong></div>
-          <div class="info-row"><span>Schnittkante</span><strong>13 mm v. l. (asymmetrisch)</strong></div>
+          <h4 id="seSortimentHead">Schneideeinheit</h4>
+          <div class="info-row"><span>Gesamt-Länge</span><strong id="seGesamtLen">20 mm</strong></div>
+          <div class="info-row"><span>Schnittkante</span><strong id="seSchnitt">13 mm v. l. (asymmetrisch)</strong></div>
+          <div class="info-row" id="seCompositionRow" style="display:none"><span>Aufbau</span><strong id="seComposition">—</strong></div>
           <div class="info-row"><span>Anzahl je Welle</span><strong>N + 1 (für N Nutzen)</strong></div>
+          <div class="info-row" id="seBuchseRow" style="display:none"><span>Schneidebuchse</span><strong id="seBuchse">30 mm · 6 Schnitte alle 5 mm (Multi-Cut)</strong></div>
           <button type="button" class="info-btn-large" id="seCadOpenBtn" tabindex="-1">
             <span class="info-btn-icon">ℹ</span>
-            <span>CAD-Detail anzeigen</span>
-            <span class="info-btn-sub">Schneidring · Nutmesser · DIN ISO 128 Werkstattzeichnung</span>
+            <span id="seCadBtnLabel">CAD-Detail anzeigen</span>
+            <span class="info-btn-sub" id="seCadBtnSub">Schneidring · Nutmesser · DIN ISO 128 Werkstattzeichnung</span>
           </button>
         </div>
       </div>
@@ -4184,7 +4234,7 @@ footer.footer {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.37 · Maschinen-Lookup · offline-fähig · localStorage</div>
+    <div>v1.38 · DCM/Euromac-Toggle · zentriertes Layout · offline-fähig</div>
   </footer>
 </div>
 
@@ -4277,9 +4327,8 @@ footer.footer {
   };
 
   // ---------- machine limits (BaCo-Basics) ----------
-  const MAX_MR_MM     = 1300; // Euromac absolutes Maximum
-  const MAX_DCM_MM    = 1000; // DCM Panther Limit
-  const MAX_SPEED_MMIN = 500; // Euromac max Geschwindigkeit
+  // Maschinen-Limits sind jetzt in MACHINES[id].MAX_MR_MM / MAX_SPEED_MMIN
+  // (siehe Konstanten-Block weiter unten). Alte Top-Level-Konstanten entfernt v1.38.
 
   // ---------- units ----------
   const FACTORS    = { mm: 1, cm: 10, m: 1000 };
@@ -4988,7 +5037,7 @@ footer.footer {
   // ============== Maschinen-Lookup (Phase 1: Konstanten-Extraktion v1.37) ==============
   // Foundation für Multi-Maschinen-Support. Phase 1 verändert KEIN Verhalten —
   // nur die interne Datenstruktur. DCM-Alias bleibt erhalten, alle bestehenden
-  // DCM.X-Bezüge funktionieren weiter über MACHINES.DCM.
+  // getMachine().X-Bezüge funktionieren weiter über MACHINES.DCM.
   const MACHINES = {
     DCM: {
       id: "DCM",
@@ -5009,10 +5058,42 @@ footer.footer {
       ],
       MAX_MR_MM: 1000,                // DCM Panther Limit
       MAX_SPEED_MMIN: 500,
+      MR_CENTER_OFFSET_STD: 0,        // DCM hat kein zentriertes MR-Konzept
+      MR_CENTER_OFFSET_TRICK: 0,
+      BESAEUMUNG_MIN_SOFT: 5,
+      BESAEUMUNG_MAX: 20
+    },
+    EUROMAC: {
+      id: "EUROMAC",
+      label: "Euromac",
+      welleRenderMode: "center",       // zentriert (-650 ↔ 0 ↔ +650)
+      parkRingMode: "builtin",         // Park-Plätze baulich, Operator ignoriert
+      // WELLE = BESTUECKUNGS_BREITE damit DCM-Render-Pipeline automatisch
+      // korrekt rechnet (kein Park-Bereich subtrahiert wird).
+      WELLE: 1300,
+      WELLE_MITTE: 650,
+      BESTUECKUNGS_BREITE: 1300,
+      PARK_RING: 0,
+      PARK_PRO_SEITE: 0,
+      PARK_TOTAL: 0,
+      // 10 Stufen — kein 200/300 mm (Lücken muss Operator durch Kombi 100+X lösen)
+      DISTANZRINGE: [100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
+      SCHNEIDEEINHEIT: 20,             // Standard-SE: Distanzhülse 10 + Messer 1 + Gegenstück 9
+      SCHNITT_OFFSET: 11,              // Schnittkante 11 mm v.l. (asymmetrisch)
+      SE_SORTIMENT: [
+        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 11, cuts: 1,
+          composition: "Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9 mm" },
+        { id: "schneidebuchse", label: "Schneidebuchse (Multi-Cut)", length: 30, cuts: 6,
+          cutSpacing: 5, cutPositions: [2.5, 7.5, 12.5, 17.5, 22.5, 27.5],
+          note: "30 mm Block · 6 Schnittkanten symmetrisch alle 5 mm" }
+      ],
+      MAX_MR_MM: 1300,                 // = Bestueckungs-Breite
+      MAX_SPEED_MMIN: 500,
+      MR_CENTER_OFFSET_STD: 20,        // ±20 mm Standard-Versatz
+      MR_CENTER_OFFSET_TRICK: 50,      // ±50 mm mit Distanzhülsen-Trick (Warning)
       BESAEUMUNG_MIN_SOFT: 5,
       BESAEUMUNG_MAX: 20
     }
-    // EUROMAC kommt in Phase 2
   };
 
   // Maschinen-übergreifende Operator-Regeln (gelten für ALLE Maschinen,
@@ -5021,19 +5102,30 @@ footer.footer {
     teleskopThresholdMm: 50           // < 50 mm Schmalrolle = Teleskop-Risiko außen
   };
 
-  // Aktive Maschine (Phase 2 wird das vom UI-Toggle gesetzt)
-  let activeMachineId = "DCM";
+  // Aktive Maschine — wird vom UI-Toggle gesetzt, persistiert in localStorage
+  let activeMachineId = (() => {
+    try {
+      const stored = localStorage.getItem("activeMachine");
+      return (stored && MACHINES[stored]) ? stored : "DCM";
+    } catch (_) { return "DCM"; }
+  })();
   function getMachine() { return MACHINES[activeMachineId]; }
+  function setActiveMachine(id) {
+    if (!MACHINES[id]) return;
+    activeMachineId = id;
+    try { localStorage.setItem("activeMachine", id); } catch (_) {}
+    if (typeof onMachineChanged === "function") onMachineChanged();
+  }
 
-  // Backward-Compat-Alias: alle bestehenden DCM.X-Bezüge im Code funktionieren weiter.
-  // In späteren Phasen schrittweise auf getMachine().X migrieren.
-  const DCM = MACHINES.DCM;
+  // Alle Zugriffe auf Maschinen-Konstanten gehen jetzt über getMachine() bzw. M = getMachine().
+  // Damit reagieren alle Calc-/Render-Funktionen automatisch auf den Toggle-Wechsel.
 
-  function distanzringeForDCM(ziel) {
+  function distanzringeForMachine(ziel, machine) {
+    const M = machine || getMachine();
     const tol = 0.001;
     const result = {};
     let rest = ziel;
-    for (const r of DCM.DISTANZRINGE) {
+    for (const r of M.DISTANZRINGE) {
       while (rest >= r - tol) {
         result[r] = (result[r] || 0) + 1;
         rest -= r;
@@ -5041,23 +5133,26 @@ footer.footer {
     }
     return { rings: result, rest };
   }
+  // Backward-Compat-Alias für alte Aufrufe (default = aktive Maschine)
+  function distanzringeForDCM(ziel) { return distanzringeForMachine(ziel, getMachine()); }
 
   function calcWelleJob(out) {
     if (!out || !out.mutter || !out.schmal) return { ok: false, empty: true, alerts: [] };
+    const M = getMachine();
     const mr = out.mutter, haupt = out.schmal;
     const slots = out.nebenSlots || [];
     const alerts = [];
 
-    if (haupt < DCM.SCHNEIDEEINHEIT)
-      return { ok: false, alerts: [{type:"danger", msg:`Hauptschnitt ${haupt} mm < Schneideeinheit ${DCM.SCHNEIDEEINHEIT} mm — auf DCM nicht fahrbar.`}] };
+    if (haupt < M.SCHNEIDEEINHEIT)
+      return { ok: false, alerts: [{type:"danger", msg:`Hauptschnitt ${haupt} mm < Schneideeinheit ${M.SCHNEIDEEINHEIT} mm — auf ${M.label} nicht fahrbar.`}] };
     for (const s of slots) {
-      if (s.breite < DCM.SCHNEIDEEINHEIT)
-        return { ok: false, alerts: [{type:"danger", msg:`Neben-Breite N${s.slotIdx}=${s.breite} mm < ${DCM.SCHNEIDEEINHEIT} mm — auf DCM nicht fahrbar.`}] };
+      if (s.breite < M.SCHNEIDEEINHEIT)
+        return { ok: false, alerts: [{type:"danger", msg:`Neben-Breite N${s.slotIdx}=${s.breite} mm < ${M.SCHNEIDEEINHEIT} mm — auf ${M.label} nicht fahrbar.`}] };
     }
 
     const N = out.nutzen;
-    const SE = DCM.SCHNEIDEEINHEIT;
-    const SCHNITT = DCM.SCHNITT_OFFSET; // 13mm asymmetrische Schnittkante v.l.
+    const SE = M.SCHNEIDEEINHEIT;
+    const SCHNITT = M.SCHNITT_OFFSET; // asymmetrische Schnittkante v.l. (DCM 13 / Euromac 11)
     const distHaupt = haupt - SE;
     const innerSegs = [];
 
@@ -5140,40 +5235,46 @@ footer.footer {
 
     const innerLen = innerSegs.reduce((s,x)=>s+x.breite, 0);
 
-    if (innerLen > DCM.BESTUECKUNGS_BREITE + 0.001) {
-      return { ok: false, alerts: [{type:"danger", msg:`Bestückung ${innerLen.toFixed(1)} mm überschreitet DCM-Bereich ${DCM.BESTUECKUNGS_BREITE} mm. Reduziere Anzahl oder wechsle auf Euromac.`}] };
+    if (innerLen > M.BESTUECKUNGS_BREITE + 0.001) {
+      const alt = (activeMachineId === "DCM") ? " Reduziere Anzahl oder wechsle auf Euromac." : " Reduziere Anzahl.";
+      return { ok: false, alerts: [{type:"danger", msg:`Bestückung ${innerLen.toFixed(1)} mm überschreitet ${M.label}-Bereich ${M.BESTUECKUNGS_BREITE} mm.${alt}`}] };
     }
 
-    const restProSeite = (DCM.BESTUECKUNGS_BREITE - innerLen) / 2;
-    const restFill = distanzringeForDCM(restProSeite);
+    const restProSeite = (M.BESTUECKUNGS_BREITE - innerLen) / 2;
+    const restFill = distanzringeForMachine(restProSeite, M);
     if (restFill.rest > 0.01) {
       alerts.push({type:"warn", msg:`Reststrecke ${restProSeite.toFixed(2)} mm pro Seite nicht exakt mit Distanzringen füllbar — Differenz ${restFill.rest.toFixed(2)} mm.`});
     }
 
-    // Vollständiges Layout LR
+    // Vollständiges Layout LR — bei builtin-Park entfallen die Park-Ring-Segmente
     const layoutLR = [];
-    for (let i = 0; i < DCM.PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: DCM.PARK_RING, name: "Parkplatz-Ring (L)", short: "P" });
+    for (let i = 0; i < M.PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: M.PARK_RING, name: "Parkplatz-Ring (L)", short: "P" });
     if (restProSeite > 0.001) layoutLR.push({ kind: "rest", breite: restProSeite, name: "Distanzring-Auffüllung L", short: "Rest", fill: restFill.rings });
     for (const s of innerSegs) layoutLR.push({...s});
     if (restProSeite > 0.001) layoutLR.push({ kind: "rest", breite: restProSeite, name: "Distanzring-Auffüllung R", short: "Rest", fill: restFill.rings });
-    for (let i = 0; i < DCM.PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: DCM.PARK_RING, name: "Parkplatz-Ring (R)", short: "P" });
+    for (let i = 0; i < M.PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: M.PARK_RING, name: "Parkplatz-Ring (R)", short: "P" });
 
     // MR-Position auf der Welle
-    const innerStart = restProSeite + DCM.PARK_TOTAL;
+    const innerStart = restProSeite + M.PARK_TOTAL;
     const innerEnd = innerStart + innerLen;
-    const mrStart = innerStart + DCM.SCHNITT_OFFSET - (out.restL || (out.restMM || 0)/2);
+    const mrStart = innerStart + M.SCHNITT_OFFSET - (out.restL || (out.restMM || 0)/2);
     const mrEnd = mrStart + mr;
 
     // Hol-Liste
     const totalSE = innerSegs.filter(s => s.kind === "schneid" || s.kind === "neben").length;
+    const seSpec = (activeMachineId === "EUROMAC")
+      ? "20 mm (Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9)"
+      : "20 mm (10 Schneidring + 10 Nutmesser)";
     const holliste = [
-      { name: "Schneideeinheit", spec: "20 mm (10 Schneidring + 10 Nutmesser)", anz: totalSE },
-      { name: "Parkplatz-Ring", spec: "59 mm", anz: DCM.PARK_PRO_SEITE * 2 }
+      { name: "Schneideeinheit", spec: seSpec, anz: totalSE }
     ];
+    if (M.PARK_PRO_SEITE > 0) {
+      holliste.push({ name: "Parkplatz-Ring", spec: `${M.PARK_RING} mm`, anz: M.PARK_PRO_SEITE * 2 });
+    }
     const distMap = {};
     for (const seg of innerSegs) {
       if (seg.kind === "distanz" && seg.breite > 0) {
-        const f = distanzringeForDCM(seg.breite);
+        const f = distanzringeForMachine(seg.breite, M);
         for (const [k,v] of Object.entries(f.rings)) distMap[k] = (distMap[k] || 0) + v;
       }
     }
@@ -5221,6 +5322,9 @@ footer.footer {
   function renderWelleSvg(d) {
     const svgEl = document.getElementById("welleSvg");
     if (!svgEl) return;
+    const M = getMachine();
+    const isCenter = M.welleRenderMode === "center";
+    const hasParkRing = (M.PARK_PRO_SEITE > 0);
     let g = document.getElementById("welleVizGroup");
     if (!g) {
       g = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -5257,11 +5361,11 @@ footer.footer {
         "stroke-width": "1.5", "stroke-dasharray": "8 6" });
       svgW(g, "text", { x: W/2, y: barTop + barH/2 + 5, "text-anchor": "middle",
         fill: "rgba(240,240,240,0.4)", "font-size": "13", "font-weight": "500", "font-family": "inherit" },
-        "Werte oben eingeben — DCM-Wellenbestückung erscheint live");
+        `Werte oben eingeben — ${M.label}-Wellenbestückung erscheint live`);
       return;
     }
 
-    const pxPerMM = innerW / DCM.WELLE;
+    const pxPerMM = innerW / M.WELLE;
     const xAt = (mm) => padX + mm * pxPerMM;
     const layoutLR = d.layoutLR || [];
 
@@ -5283,7 +5387,7 @@ footer.footer {
     svgW(g, "path", { d: `M${W-padX} ${dimTop1Y} L${W-padX-8} ${dimTop1Y-5} L${W-padX-8} ${dimTop1Y+5} Z`, fill: dimColor });
     svgW(g, "line", { x1: padX, y1: dimTop1Y - 6, x2: padX, y2: barTop + barH + 6, stroke: dimColor, "stroke-width": "0.8", "stroke-dasharray": "3 4" });
     svgW(g, "line", { x1: W - padX, y1: dimTop1Y - 6, x2: W - padX, y2: barTop + barH + 6, stroke: dimColor, "stroke-width": "0.8", "stroke-dasharray": "3 4" });
-    const lblTxt1 = "Welle 1472 mm";
+    const lblTxt1 = isCenter ? `Bestückungsbreite ${M.WELLE} mm` : `Welle ${M.WELLE} mm`;
     const lblW1 = lblTxt1.length * 7.5 + 24;
     svgW(g, "rect", { x: W/2 - lblW1/2, y: dimTop1Y - 12, width: lblW1, height: 24, rx: 6,
       fill: "var(--bg-base)", stroke: "var(--accent-primary)", "stroke-width": "1.5" });
@@ -5323,8 +5427,8 @@ footer.footer {
       });
     } else if (d.mr) {
       // Single-Mode: MR-Bemaßung
-      const mrLeftX = xAt(d.mrStart || (d.innerStart != null ? d.innerStart + DCM.SCHNITT_OFFSET : DCM.PARK_TOTAL));
-      const mrRightX = xAt(d.mrEnd || (d.innerEnd != null ? d.innerEnd : DCM.PARK_TOTAL + DCM.BESTUECKUNGS_BREITE));
+      const mrLeftX = xAt(d.mrStart || (d.innerStart != null ? d.innerStart + M.SCHNITT_OFFSET : M.PARK_TOTAL));
+      const mrRightX = xAt(d.mrEnd || (d.innerEnd != null ? d.innerEnd : M.PARK_TOTAL + M.BESTUECKUNGS_BREITE));
       svgW(g, "line", { x1: mrLeftX, y1: dimTop2Y, x2: mrRightX, y2: dimTop2Y, stroke: "var(--warn-color)", "stroke-width": "1", opacity: "0.85" });
       svgW(g, "path", { d: `M${mrLeftX} ${dimTop2Y} L${mrLeftX+8} ${dimTop2Y-5} L${mrLeftX+8} ${dimTop2Y+5} Z`, fill: "var(--warn-color)", opacity: "0.85" });
       svgW(g, "path", { d: `M${mrRightX} ${dimTop2Y} L${mrRightX-8} ${dimTop2Y-5} L${mrRightX-8} ${dimTop2Y+5} Z`, fill: "var(--warn-color)", opacity: "0.85" });
@@ -5343,8 +5447,8 @@ footer.footer {
     let cur = 0;
     for (const seg of layoutLR) {
       if (seg.kind === "schneid" || seg.kind === "neben") {
-        const cutX = xAt(cur + DCM.SCHNITT_OFFSET);
-        const cutMm = cur + DCM.SCHNITT_OFFSET;
+        const cutX = xAt(cur + M.SCHNITT_OFFSET);
+        const cutMm = cur + M.SCHNITT_OFFSET;
         // Position-Label rotiert
         svgW(g, "text", { x: cutX, y: knifeY - 2, "text-anchor": "end",
           fill: "rgba(220,220,220,0.85)", "font-size": "8.5", "font-weight": "600",
@@ -5380,7 +5484,7 @@ footer.footer {
           fill: "url(#gPark)", stroke: "#3a3a3a", "stroke-width": "1" });
         if (w > 18) {
           svgW(g, "text", { x: x + w/2, y: barTop + barH/2 + 4, "text-anchor": "middle",
-            fill: "rgba(200,200,200,0.85)", "font-size": "11", "font-weight": "700", "font-family": "inherit", "font-variant-numeric": "tabular-nums" }, "59");
+            fill: "rgba(200,200,200,0.85)", "font-size": "11", "font-weight": "700", "font-family": "inherit", "font-variant-numeric": "tabular-nums" }, String(M.PARK_RING));
         }
       } else if (seg.kind === "distanz") {
         if (w > 0.5) {
@@ -5413,20 +5517,20 @@ footer.footer {
         svgW(g, "line", { x1: x + halfW, y1: barTop + 4, x2: x + halfW, y2: barTop + barH - 4,
           stroke: "rgba(0,0,0,0.6)", "stroke-width": "0.8" });
         // Zwischensteg im Nutmesser (3 mm)
-        const stegW = (3 / DCM.SCHNEIDEEINHEIT) * w;
+        const stegW = (3 / M.SCHNEIDEEINHEIT) * w;
         svgW(g, "rect", { x: x + halfW, y: barTop + 4 + (barH - 8) * 0.3,
           width: stegW, height: (barH - 8) * 0.4,
           fill: "rgba(0,0,0,0.18)" });
-        // Schnittkante 13 mm v.l. (weiße Linie)
-        const cutOffsetPx = (DCM.SCHNITT_OFFSET / DCM.SCHNEIDEEINHEIT) * w;
+        // Schnittkante v.l. (weiße Linie) — DCM 13 / Euromac 11
+        const cutOffsetPx = (M.SCHNITT_OFFSET / M.SCHNEIDEEINHEIT) * w;
         svgW(g, "line", { x1: x + cutOffsetPx, y1: barTop + 2, x2: x + cutOffsetPx, y2: barTop + barH - 2,
           stroke: "white", "stroke-width": "0.9", opacity: "0.85" });
       }
       cur += seg.breite;
     }
 
-    // ============ Welle-Mitte: DIN-Mittellinie + ⊕ Cross-Marks + L=R=736 Symmetrie ============
-    const midX = xAt(DCM.WELLE_MITTE);
+    // ============ Welle-Mitte: DIN-Mittellinie + ⊕ Cross-Marks + L=R-Symmetrie ============
+    const midX = xAt(M.WELLE_MITTE);
     const cMid = "rgba(0,230,118,0.55)";
     const cMidStrong = "var(--accent-primary)";
 
@@ -5457,38 +5561,60 @@ footer.footer {
     svgW(g, "path", { d: `M${padX} ${symY} L${padX+8} ${symY-4} L${padX+8} ${symY+4} Z`, fill: cMid });
     svgW(g, "path", { d: `M${midX-6} ${symY} L${midX-12} ${symY-4} L${midX-12} ${symY+4} Z`, fill: cMid });
     svgW(g, "text", { x: padX + (midX - padX) / 2, y: symY - 5, "text-anchor": "middle",
-      fill: cMidStrong, "font-size": "10", "font-weight": "700", "letter-spacing": "0.06em", "font-family": "inherit" }, "L = 736");
+      fill: cMidStrong, "font-size": "10", "font-weight": "700", "letter-spacing": "0.06em", "font-family": "inherit" }, `L = ${M.WELLE_MITTE}`);
     svgW(g, "line", { x1: midX + 12, y1: symY, x2: W - padX - 8, y2: symY, stroke: cMid, "stroke-width": "0.9" });
     svgW(g, "path", { d: `M${midX+6} ${symY} L${midX+12} ${symY-4} L${midX+12} ${symY+4} Z`, fill: cMid });
     svgW(g, "path", { d: `M${W-padX} ${symY} L${W-padX-8} ${symY-4} L${W-padX-8} ${symY+4} Z`, fill: cMid });
     svgW(g, "text", { x: midX + (W - padX - midX) / 2, y: symY - 5, "text-anchor": "middle",
-      fill: cMidStrong, "font-size": "10", "font-weight": "700", "letter-spacing": "0.06em", "font-family": "inherit" }, "R = 736");
+      fill: cMidStrong, "font-size": "10", "font-weight": "700", "letter-spacing": "0.06em", "font-family": "inherit" }, `R = ${M.WELLE - M.WELLE_MITTE}`);
 
     // (MITTE-Label entfernt v1.33 — Cross-Mark + Mittellinie + L=R-Symmetrie sind selbsterklärend,
     //  Label kollidierte mit MR-Bracket. Weniger Visual-Clutter, gleiche Information.)
 
     // ============ Bottom-Bemaßung: Park-L | Bestückungs-Bereich | Park-R ============
-    const parkLEnd = DCM.PARK_TOTAL;
-    const bestueckEnd = parkLEnd + DCM.BESTUECKUNGS_BREITE;
-    drawDimSection(g, padX, xAt(parkLEnd), dimBotY, "Park L 236", "rgba(180,180,180,0.6)");
-    drawDimSection(g, xAt(parkLEnd), xAt(bestueckEnd), dimBotY, `Bestückungs-Bereich ${DCM.BESTUECKUNGS_BREITE}`, "var(--accent-primary)", true);
-    drawDimSection(g, xAt(bestueckEnd), W - padX, dimBotY, "Park R 236", "rgba(180,180,180,0.6)");
+    if (hasParkRing) {
+      const parkLEnd = M.PARK_TOTAL;
+      const bestueckEnd = parkLEnd + M.BESTUECKUNGS_BREITE;
+      drawDimSection(g, padX, xAt(parkLEnd), dimBotY, `Park L ${parkLEnd}`, "rgba(180,180,180,0.6)");
+      drawDimSection(g, xAt(parkLEnd), xAt(bestueckEnd), dimBotY, `Bestückungs-Bereich ${M.BESTUECKUNGS_BREITE}`, "var(--accent-primary)", true);
+      drawDimSection(g, xAt(bestueckEnd), W - padX, dimBotY, `Park R ${parkLEnd}`, "rgba(180,180,180,0.6)");
+    } else {
+      // Euromac: Park-Plätze baulich integriert, kein Bemaßungs-Eintrag nötig
+      drawDimSection(g, padX, W - padX, dimBotY, `Bestückungs-Bereich ${M.BESTUECKUNGS_BREITE} mm · zentriert um Mitte`, "var(--accent-primary)", true);
+    }
 
     // ============ Mass-Skala alle 100 mm ============
     svgW(g, "line", { x1: padX, y1: scaleY, x2: W - padX, y2: scaleY,
       stroke: "rgba(255,255,255,0.15)", "stroke-width": "0.5" });
-    for (let mm = 0; mm <= DCM.WELLE; mm += 100) {
-      const x = xAt(mm);
-      svgW(g, "line", { x1: x, y1: scaleY - 3, x2: x, y2: scaleY + 3,
-        stroke: "rgba(255,255,255,0.3)", "stroke-width": "0.7" });
-      svgW(g, "text", { x: x, y: scaleY + 14, "text-anchor": "middle",
-        fill: "rgba(180,180,180,0.5)", "font-size": "8", "font-weight": "500", "font-family": "inherit" }, String(mm));
+    if (isCenter) {
+      // Center-Modus (Euromac): Skala -650 ... 0 ... +650 von der Mitte
+      const halfRange = M.WELLE / 2;
+      for (let mm = -halfRange; mm <= halfRange; mm += 100) {
+        const x = xAt(mm + halfRange);
+        const isMid = (mm === 0);
+        svgW(g, "line", { x1: x, y1: scaleY - 3, x2: x, y2: scaleY + (isMid ? 5 : 3),
+          stroke: isMid ? "var(--accent-primary)" : "rgba(255,255,255,0.3)",
+          "stroke-width": isMid ? "1" : "0.7" });
+        const lbl = isMid ? "0" : (mm > 0 ? `+${mm}` : String(mm));
+        svgW(g, "text", { x: x, y: scaleY + 14, "text-anchor": "middle",
+          fill: isMid ? "var(--accent-primary)" : "rgba(180,180,180,0.5)",
+          "font-size": isMid ? "9" : "8", "font-weight": isMid ? "700" : "500", "font-family": "inherit" }, lbl);
+      }
+    } else {
+      // Left-Modus (DCM): Skala 0 ... 1472
+      for (let mm = 0; mm <= M.WELLE; mm += 100) {
+        const x = xAt(mm);
+        svgW(g, "line", { x1: x, y1: scaleY - 3, x2: x, y2: scaleY + 3,
+          stroke: "rgba(255,255,255,0.3)", "stroke-width": "0.7" });
+        svgW(g, "text", { x: x, y: scaleY + 14, "text-anchor": "middle",
+          fill: "rgba(180,180,180,0.5)", "font-size": "8", "font-weight": "500", "font-family": "inherit" }, String(mm));
+      }
+      // Welle-Endmarke
+      const xEnd = xAt(M.WELLE);
+      svgW(g, "line", { x1: xEnd, y1: scaleY - 4, x2: xEnd, y2: scaleY + 4, stroke: "var(--accent-primary)", "stroke-width": "1" });
+      svgW(g, "text", { x: xEnd, y: scaleY + 14, "text-anchor": "middle",
+        fill: "var(--accent-primary)", "font-size": "8.5", "font-weight": "700", "font-family": "inherit" }, String(M.WELLE));
     }
-    // 1472-Endmarke
-    const xEnd = xAt(DCM.WELLE);
-    svgW(g, "line", { x1: xEnd, y1: scaleY - 4, x2: xEnd, y2: scaleY + 4, stroke: "var(--accent-primary)", "stroke-width": "1" });
-    svgW(g, "text", { x: xEnd, y: scaleY + 14, "text-anchor": "middle",
-      fill: "var(--accent-primary)", "font-size": "8.5", "font-weight": "700", "font-family": "inherit" }, "1472");
 
     // ========================================================================
     // TRACKS-INTEGRATION (bei Master-Mode): pro Auftrag eine Spur DIREKT IN WELLESVG
@@ -5533,8 +5659,8 @@ footer.footer {
           fill: "rgba(0,0,0,0.4)", stroke: "rgba(255,255,255,0.07)", "stroke-width": "0.7", rx: "5" });
 
         // Park-Zonen dezent
-        const parkLEndPx = xAt(DCM.PARK_TOTAL);
-        const parkRStartPx = xAt(DCM.PARK_TOTAL + DCM.BESTUECKUNGS_BREITE);
+        const parkLEndPx = xAt(getMachine().PARK_TOTAL);
+        const parkRStartPx = xAt(getMachine().PARK_TOTAL + getMachine().BESTUECKUNGS_BREITE);
         svgW(g, "rect", { x: padX, y: ty + 6, width: parkLEndPx - padX, height: trackH - 12,
           fill: "rgba(50,50,50,0.5)", stroke: "rgba(255,255,255,0.05)", "stroke-width": "0.4", rx: "3" });
         svgW(g, "rect", { x: parkRStartPx, y: ty + 6, width: (W - padX) - parkRStartPx, height: trackH - 12,
@@ -5620,7 +5746,7 @@ footer.footer {
       return;
     }
     seqEl.innerHTML = "";
-    const MITTE = DCM.WELLE_MITTE;
+    const MITTE = getMachine().WELLE_MITTE;
     function fromMitte(absPos, breite) {
       // Mittelpunkt des Bauteils relativ zur Welle-Mitte
       const center = absPos + (breite / 2);
@@ -5661,7 +5787,7 @@ footer.footer {
         const swatch = isNeben
           ? "linear-gradient(90deg,#ffb74d 0%,#ffb74d 50%,#ffd54f 50%,#ffd54f 100%)"
           : "linear-gradient(90deg,#ff5544 0%,#ff5544 50%,#ffd54f 50%,#ffd54f 100%)";
-        const cutPosLocal = DCM.SCHNITT_OFFSET;
+        const cutPosLocal = getMachine().SCHNITT_OFFSET;
         const cutAbsPos = Math.round(kumPos + cutPosLocal);
         const cutFromMitte = cutAbsPos - MITTE;
         const cutMitteTxt = Math.abs(cutFromMitte) < 1
@@ -5673,13 +5799,13 @@ footer.footer {
           <div class="stueck-nr ${cls}">${nr++}</div>
           <div>
             <div class="stueck-name"><span class="icon" style="background:${swatch}"></span>Schneideeinheit${isNeben ? ' <span style="color:#ffb400">(Neben)</span>' : ''}</div>
-            <div class="stueck-detail">Schnittkante asymmetrisch @ ${DCM.SCHNITT_OFFSET} mm v. links · Welle-Position ${cutAbsPos} mm · ${cutMitteTxt}</div>
+            <div class="stueck-detail">Schnittkante asymmetrisch @ ${getMachine().SCHNITT_OFFSET} mm v. links · Welle-Position ${cutAbsPos} mm · ${cutMitteTxt}</div>
           </div>
           <div class="stueck-mass">20 mm</div>
-          <div class="stueck-pos">@ ${Math.round(kumPos)} mm<br><span style="font-size:10px;opacity:0.7">${fromMitte(kumPos, DCM.SCHNEIDEEINHEIT)}</span></div>
+          <div class="stueck-pos">@ ${Math.round(kumPos)} mm<br><span style="font-size:10px;opacity:0.7">${fromMitte(kumPos, getMachine().SCHNEIDEEINHEIT)}</span></div>
         `;
         seqEl.appendChild(r);
-        kumPos += DCM.SCHNEIDEEINHEIT;
+        kumPos += getMachine().SCHNEIDEEINHEIT;
         continue;
       }
       // Park-Ring oder Distanzring (innen)
@@ -6375,7 +6501,7 @@ footer.footer {
       const j = allJobs[idx];
       if (!j.mr || !j.haupt) continue;
       const mr = j.mr, haupt = j.haupt;
-      if (haupt < DCM.SCHNEIDEEINHEIT) continue;
+      if (haupt < getMachine().SCHNEIDEEINHEIT) continue;
       const nebenSpec = j.nebenSlots && j.nebenSlots.length > 0
         ? j.nebenSlots
         : (j.neben && j.neben.breite > 0 ? [{ breite: j.neben.breite, anz: j.neben.anz }] : []);
@@ -6383,7 +6509,7 @@ footer.footer {
       const N = Math.floor((mr - nebenSpace) / haupt);
       if (N < 1) continue;
       const besaeumung = (mr - N*haupt - nebenSpace) / 2;
-      const mrLeft = DCM.WELLE_MITTE - mr/2;
+      const mrLeft = getMachine().WELLE_MITTE - mr/2;
       const cuts = [];
       let p = mrLeft + besaeumung;
       cuts.push(p);
@@ -6407,7 +6533,7 @@ footer.footer {
     // → erlaubt asymmetrische Cluster-Bestückung wenn dadurch mehr Master-Cuts geteilt
     const ref = validJobs[0];
     function rebuildCutsWithAsym(job, delta, besL) {
-      const mrLeft = (DCM.WELLE_MITTE - job.mr/2) + delta;
+      const mrLeft = (getMachine().WELLE_MITTE - job.mr/2) + delta;
       const cuts = [];
       let p = mrLeft + besL;
       cuts.push(p);
@@ -6465,7 +6591,7 @@ footer.footer {
     // Cuts dazwischen (0.5–20mm) = KONFLIKT — beide SEs würden überlappen, aber sind
     // nicht deckungsgleich → Master physisch unmöglich.
     const sameTol = 0.5;
-    const SE = DCM.SCHNEIDEEINHEIT;
+    const SE = getMachine().SCHNEIDEEINHEIT;
     const allRaw = [];
     for (const j of validJobs) for (const c of j.cuts) allRaw.push({ pos: c, jobIdx: j.idx });
     allRaw.sort((a, b) => a.pos - b.pos);
@@ -6529,35 +6655,35 @@ footer.footer {
     const innerSegs = [];
     for (let i = 0; i < allCuts.length; i++) {
       if (i > 0) {
-        const dist = (allCuts[i] - allCuts[i - 1]) - DCM.SCHNEIDEEINHEIT;
+        const dist = (allCuts[i] - allCuts[i - 1]) - getMachine().SCHNEIDEEINHEIT;
         if (dist > 0.001) innerSegs.push({ kind: "distanz", breite: dist, name: `Distanzring Master ${i}`, short: "D" });
       }
-      innerSegs.push({ kind: "schneid", breite: DCM.SCHNEIDEEINHEIT, name: `SE Master ${i + 1}`, short: "SE" });
+      innerSegs.push({ kind: "schneid", breite: getMachine().SCHNEIDEEINHEIT, name: `SE Master ${i + 1}`, short: "SE" });
     }
     const innerLen = innerSegs.reduce((s, x) => s + x.breite, 0);
 
-    const firstSeStart = allCuts[0] - DCM.SCHNITT_OFFSET;
-    const lastSeEnd = (allCuts[allCuts.length - 1] - DCM.SCHNITT_OFFSET) + DCM.SCHNEIDEEINHEIT;
-    const restL = firstSeStart - DCM.PARK_TOTAL;
-    const restR = (DCM.PARK_TOTAL + DCM.BESTUECKUNGS_BREITE) - lastSeEnd;
+    const firstSeStart = allCuts[0] - getMachine().SCHNITT_OFFSET;
+    const lastSeEnd = (allCuts[allCuts.length - 1] - getMachine().SCHNITT_OFFSET) + getMachine().SCHNEIDEEINHEIT;
+    const restL = firstSeStart - getMachine().PARK_TOTAL;
+    const restR = (getMachine().PARK_TOTAL + getMachine().BESTUECKUNGS_BREITE) - lastSeEnd;
 
     if (restL < -0.001 || restR < -0.001) {
-      return { ok: false, error: `Master-Bestückung passt nicht in ${DCM.BESTUECKUNGS_BREITE} mm Bereich (innerLen=${innerLen.toFixed(1)} mm)`, validJobs, mergedCount };
+      return { ok: false, error: `Master-Bestückung passt nicht in ${getMachine().BESTUECKUNGS_BREITE} mm Bereich (innerLen=${innerLen.toFixed(1)} mm)`, validJobs, mergedCount };
     }
     const restFillL = distanzringeForDCM(Math.max(0, restL));
     const restFillR = distanzringeForDCM(Math.max(0, restR));
 
     const layoutLR = [];
-    for (let i = 0; i < DCM.PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: DCM.PARK_RING, name: "Park-L", short: "P" });
+    for (let i = 0; i < getMachine().PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: getMachine().PARK_RING, name: "Park-L", short: "P" });
     if (restL > 0.001) layoutLR.push({ kind: "rest", breite: restL, name: "Auffüllung L", short: "Rest", fill: restFillL.rings });
     for (const s of innerSegs) layoutLR.push({...s});
     if (restR > 0.001) layoutLR.push({ kind: "rest", breite: restR, name: "Auffüllung R", short: "Rest", fill: restFillR.rings });
-    for (let i = 0; i < DCM.PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: DCM.PARK_RING, name: "Park-R", short: "P" });
+    for (let i = 0; i < getMachine().PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: getMachine().PARK_RING, name: "Park-R", short: "P" });
 
     // Hol-Liste (Master)
     const holliste = [
       { name: "Schneideeinheit", spec: "20 mm (Master)", anz: allCuts.length },
-      { name: "Parkplatz-Ring", spec: "59 mm", anz: DCM.PARK_PRO_SEITE * 2 }
+      { name: "Parkplatz-Ring", spec: "59 mm", anz: getMachine().PARK_PRO_SEITE * 2 }
     ];
     const distMap = {};
     for (const seg of innerSegs) {
@@ -6598,7 +6724,7 @@ footer.footer {
     const W = 1500;
     const padX = 50;
     const innerW = W - padX*2;
-    const pxPerMM = innerW / DCM.WELLE;
+    const pxPerMM = innerW / getMachine().WELLE;
     const xAt = (mm) => padX + mm * pxPerMM;
     const trackH = 38, trackGap = 6, headerH = 24, bottomPad = 20;
     const n = master.validJobs.length;
@@ -6616,7 +6742,7 @@ footer.footer {
       svgW(svg, "path", { d: `M${x} 6 L${x-3} 0 L${x+3} 0 Z`, fill: "rgba(0,230,118,0.4)" });
     }
     // Welle-Mitte
-    const midX = xAt(DCM.WELLE_MITTE);
+    const midX = xAt(getMachine().WELLE_MITTE);
     svgW(svg, "line", { x1: midX, y1: 0, x2: midX, y2: tracksBottom,
       stroke: "rgba(0,230,118,0.55)", "stroke-width": "0.8", "stroke-dasharray": "8 3 1 3" });
 
@@ -6632,9 +6758,9 @@ footer.footer {
       svgW(svg, "rect", { x: padX, y: ty, width: innerW, height: trackH,
         fill: "rgba(0,0,0,0.4)", stroke: "rgba(255,255,255,0.06)", "stroke-width": "0.6", rx: "4" });
       // Park-Zonen
-      svgW(svg, "rect", { x: padX, y: ty+5, width: xAt(DCM.PARK_TOTAL)-padX, height: trackH-10,
+      svgW(svg, "rect", { x: padX, y: ty+5, width: xAt(getMachine().PARK_TOTAL)-padX, height: trackH-10,
         fill: "rgba(60,60,60,0.4)", stroke: "rgba(255,255,255,0.05)", "stroke-width": "0.4", rx: "3" });
-      svgW(svg, "rect", { x: xAt(DCM.PARK_TOTAL+DCM.BESTUECKUNGS_BREITE), y: ty+5, width: padX+innerW-xAt(DCM.PARK_TOTAL+DCM.BESTUECKUNGS_BREITE), height: trackH-10,
+      svgW(svg, "rect", { x: xAt(getMachine().PARK_TOTAL+getMachine().BESTUECKUNGS_BREITE), y: ty+5, width: padX+innerW-xAt(getMachine().PARK_TOTAL+getMachine().BESTUECKUNGS_BREITE), height: trackH-10,
         fill: "rgba(60,60,60,0.4)", stroke: "rgba(255,255,255,0.05)", "stroke-width": "0.4", rx: "3" });
       // MR-Bereich farbig
       svgW(svg, "rect", { x: xAt(jw.mrLeft), y: ty+3, width: xAt(jw.mrRight)-xAt(jw.mrLeft), height: trackH-6,
@@ -6871,7 +6997,7 @@ footer.footer {
       const haupt = parseFloat((j.haupt || "").replace(",", ".")) || 0;
       const nb = parseFloat((j.nebenBreite || "").replace(",", ".")) || 0;
       const na = parseInt(j.nebenAnz || "0") || 0;
-      if (mr > 0 && haupt >= DCM.SCHNEIDEEINHEIT) {
+      if (mr > 0 && haupt >= getMachine().SCHNEIDEEINHEIT) {
         followJobs.push({ mr, haupt, nebenSlots: nb > 0 && na > 0 ? [{ breite: nb, anz: na }] : [] });
       } else {
         followJobs.push(null); // invalid slot — bleibt neutral, kein Status
@@ -6942,7 +7068,7 @@ footer.footer {
     if (!welle || !welle.ok) return null;
     let score = 0;
     // Trim-Effizienz: innerLen / Bestückungsbereich (näher an 100% = besser)
-    const trimEff = welle.innerLen / DCM.BESTUECKUNGS_BREITE;
+    const trimEff = welle.innerLen / getMachine().BESTUECKUNGS_BREITE;
     score += Math.min(40, trimEff * 40);
     // Cut-Konflikte (Master-Mode) — strafe
     if (welle.mergedCount && welle.mergedCount > 0) score -= welle.mergedCount * 5;
@@ -6981,7 +7107,7 @@ footer.footer {
     const clusterValidJobs = clusterOn ? clusterJobs.filter(j => {
       const mr = parseFloat((j.mr || "").replace(",", ".")) || 0;
       const haupt = parseFloat((j.haupt || "").replace(",", ".")) || 0;
-      return mr > 0 && haupt >= DCM.SCHNEIDEEINHEIT;
+      return mr > 0 && haupt >= getMachine().SCHNEIDEEINHEIT;
     }) : [];
 
     if (clusterValidJobs.length > 0) {
@@ -7281,18 +7407,21 @@ footer.footer {
       add("warn", "Nur 1 Nutzen pro Mutterrolle — Wirtschaftlichkeit prüfen.");
     }
 
-    // Maschinen-Routing: MR > 1000 mm geht NUR auf Euromac (DCM Panther limit)
-    if (out.mutter > MAX_DCM_MM && out.mutter <= MAX_MR_MM) {
-      add("warn", `Mutterrolle ${nf0.format(out.mutter)} mm: nur Euromac fahrbar — DCM Panther Limit ${MAX_DCM_MM} mm.`);
+    // Maschinen-Routing: maschinen-aware Limits
+    const M_warn = getMachine();
+    if (activeMachineId === "DCM" && out.mutter > M_warn.MAX_MR_MM && out.mutter <= MACHINES.EUROMAC.MAX_MR_MM) {
+      add("warn", `Mutterrolle ${nf0.format(out.mutter)} mm: nur Euromac fahrbar — DCM Panther Limit ${M_warn.MAX_MR_MM} mm.`);
     }
-    // Über bekanntem Euromac-Limit: rechnen lassen, aber klar warnen
-    if (out.mutter > MAX_MR_MM) {
-      add("warn", `Mutterrolle ${nf0.format(out.mutter)} mm über typischem Euromac-Limit ${MAX_MR_MM} mm — Maschine prüfen, ob Sondergröße fahrbar.`);
+    if (out.mutter > MACHINES.EUROMAC.MAX_MR_MM) {
+      add("warn", `Mutterrolle ${nf0.format(out.mutter)} mm über typischem Euromac-Limit ${MACHINES.EUROMAC.MAX_MR_MM} mm — Maschine prüfen, ob Sondergröße fahrbar.`);
+    }
+    if (activeMachineId === "EUROMAC" && out.mutter > M_warn.MAX_MR_MM) {
+      add("danger", `Mutterrolle ${nf0.format(out.mutter)} mm überschreitet Euromac-Bestückungsbreite ${M_warn.MAX_MR_MM} mm.`);
     }
 
     // Geschwindigkeit über Maschinen-Maximum
-    if (out.speed && out.speed > MAX_SPEED_MMIN) {
-      add("danger", `Geschwindigkeit ${nf0.format(out.speed)} m/min über Maschinen-Limit (max ${MAX_SPEED_MMIN} m/min).`);
+    if (out.speed && out.speed > M_warn.MAX_SPEED_MMIN) {
+      add("danger", `Geschwindigkeit ${nf0.format(out.speed)} m/min über ${M_warn.label}-Limit (max ${M_warn.MAX_SPEED_MMIN} m/min).`);
     }
 
     // === Drei spezifische Lean-Diagnose-Schwellen ===
@@ -8023,6 +8152,67 @@ footer.footer {
     toast("Beispielwerte geladen");
   });
 
+  // ---------- Maschinen-Toggle (DCM ↔ Euromac) ----------
+  const machineBtns = document.querySelectorAll(".machine-btn[data-machine]");
+  function updateMachineToggleUI() {
+    machineBtns.forEach(b => {
+      const sel = (b.dataset.machine === activeMachineId);
+      b.setAttribute("aria-selected", sel ? "true" : "false");
+    });
+  }
+  // Updated die HTML-Anzeige der Maschinen-Konstanten + SE-Sortiment-Box
+  function updateMachineInfoUI() {
+    const M = getMachine();
+    const isEuro = (M.id === "EUROMAC");
+    const $ = (id) => document.getElementById(id);
+    const setTxt = (id, txt) => { const el = $(id); if (el) el.textContent = txt; };
+    const setShow = (id, show) => { const el = $(id); if (el) el.style.display = show ? "" : "none"; };
+
+    // Maschinen-Konstanten-Box
+    setTxt("machineConstHead", `Maschinen-Konstanten · ${M.label}`);
+    setTxt("mcWelleLen",       isEuro ? `${M.WELLE} mm (aktive Belegung)` : `${M.WELLE} mm`);
+    setTxt("mcBestueckung",    `${M.BESTUECKUNGS_BREITE} mm${isEuro ? " (zentriert ±" + (M.BESTUECKUNGS_BREITE/2) + ")" : ""}`);
+    setTxt("mcParkRing",       isEuro ? "baulich integriert (kein Operator-Input)" : `${M.PARK_RING} mm · ${M.PARK_PRO_SEITE}/Seite`);
+    setTxt("mcSeLen",          `${M.SCHNEIDEEINHEIT} mm`);
+    setTxt("mcSchnitt",        `${M.SCHNITT_OFFSET} mm`);
+    setTxt("mcDistRings",      M.DISTANZRINGE.slice().sort((a,b)=>a-b).map(r => String(r).replace(".", ",")).join(" / ") + " mm");
+    setShow("mcMrCenterRow",   isEuro);
+    setTxt("mcMrCenter",       `±${M.MR_CENTER_OFFSET_STD} mm Standard · ±${M.MR_CENTER_OFFSET_TRICK} mm mit Distanzhülsen-Trick`);
+
+    // SE-Sortiment-Box
+    const std = (M.SE_SORTIMENT && M.SE_SORTIMENT.find(s => s.id === "standard")) || {};
+    const buchse = (M.SE_SORTIMENT && M.SE_SORTIMENT.find(s => s.id === "schneidebuchse"));
+    setTxt("seSortimentHead",  `Schneideeinheit${isEuro ? "-Sortiment" : ""}`);
+    setTxt("seGesamtLen",      `${std.length || M.SCHNEIDEEINHEIT} mm`);
+    setTxt("seSchnitt",        `${std.cutEdgeFromLeft || M.SCHNITT_OFFSET} mm v. l. (asymmetrisch)`);
+    setShow("seCompositionRow", !!std.composition);
+    setTxt("seComposition",    std.composition || "");
+    setShow("seBuchseRow",     !!buchse);
+    if (buchse) setTxt("seBuchse", `${buchse.length} mm · ${buchse.cuts} Schnitte alle ${buchse.cutSpacing} mm (Multi-Cut)`);
+    setTxt("seCadBtnSub",      isEuro
+      ? "Standard-SE · Schneidekante 11 mm v. links · Ø 90/105"
+      : "Schneidring · Nutmesser · DIN ISO 128 Werkstattzeichnung");
+  }
+
+  // Wird vom setActiveMachine() aufgerufen (forward-declared via Function-Ref)
+  function onMachineChanged() {
+    updateMachineToggleUI();
+    updateMachineInfoUI();
+    if (typeof calc === "function") calc();
+    if (typeof renderClusterJobs === "function") renderClusterJobs();
+    toast(`Maschine: ${getMachine().label}`);
+  }
+  machineBtns.forEach(b => {
+    b.addEventListener("click", () => {
+      const id = b.dataset.machine;
+      if (id === activeMachineId) return;
+      setActiveMachine(id);
+    });
+  });
+  // Initial-State aus localStorage spiegeln (Toggle + Info-Box)
+  updateMachineToggleUI();
+  updateMachineInfoUI();
+
   // ---------- reset ----------
   els.resetBtn.addEventListener("click", () => {
     [els.flaeche, els.schmal, els.lfm, els.mutter].forEach(el => el.value = "");
@@ -8434,7 +8624,7 @@ footer.footer {
     parsedOrders.forEach((o, idx) => {
       const mr = parseFloat((o.mr || "").replace(",", ".")) || 0;
       const haupt = parseFloat((o.haupt || "").replace(",", ".")) || 0;
-      if (mr > 0 && haupt >= DCM.SCHNEIDEEINHEIT) {
+      if (mr > 0 && haupt >= getMachine().SCHNEIDEEINHEIT) {
         valid.push({ ...o, _idx: idx, _mr: mr, _haupt: haupt });
       }
     });
