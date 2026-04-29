@@ -4234,7 +4234,7 @@ footer.footer {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.38 · DCM/Euromac-Toggle · zentriertes Layout · offline-fähig</div>
+    <div>v1.39 · DCM/Euromac · Schneidebuchse-Hinweis · Teleskop-Regel · offline-fähig</div>
   </footer>
 </div>
 
@@ -7422,6 +7422,41 @@ footer.footer {
     // Geschwindigkeit über Maschinen-Maximum
     if (out.speed && out.speed > M_warn.MAX_SPEED_MMIN) {
       add("danger", `Geschwindigkeit ${nf0.format(out.speed)} m/min über ${M_warn.label}-Limit (max ${M_warn.MAX_SPEED_MMIN} m/min).`);
+    }
+
+    // Schneidebuchse-Vorschlag (Euromac · 5mm-Schmalrollen mit ≥5 Stück)
+    // Eine Schneidebuchse 30 mm spart gegenüber N×Standard-SE+Distanzring deutlich Welle-Platz.
+    // Ersparnis-Schätzung: pro 6 Streifen à 5mm → 90 mm Welle-Platz + 6 Distanzringe.
+    if (activeMachineId === "EUROMAC" && out.schmal === 5 && out.nutzen >= 5) {
+      const buchsen = Math.floor(out.nutzen / 6);
+      const restCuts = out.nutzen % 6;
+      const ersparnis = buchsen * 90; // grobe Schätzung
+      if (buchsen >= 1) {
+        add("good",
+          `<strong>💡 Schneidebuchse einsetzbar:</strong> ${buchsen}× Multi-Cut-Buchse (30 mm · 6 Schnitte alle 5 mm)` +
+          (restCuts > 0 ? ` + ${restCuts} Standard-SE` : "") +
+          ` statt ${out.nutzen + 1}× Standard-SE → ca. <strong>${ersparnis} mm Welle-Platz gespart</strong>` +
+          ` und weniger Distanzringe zu rüsten.`);
+      }
+    }
+
+    // Teleskop-Risiko (Werker-Regel · maschinen-übergreifend)
+    // Schmal-Schwelle: alles < 50 mm = teleskopier-empfindlich → mittig packen, breite außen
+    const teleSchwelle = OPERATOR_RULES.teleskopThresholdMm;
+    const breitenAlle = [out.schmal, ...(out.nebenSlots || []).map(s => s.breite)].filter(b => b > 0);
+    if (breitenAlle.length > 0) {
+      const allSchmal = breitenAlle.every(b => b < teleSchwelle);
+      const hatBreit  = breitenAlle.some(b => b >= teleSchwelle);
+      const hatSchmal = breitenAlle.some(b => b < teleSchwelle);
+      if (allSchmal && out.nutzen >= 3) {
+        add("warn",
+          `<strong>⚠ Teleskop-Risiko:</strong> alle Rollen unter ${teleSchwelle} mm — Außenrollen können beim Wickeln teleskopieren. ` +
+          `Werker-Regel "schmal mittig, breit außen" greift hier nicht (kein breiter Trag-Schutz möglich) — Wickel-Spannung & Hülsen-Klemmung sorgfältig prüfen.`);
+      } else if (hatBreit && hatSchmal && out.schmal < teleSchwelle) {
+        add("good",
+          `<strong>💡 Teleskop-Tipp:</strong> beim Bestücken die schmalen Rollen (< ${teleSchwelle} mm) in die Mitte, breite (≥ ${teleSchwelle} mm) nach außen — ` +
+          `verhindert Teleskopieren beim Wickeln (Werker-Regel).`);
+      }
     }
 
     // === Drei spezifische Lean-Diagnose-Schwellen ===
