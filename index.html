@@ -4479,7 +4479,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.52 · BETA · offline-fähig</div>
+    <div>v1.53 · BETA · Schneidbuchse aktiv · offline-fähig</div>
   </footer>
 </div>
 
@@ -5714,18 +5714,30 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (seg.kind === "schneid" || seg.kind === "neben") {
         const cutX = xAt(cur + M.SCHNITT_OFFSET);
         const cutMm = cur + M.SCHNITT_OFFSET;
-        // Position-Label rotiert
         svgW(g, "text", { x: cutX, y: knifeY - 2, "text-anchor": "end",
           fill: "rgba(220,220,220,0.85)", "font-size": "8.5", "font-weight": "600",
           "font-family": "ui-monospace, SF Mono, monospace",
           transform: `rotate(-65 ${cutX} ${knifeY - 2})` }, fmtW0(cutMm));
-        // Triangle Schnittkante-Marker
         svgW(g, "path", { d: `M${cutX} ${knifeY+10} L${cutX-4} ${knifeY+2} L${cutX+4} ${knifeY+2} Z`,
           fill: seg.kind === "neben" ? "var(--warn-color)" : "var(--accent-primary)", opacity: "0.95" });
-        // Guide-Linie nach unten in die Bar
         svgW(g, "line", { x1: cutX, y1: knifeY + 10, x2: cutX, y2: barTop,
           stroke: seg.kind === "neben" ? "var(--warn-color)" : "var(--accent-primary)",
           "stroke-width": "1", opacity: "0.4", "stroke-dasharray": "2 3" });
+      } else if (seg.kind === "buchse" && Array.isArray(seg.cuts)) {
+        // Pro aktivem Cutter in der Buchse einen Marker (akzent-cyan, abgesetzt von Standard)
+        const cyanCol = "#00d4ff";
+        for (const relPos of seg.cuts) {
+          const cutX = xAt(cur + relPos);
+          const cutMm = cur + relPos;
+          svgW(g, "text", { x: cutX, y: knifeY - 2, "text-anchor": "end",
+            fill: "rgba(0,212,255,0.95)", "font-size": "8.5", "font-weight": "600",
+            "font-family": "ui-monospace, SF Mono, monospace",
+            transform: `rotate(-65 ${cutX} ${knifeY - 2})` }, fmtW0(cutMm));
+          svgW(g, "path", { d: `M${cutX} ${knifeY+10} L${cutX-4} ${knifeY+2} L${cutX+4} ${knifeY+2} Z`,
+            fill: cyanCol, opacity: "0.95" });
+          svgW(g, "line", { x1: cutX, y1: knifeY + 10, x2: cutX, y2: barTop,
+            stroke: cyanCol, "stroke-width": "1", opacity: "0.5", "stroke-dasharray": "2 3" });
+        }
       }
       cur += seg.breite;
     }
@@ -5770,26 +5782,56 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const ringFill = isNeben ? "url(#gNeben)" : "url(#gSchneid)";
         const ringStroke = isNeben ? "rgba(255,180,0,0.7)" : "rgba(255,94,87,0.7)";
         const halfW = w / 2;
-        // Schneidring (10 mm)
         svgW(g, "rect", { x: x + 0.3, y: barTop + 4, width: Math.max(0, halfW - 0.3), height: barH - 8, rx: 2,
           fill: ringFill, stroke: ringStroke, "stroke-width": "0.7" });
-        // Nutmesser (10 mm) — gelb
         const nutFill = isNeben ? "#ffe082" : "#ffd54f";
         const nutStroke = isNeben ? "#ffeaa3" : "#ffe066";
         svgW(g, "rect", { x: x + halfW, y: barTop + 4, width: Math.max(0, halfW - 0.3), height: barH - 8, rx: 2,
           fill: nutFill, stroke: nutStroke, "stroke-width": "0.6" });
-        // Trennstrich
         svgW(g, "line", { x1: x + halfW, y1: barTop + 4, x2: x + halfW, y2: barTop + barH - 4,
           stroke: "rgba(0,0,0,0.6)", "stroke-width": "0.8" });
-        // Zwischensteg im Nutmesser (3 mm)
         const stegW = (3 / M.SCHNEIDEEINHEIT) * w;
         svgW(g, "rect", { x: x + halfW, y: barTop + 4 + (barH - 8) * 0.3,
           width: stegW, height: (barH - 8) * 0.4,
           fill: "rgba(0,0,0,0.18)" });
-        // Schnittkante v.l. (weiße Linie) — DCM 13 / Euromac 11
         const cutOffsetPx = (M.SCHNITT_OFFSET / M.SCHNEIDEEINHEIT) * w;
         svgW(g, "line", { x1: x + cutOffsetPx, y1: barTop + 2, x2: x + cutOffsetPx, y2: barTop + barH - 2,
           stroke: "white", "stroke-width": "0.9", opacity: "0.85" });
+      } else if (seg.kind === "buchse") {
+        // Schneidbuchse · Multi-Cut-Block (30 mm) · Cutter-Ticks alle 5 mm
+        // Visuell abgesetzt von Standard-SE: cyan-Akzent + dunkle Stahl-Optik
+        const cyanCol = "#00d4ff";
+        // Body — abgesetzte Stahl-Look mit cyan-Rand
+        svgW(g, "rect", { x: x + 0.5, y: barTop + 2, width: Math.max(0, w - 1), height: barH - 4, rx: 3,
+          fill: "url(#gWelleBody)", stroke: cyanCol, "stroke-width": "1.4" });
+        // Top-Highlight (metallisch)
+        svgW(g, "rect", { x: x + 0.5, y: barTop + 2, width: Math.max(0, w - 1), height: (barH - 4) * 0.18, rx: 3,
+          fill: "url(#gWelleHi)" });
+        // Cutter-Ticks alle 5mm im Buchsen-Body
+        const cutsArr = Array.isArray(seg.cuts) ? seg.cuts : [];
+        const allPositions = [2.5, 7.5, 12.5, 17.5, 22.5, 27.5];
+        const activeSet = new Set(cutsArr.map(c => Math.round(c * 10) / 10));
+        for (const relPos of allPositions) {
+          const tickX = x + (relPos / seg.breite) * w;
+          const isActive = [...activeSet].some(a => Math.abs(a - relPos) < 0.5);
+          // Vertikale Linie pro Cutter-Position
+          svgW(g, "line", { x1: tickX, y1: barTop + 4, x2: tickX, y2: barTop + barH - 4,
+            stroke: isActive ? cyanCol : "rgba(0,212,255,0.30)",
+            "stroke-width": isActive ? "1.6" : "0.8",
+            "stroke-dasharray": isActive ? "" : "2 2" });
+          // Mini-Cutter-Pfeil oben (nur aktive)
+          if (isActive) {
+            svgW(g, "path", { d: `M${tickX} ${barTop + 4} L${tickX-2.5} ${barTop} L${tickX+2.5} ${barTop} Z`,
+              fill: cyanCol });
+          }
+        }
+        // Label "BUCHSE 6×5" im Body wenn Platz
+        if (w > 60) {
+          svgW(g, "text", { x: x + w/2, y: barTop + barH - 8, "text-anchor": "middle",
+            fill: cyanCol, "font-size": "9", "font-weight": "700",
+            "font-family": "ui-monospace, SF Mono, monospace",
+            "letter-spacing": "0.08em" }, `BUCHSE · ${cutsArr.length}/6 aktiv`);
+        }
       }
       cur += seg.breite;
     }
@@ -6877,16 +6919,68 @@ audio.team-player-audio::-webkit-media-controls-panel {
       }
     }
 
-    if (conflicts.length > 0) {
+    // ===== Schneidbuchse-Resolver fuer Cut-Konflikte =====
+    // Wenn aktive Maschine eine Schneidbuchse im Sortiment hat (Euromac): pruefe
+    // ob konfliktaere Cut-Positionen sich in einem Buchsen-Block (30 mm) auf
+    // 5 mm-Raster zusammenfassen lassen. Dann ersetzt 1x Buchse die N×SEs.
+    // Standard-SE bleibt Default — Buchse nur bei Konflikt-Auflösung.
+    const M_master = getMachine();
+    const buchseSpec = (M_master.SE_SORTIMENT || []).find(s => s.id === "schneidebuchse");
+    let buchsenBlocks = []; // [{ start, end, cuts: [absPos,...] }]
+    let unresolvedConflicts = conflicts;
+
+    if (buchseSpec && conflicts.length > 0) {
+      // Sammle alle Cut-Positionen die in mindestens einem Konflikt vorkommen
+      const conflictCuts = new Set();
+      for (const c of conflicts) { conflictCuts.add(c.posA); conflictCuts.add(c.posB); }
+      const conflictCutsSorted = [...conflictCuts].sort((a, b) => a - b);
+      // Greedy-Cluster: jeder neue Cut der > buchseSpec.length vom Cluster-Start entfernt → eigener Cluster
+      const clusters = [];
+      let cur = null;
+      for (const pos of conflictCutsSorted) {
+        if (!cur || pos - cur[0] > buchseSpec.length - 0.001) {
+          cur = [pos];
+          clusters.push(cur);
+        } else cur.push(pos);
+      }
+      // Pro Cluster: pruefe 5mm-Raster + Buchsen-Geometrie
+      const resolved = [];
+      const failedClusters = [];
+      for (const cluster of clusters) {
+        if (cluster.length < 2) continue;
+        const baseLine = cluster[0];
+        const onRaster = cluster.every(p => {
+          const offset = p - baseLine;
+          const k = Math.round(offset / buchseSpec.cutSpacing);
+          return Math.abs(offset - k * buchseSpec.cutSpacing) < 0.5;
+        });
+        if (!onRaster) { failedClusters.push(cluster); continue; }
+        // Buchsen-Position: erste cutPosition (=2.5mm) auf baseLine ausrichten
+        const buchseStart = baseLine - buchseSpec.cutPositions[0];
+        const buchseEnd = buchseStart + buchseSpec.length;
+        const lastCut = cluster[cluster.length - 1];
+        if (lastCut > buchseEnd + 0.001) { failedClusters.push(cluster); continue; }
+        resolved.push({ start: buchseStart, end: buchseEnd, cuts: cluster.slice() });
+      }
+      if (resolved.length > 0 && failedClusters.length === 0) {
+        // Alle Konflikte loesbar → Buchsen einsetzen
+        const resolvedSet = new Set(resolved.flatMap(b => b.cuts));
+        unresolvedConflicts = conflicts.filter(c => !(resolvedSet.has(c.posA) && resolvedSet.has(c.posB)));
+        buchsenBlocks = resolved;
+      }
+    }
+
+    if (unresolvedConflicts.length > 0) {
       // STRICT MODE: nicht deckungsgleich → Master physisch unmöglich
-      const conflictTxt = conflicts.slice(0, 4).map(c =>
+      const conflictTxt = unresolvedConflicts.slice(0, 4).map(c =>
         `A${c.jobA + 1}@${c.posA.toFixed(0)}mm ↔ A${c.jobB + 1}@${c.posB.toFixed(0)}mm (Abstand ${c.distance.toFixed(1)}mm)`
-      ).join(", ") + (conflicts.length > 4 ? ` ... +${conflicts.length - 4} weitere` : "");
+      ).join(", ") + (unresolvedConflicts.length > 4 ? ` ... +${unresolvedConflicts.length - 4} weitere` : "");
       return {
         ok: false,
-        error: `${conflicts.length} Cut-Position${conflicts.length > 1 ? "en" : ""} nicht deckungsgleich — beide SEs (je 20 mm) würden physisch überlappen.`,
+        error: `${unresolvedConflicts.length} Cut-Position${unresolvedConflicts.length > 1 ? "en" : ""} nicht deckungsgleich — beide SEs würden physisch überlappen` +
+               (buchseSpec ? " (auch Schneidbuchse-Resolver konnte sie nicht aufloesen — kein 5 mm-Raster oder >30 mm Spannweite)." : "."),
         conflictDetails: conflictTxt,
-        conflicts,
+        conflicts: unresolvedConflicts,
         validJobs
       };
     }
@@ -6916,19 +7010,55 @@ audio.team-player-audio::-webkit-media-controls-panel {
       j.cuts = masterCutsForJob.sort((a, b) => a - b);
     }
 
-    // Inner-Layout: SE pro Cut + Distanzring zwischen
+    // Inner-Layout: Buchse pro buchsen-Block, SE pro Standard-Cut, Distanzring zwischen
+    // Buchse-Welle-Range = [start, end], Standard-SE-Welle-Range = [cut - SCHNITT, cut - SCHNITT + SE]
+    const cutToBuchse = new Map();
+    for (const bb of buchsenBlocks) for (const c of bb.cuts) cutToBuchse.set(c, bb);
     const innerSegs = [];
+    let prevEnd = null;
+    let firstStart = null;
+    let buchseSeq = 0, seSeq = 0;
+    const buchsenPushed = new Set();
+    const SE_M = getMachine().SCHNEIDEEINHEIT;
+    const SCHNITT_M = getMachine().SCHNITT_OFFSET;
     for (let i = 0; i < allCuts.length; i++) {
-      if (i > 0) {
-        const dist = (allCuts[i] - allCuts[i - 1]) - getMachine().SCHNEIDEEINHEIT;
-        if (dist > 0.001) innerSegs.push({ kind: "distanz", breite: dist, name: `Distanzring Master ${i}`, short: "D" });
+      const cutPos = allCuts[i];
+      // Welle-Range des Bauteils das diesen Cut traegt
+      let wStart, wEnd, segPush;
+      const bb = cutToBuchse.get(cutPos);
+      if (bb) {
+        if (buchsenPushed.has(bb)) continue;
+        buchsenPushed.add(bb);
+        wStart = bb.start;
+        wEnd = bb.end;
+        buchseSeq++;
+        segPush = {
+          kind: "buchse",
+          breite: wEnd - wStart,
+          name: `Schneidbuchse Master ${buchseSeq} · ${bb.cuts.length} aktive Cuts`,
+          short: "BU",
+          cuts: bb.cuts.map(c => c - bb.start) // relative Cutter-Positionen
+        };
+      } else {
+        wStart = cutPos - SCHNITT_M;
+        wEnd = wStart + SE_M;
+        seSeq++;
+        segPush = { kind: "schneid", breite: SE_M, name: `SE Master ${seSeq}`, short: "SE" };
       }
-      innerSegs.push({ kind: "schneid", breite: getMachine().SCHNEIDEEINHEIT, name: `SE Master ${i + 1}`, short: "SE" });
+      // Distanzring vor diesem Bauteil
+      if (prevEnd != null) {
+        const dist = wStart - prevEnd;
+        if (dist > 0.001) innerSegs.push({ kind: "distanz", breite: dist, name: `Distanzring Master`, short: "D" });
+      } else {
+        firstStart = wStart;
+      }
+      innerSegs.push(segPush);
+      prevEnd = wEnd;
     }
     const innerLen = innerSegs.reduce((s, x) => s + x.breite, 0);
 
-    const firstSeStart = allCuts[0] - getMachine().SCHNITT_OFFSET;
-    const lastSeEnd = (allCuts[allCuts.length - 1] - getMachine().SCHNITT_OFFSET) + getMachine().SCHNEIDEEINHEIT;
+    const firstSeStart = firstStart;
+    const lastSeEnd = prevEnd;
     const restL = firstSeStart - getMachine().PARK_TOTAL;
     const restR = (getMachine().PARK_TOTAL + getMachine().BESTUECKUNGS_BREITE) - lastSeEnd;
 
@@ -6946,10 +7076,20 @@ audio.team-player-audio::-webkit-media-controls-panel {
     for (let i = 0; i < getMachine().PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: getMachine().PARK_RING, name: "Park-R", short: "P" });
 
     // Hol-Liste (Master)
-    const holliste = [
-      { name: "Schneideeinheit", spec: "20 mm (Master)", anz: allCuts.length },
-      { name: "Parkplatz-Ring", spec: "59 mm", anz: getMachine().PARK_PRO_SEITE * 2 }
-    ];
+    const buchseCount = innerSegs.filter(s => s.kind === "buchse").length;
+    const seCount = innerSegs.filter(s => s.kind === "schneid").length;
+    const holliste = [];
+    if (seCount > 0) holliste.push({ name: "Schneideeinheit", spec: `${SE_M} mm (Master)`, anz: seCount });
+    if (buchseCount > 0 && buchseSpec) {
+      holliste.push({
+        name: "Schneidbuchse",
+        spec: `${buchseSpec.length} mm · ${buchseSpec.cuts}-Cut Multi-Position (loest Cluster-Konflikt)`,
+        anz: buchseCount
+      });
+    }
+    if (getMachine().PARK_PRO_SEITE > 0) {
+      holliste.push({ name: "Parkplatz-Ring", spec: `${getMachine().PARK_RING} mm`, anz: getMachine().PARK_PRO_SEITE * 2 });
+    }
     const distMap = {};
     for (const seg of innerSegs) {
       if (seg.kind === "distanz" && seg.breite > 0) {
@@ -6968,6 +7108,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
       validJobs,
       cuts: allCuts,
       mergedCount,
+      buchsenBlocks,        // fuer Render: Visualisierung der Buchsen-Bloecke
+      buchseSpec,
       innerLen,
       restL, restR,
       layoutLR, innerSegs, holliste
