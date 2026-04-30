@@ -4296,7 +4296,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <div class="se-cad-modal-bg" id="seCadModalBg"></div>
         <div class="se-cad-modal-content">
           <div class="se-cad-modal-head">
-            <h3>Schneideeinheit · CAD-Detail · DIN ISO 128 · Maßstab 5:1</h3>
+            <h3>DCM-Schneideeinheit · CAD-Detail · DIN ISO 128 · Maßstab 5:1</h3>
             <button type="button" class="se-cad-close" id="seCadCloseBtn" aria-label="Schließen" tabindex="-1">×</button>
           </div>
           <svg id="seCadSvg" viewBox="0 0 1500 920" preserveAspectRatio="xMidYMid meet" aria-label="Schneideeinheit CAD-Detail Voll-Zeichnung"></svg>
@@ -4352,7 +4352,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.43 · BETA · offline-fähig</div>
+    <div>v1.44 · BETA · offline-fähig</div>
   </footer>
 </div>
 
@@ -8310,9 +8310,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
     setTxt("seComposition",    std.composition || "");
     setShow("seBuchseRow",     !!buchse);
     if (buchse) setTxt("seBuchse", `${buchse.length} mm · ${buchse.cuts} Schnitte alle ${buchse.cutSpacing} mm (Multi-Cut)`);
-    setTxt("seCadBtnSub",      isEuro
-      ? "Hinweis: CAD-Detail zeigt DCM-SE — Euromac-SE-CAD folgt"
-      : "Schneidring · Nutmesser · DIN ISO 128 Werkstattzeichnung");
+    setTxt("seCadBtnSub", "Schneidring · Nutmesser · DIN ISO 128 Werkstattzeichnung");
+    // CAD-Detail-Button bei Euromac komplett ausblenden — Geometrie ist DCM-spezifisch,
+    // Verwechslungsgefahr bei Euromac (andere SE-Aufbau: Distanzhülse + Messerscheibe + Gegenstück)
+    const cadBtnEl = $("seCadOpenBtn");
+    if (cadBtnEl) cadBtnEl.style.display = isEuro ? "none" : "";
 
     // Welle-Head-Label (gut sichtbar VOR der bestückten Welle)
     setTxt("welleHeadMachine",
