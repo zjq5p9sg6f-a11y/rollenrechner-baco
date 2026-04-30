@@ -4352,7 +4352,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.46 · BETA · offline-fähig</div>
+    <div>v1.47 · BETA · offline-fähig</div>
   </footer>
 </div>
 
@@ -5308,13 +5308,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // Trim-Logic: SE-L und SE-R sind nur nötig wenn echter Trim-Cut existiert.
     // Schwelle = BESAEUMUNG_MIN_SOFT (default 5 mm) — bei Trim < 5 mm entfaellt
     // der Trim-Cut, weil kein Operator wegen 2-3 mm Saeumung eine SE setzt.
-    // (Vorher: TRIM_TOL=0.5 mm war weltfremd; "hasNeben" als haveSeR-Trigger
-    //  war Pre-Werker-Regel-Erbe — bei symmetrischer Werker-Verteilung obsolet.)
+    // INKLUSIV (>=): bei Trim = MIN_SOFT (= 5 mm) wird noch besaeumt.
+    // "Min Soft" = die kleinste Saeumung die noch geschnitten wird, nicht die
+    // Schwelle ab der erst geschnitten wird.
     const TRIM_TOL = M.BESAEUMUNG_MIN_SOFT || 5;
     const trimL = (out.restL != null) ? out.restL : (out.restMM || 0) / 2;
     const trimR = (out.restR != null) ? out.restR : (out.restMM || 0) / 2;
-    const haveSeL = trimL > TRIM_TOL;
-    const haveSeR = trimR > TRIM_TOL;
+    const haveSeL = trimL >= TRIM_TOL;
+    const haveSeR = trimR >= TRIM_TOL;
     const hasNeben = slots.length > 0;
     // Distanzring-Verlängerung wenn randständige SE entfällt (SCHNITT-Versatz im SE)
     const distLExt = haveSeL ? 0 : (SE - SCHNITT);
@@ -8039,31 +8040,33 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const dimColorBesaeumungR = restWarnR ? "var(--danger-color)" : "var(--warn-color)";
     const dimColorNutzen = "var(--accent-primary)";
     const dimColorNeben = "#ffb400";
+    // Bei Werker-Regel-Sortierung sind NTZ und Neben verschachtelt — eine
+    // gemeinsame Bestueckungs-Bemassung statt separater NTZ-/Neben-Blocke.
+    // Block-Ende = cursor (Pos nach allen geordneten Streifen, vor Trim-R).
     const ntzBlockX1 = padX + restLPx;
-    const ntzBlockX2 = padX + restLPx + (nutzen * segW);
-    const restRX1 = hasNeben && nebenGroupRanges.length > 0
-      ? nebenGroupRanges[nebenGroupRanges.length - 1].x2
-      : ntzBlockX2;
+    const ntzBlockX2 = cursor;
+    const restRX1 = ntzBlockX2;
 
+    // Trim-L Bemassung (auch bei kleinen Trims sichtbar via narrow-Branch)
     if (restLPx > 0) {
       dimCallout(g, padX, ntzBlockX1, dimRowY,
         `${nf1.format(restL)} mm`,
         dimColorBesaeumungL,
         { fontSize: 12, labelBg: "var(--bg-base)" });
     }
+    // Streifen-Block: Material-Sum mit Aufteilungs-Detail
+    const nebenSumTxt = (slots && slots.length > 0)
+      ? slots.map(s => `${s.anz}×${nf0.format(s.breite)}`).join(" + ")
+      : "";
+    const stripeTotal = nutzen * schmal + (slots || []).reduce((sum, s) => sum + s.anz * s.breite, 0);
+    const blockLabel = nebenSumTxt
+      ? `${nutzen}×${nf0.format(schmal)} + ${nebenSumTxt} = ${nf0.format(stripeTotal)} mm`
+      : `${nutzen} × ${nf0.format(schmal)} = ${nf0.format(stripeTotal)} mm`;
     dimCallout(g, ntzBlockX1, ntzBlockX2, dimRowY,
-      `${nutzen} × ${nf0.format(schmal)} = ${nf0.format(nutzen * schmal)} mm`,
+      blockLabel,
       dimColorNutzen,
       { fontSize: 13, labelBg: "var(--bg-base)" });
-    // Pro Neben-Gruppe eine eigene Dimension-Callout
-    nebenGroupRanges.forEach(grp => {
-      if (grp.x2 > grp.x1) {
-        dimCallout(g, grp.x1, grp.x2, dimRowY,
-          `${grp.slot.anz} × ${nf0.format(grp.slot.breite)} = ${nf0.format(grp.slot.anz * grp.slot.breite)} mm`,
-          dimColorNeben,
-          { fontSize: 11, labelBg: "var(--bg-base)" });
-      }
-    });
+    // Trim-R Bemassung
     if (restRPx > 0) {
       dimCallout(g, restRX1, W - padX, dimRowY,
         `${nf1.format(restR)} mm`,
