@@ -1295,10 +1295,13 @@ header.bar {
   grid-template-columns: 32px 1fr auto auto;
   gap: 12px;
   align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px dashed rgba(255,255,255,0.06);
+  padding: 9px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.14);
   font-size: 13px;
+  border-radius: 4px;
 }
+.stueck-row:nth-child(even) { background: rgba(255,255,255,0.025); }
+.stueck-row:hover { background: rgba(0,230,118,0.06); }
 .stueck-row:last-child { border-bottom: none; }
 .stueck-nr {
   width: 32px; height: 26px;
@@ -4352,7 +4355,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.47 · BETA · offline-fähig</div>
+    <div>v1.48 · BETA · offline-fähig</div>
   </footer>
 </div>
 
