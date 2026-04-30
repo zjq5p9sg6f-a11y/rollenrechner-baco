@@ -88,7 +88,9 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
-  height: 100%;
+  /* height:100% entfernt v1.50 — bei langem Content (Welle-Section offen,
+     Sequenz, Holliste) blockierte das den Page-Scroll in manchen Browser-
+     Konfigurationen. min-height:100vh auf body genuegt fuer Viewport-Fill. */
   overflow-x: hidden;
 }
 
@@ -4354,7 +4356,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.49 · BETA · offline-fähig</div>
+    <div>v1.50 · BETA · offline-fähig</div>
   </footer>
 </div>
 
