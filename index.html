@@ -4076,14 +4076,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
     <button type="button" class="welle-toggle" id="welleToggle" aria-expanded="false" aria-controls="welleSection" tabindex="-1">
       <span class="welle-toggle-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span>
       <span class="welle-toggle-text">Wellenbestückung anzeigen</span>
-      <span class="welle-toggle-beta">BETA · nur DCM</span>
+      <span class="welle-toggle-beta">BETA</span>
     </button>
     <section class="welle-section" id="welleSection" aria-hidden="true" aria-labelledby="welle-title">
       <div class="welle-head">
         <div class="welle-head-left">
           <div class="welle-title" id="welle-title">
             <span class="panel-title-dot"></span>
-            Bestückte Welle <span class="welle-machine">DCM Untermesserwelle · 1472 mm</span>
+            Bestückte Welle <span class="welle-machine" id="welleHeadMachine">DCM Untermesserwelle · 1472 mm</span>
           </div>
           <div class="welle-sub" id="welleSubtitle">Werte eingeben um Bestückung zu berechnen</div>
         </div>
@@ -4124,7 +4124,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <div class="ph-brand">
           <strong>Ballerstaedt</strong> · Bestückungs-Anweisung
         </div>
-        <div class="ph-machine">DCM Untermesserwelle · 1472 mm · Bestückungsbereich 1000 mm</div>
+        <div class="ph-machine" id="phMachine">DCM Untermesserwelle · 1472 mm · Bestückungsbereich 1000 mm</div>
         <table class="ph-meta-table">
           <tr><td class="ph-lbl">Auftrag</td><td class="ph-val" id="printAuftragNr">—</td>
               <td class="ph-lbl">Datum</td><td class="ph-val" id="printDatum">—</td></tr>
@@ -4136,7 +4136,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
               <td class="ph-lbl">Bemerkung</td><td class="ph-val" id="printBemerkung">—</td></tr>
         </table>
       </div>
-      <svg id="welleSvg" viewBox="0 0 1500 460" preserveAspectRatio="xMidYMid meet" aria-label="Bestückte Welle DCM">
+      <svg id="welleSvg" viewBox="0 0 1500 460" preserveAspectRatio="xMidYMid meet" aria-label="Bestückte Welle">
         <defs>
           <linearGradient id="gWelleBody" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#2a2a2a"/>
@@ -4315,7 +4315,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.40 · DCM/Euromac · Team-Song · offline-fähig</div>
+    <div>v1.41 · BETA · Werker-Regel im Algorithmus · DCM/Euromac · offline-fähig</div>
   </footer>
 </div>
 
@@ -5234,83 +5234,93 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const N = out.nutzen;
     const SE = M.SCHNEIDEEINHEIT;
     const SCHNITT = M.SCHNITT_OFFSET; // asymmetrische Schnittkante v.l. (DCM 13 / Euromac 11)
-    const distHaupt = haupt - SE;
     const innerSegs = [];
 
     // Trim-Logic: SE-L und SE-R sind nur nötig wenn echter Trim-Cut existiert.
     // Bei Rest=0 (perfekt-aufgeteilt) entfallen die Außen-SEs — der Operator montiert dort nichts.
-    // restL/restR kommen aus Asym-Mode oder Default symmetrisch (restMM/2).
     const TRIM_TOL = 0.5;
     const trimL = (out.restL != null) ? out.restL : (out.restMM || 0) / 2;
     const trimR = (out.restR != null) ? out.restR : (out.restMM || 0) / 2;
     const haveSeL = trimL > TRIM_TOL;
     const hasNeben = slots.length > 0;
-    // SE-R immer wenn Neben kommt (Übergang) oder Trim-R > 0
-    // Bei Hetero ohne Trim-R: letzte Neben-SE wird zur SE-Besäumung-R-Position
     const haveSeR = hasNeben || trimR > TRIM_TOL;
-    // Verlängerung des ersten/letzten Distanzrings wenn die randständige SE entfällt:
-    // SE-Mitte sitzt 13mm vom SE-Linkrand → ohne SE-L verschiebt sich der Distanzring-Anfang
-    // um (SE - SCHNITT) = 7mm nach links (mehr Platz vor der ersten Innen-SE).
-    const distLExt = haveSeL ? 0 : (SE - SCHNITT); // = 0 oder 7mm
+    // Distanzring-Verlängerung wenn randständige SE entfällt (SCHNITT-Versatz im SE)
+    const distLExt = haveSeL ? 0 : (SE - SCHNITT);
     const distRExt = haveSeR ? 0 : (SE - SCHNITT);
 
-    // SE-L conditional
+    // ===== Werker-Regel: Streifen sortieren · breit aussen, schmal mittig =====
+    // Anti-Teleskop: schmale Rollen rollen am Aussenrand instabil, brauchen
+    // breitere Nachbarn als seitlichen Halt. Daher Auflösung: alle Streifen
+    // (Haupt + Neben) in eine flache Liste, absteigend nach Breite sortieren,
+    // zickzack-verteilen — breitester ganz aussen, naechster auf der anderen
+    // Seite, ... schmalster landet automatisch in der Mitte.
+    const stripes = [];
+    for (let i = 0; i < N; i++) stripes.push({ breite: haupt, kind: "haupt" });
+    for (const slot of slots) {
+      for (let i = 0; i < slot.anz; i++) {
+        stripes.push({ breite: slot.breite, kind: "neben", slotIdx: slot.slotIdx, anzIdx: i + 1, anzTotal: slot.anz });
+      }
+    }
+    // Aktivierung der Werker-Regel: nur sinnvoll wenn mind. zwei verschiedene Breiten
+    // UND mind. eine Breite >= teleskopThresholdMm (sonst sind alle gleich klein)
+    const uniqueBreiten = [...new Set(stripes.map(s => s.breite))];
+    const teleSchwelle = OPERATOR_RULES.teleskopThresholdMm;
+    const werkerRegelAktiv = (uniqueBreiten.length >= 2)
+      && stripes.some(s => s.breite >= teleSchwelle);
+
+    let ordered;
+    if (werkerRegelAktiv) {
+      // Absteigend sortieren (breit zuerst), zickzack platzieren: 0 nach links,
+      // 1 nach rechts, 2 nach links, ... → breit aussen, schmal mittig
+      const sortedDesc = stripes.slice().sort((a, b) => b.breite - a.breite);
+      ordered = new Array(stripes.length);
+      let lI = 0, rI = stripes.length - 1, side = "L";
+      for (const s of sortedDesc) {
+        if (side === "L") { ordered[lI++] = s; side = "R"; }
+        else              { ordered[rI--] = s; side = "L"; }
+      }
+    } else {
+      // Standard-Reihenfolge (Haupt zuerst, dann Neben in Eingabe-Reihenfolge)
+      ordered = stripes;
+    }
+
+    // ===== innerSegs aus geordneter Streifen-Liste aufbauen =====
+    // Pattern: [SE-L?] · D₁ SE D₂ SE … SE Dₙ [SE-R?]
     if (haveSeL) {
       innerSegs.push({ kind: "schneid", breite: SE, name: "Schneideeinheit Besäumung-L", short: "SE-L" });
     }
-    // N Haupt-Cuts
-    for (let i = 0; i < N; i++) {
-      const isFirstHaupt = (i === 0);
-      // Erster Distanzring um distLExt verlängern (wenn keine SE-L davor)
-      const distBreite = distHaupt + (isFirstHaupt ? distLExt : 0);
+    for (let i = 0; i < ordered.length; i++) {
+      const s = ordered[i];
+      const isFirst = (i === 0);
+      const isLast  = (i === ordered.length - 1);
+      // Distanzring vor dem aktuellen SE: Streifen-Breite − SE
+      const distBase = s.breite - SE;
+      const distBreite = distBase + (isFirst ? distLExt : 0);
       if (distBreite > 0.001) {
-        innerSegs.push({ kind: "distanz", breite: distBreite, name: "Distanzring Hauptschnitt", short: "D" });
-      }
-      const isLastHaupt = (i === N - 1);
-      // SE nach dieser Schmalrolle:
-      // - immer wenn nicht-letzte Haupt-Schmalrolle
-      // - bei letzter: nur wenn weitere Cuts kommen (Neben oder SE-R)
-      let needSE = !isLastHaupt;
-      if (isLastHaupt) {
-        if (hasNeben) needSE = true;
-        else if (haveSeR) needSE = true;
-      }
-      if (needSE) {
         innerSegs.push({
-          kind: "schneid",
-          breite: SE,
-          name: isLastHaupt ? (hasNeben ? "SE Haupt/Neben-Übergang" : "SE Besäumung-R") : "Schneideeinheit innen",
-          short: "SE"
+          kind: "distanz",
+          breite: distBreite,
+          name: s.kind === "haupt" ? "Distanzring Hauptschnitt" : `Distanzring Neben N${s.slotIdx}`,
+          short: s.kind === "haupt" ? "D" : "Dn"
         });
-      } else if (isLastHaupt && !hasNeben && !haveSeR) {
-        // Letzte Haupt ohne SE-R: vorigen Distanzring um distRExt verlängern
+      }
+      // SE nach diesem Streifen: immer ausser bei Letzter ohne haveSeR
+      const needSE = isLast ? haveSeR : true;
+      if (needSE) {
+        const seName = s.kind === "haupt"
+          ? (isLast ? (hasNeben ? "SE Übergang" : "SE Besäumung-R") : "Schneideeinheit innen")
+          : (isLast ? "Schneideeinheit Besäumung-R (Neben)" : `Schneideeinheit Neben N${s.slotIdx}-${s.anzIdx}/${s.anzTotal}`);
+        innerSegs.push({
+          kind: s.kind === "haupt" ? "schneid" : "neben",
+          slotIdx: s.slotIdx,
+          breite: SE,
+          name: seName,
+          short: s.kind === "haupt" ? "SE" : "SE-N"
+        });
+      } else {
+        // Letzter Streifen ohne SE-R: Distanzring um distRExt verlängern
         const lastSeg = innerSegs[innerSegs.length - 1];
         if (lastSeg && lastSeg.kind === "distanz") lastSeg.breite += distRExt;
-      }
-    }
-    // Neben-Slots am rechten Rand
-    for (const slot of slots) {
-      const distNeben = slot.breite - SE;
-      for (let n = 0; n < slot.anz; n++) {
-        if (distNeben > 0.001)
-          innerSegs.push({ kind: "distanz", breite: distNeben, name: `Distanzring Neben N${slot.slotIdx} ${n+1}/${slot.anz}`, short: "Dn" });
-        const isLastNeben = (slot === slots[slots.length-1] && n === slot.anz - 1);
-        // Letzte Neben-SE entfällt wenn !haveSeR (= Trim-R=0)
-        let needNebenSE = true;
-        if (isLastNeben && !haveSeR) needNebenSE = false;
-        if (needNebenSE) {
-          innerSegs.push({
-            kind: "neben",
-            slotIdx: slot.slotIdx,
-            breite: SE,
-            name: isLastNeben ? "Schneideeinheit Besäumung-R (Neben)" : `Schneideeinheit Neben N${slot.slotIdx}-${n+1}`,
-            short: "SE-N"
-          });
-        } else if (isLastNeben) {
-          // Letzten Distanzring um distRExt verlängern
-          const lastSeg = innerSegs[innerSegs.length - 1];
-          if (lastSeg && lastSeg.kind === "distanz") lastSeg.breite += distRExt;
-        }
       }
     }
 
@@ -8306,8 +8316,20 @@ audio.team-player-audio::-webkit-media-controls-panel {
     setShow("seBuchseRow",     !!buchse);
     if (buchse) setTxt("seBuchse", `${buchse.length} mm · ${buchse.cuts} Schnitte alle ${buchse.cutSpacing} mm (Multi-Cut)`);
     setTxt("seCadBtnSub",      isEuro
-      ? "Standard-SE · Schneidekante 11 mm v. links · Ø 90/105"
+      ? "Hinweis: CAD-Detail zeigt DCM-SE — Euromac-SE-CAD folgt"
       : "Schneidring · Nutmesser · DIN ISO 128 Werkstattzeichnung");
+
+    // Welle-Head-Label (gut sichtbar VOR der bestückten Welle)
+    setTxt("welleHeadMachine",
+      isEuro
+        ? `Euromac · ${M.WELLE} mm Bestückung (zentriert)`
+        : `DCM Untermesserwelle · ${M.WELLE} mm`);
+
+    // Print-Header (für Druck-Output, daher exakte Maschinen-Spec)
+    setTxt("phMachine",
+      isEuro
+        ? `Euromac · ${M.WELLE} mm Bestückungsbreite (zentriert ±${M.WELLE/2}) · Park-Plätze baulich`
+        : `DCM Untermesserwelle · ${M.WELLE} mm · Bestückungsbereich ${M.BESTUECKUNGS_BREITE} mm`);
   }
 
   // Wird vom setActiveMachine() aufgerufen (forward-declared via Function-Ref)
