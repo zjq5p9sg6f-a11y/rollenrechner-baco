@@ -323,18 +323,42 @@ header.bar {
 .icon-btn:active { transform: scale(0.95); }
 .icon-btn svg { width: 20px; height: 20px; }
 
+/* Maschinen-Bar (prominent, vor Mutterrollen-Aufteilung) */
+.machine-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  margin-top: var(--s-3);
+  border: 1px solid rgba(0,230,118,0.22);
+  border-radius: var(--r-3);
+  background: linear-gradient(135deg, rgba(0,230,118,0.04) 0%, rgba(0,230,118,0.02) 100%);
+}
+.machine-bar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent-primary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.machine-bar-label svg { width: 16px; height: 16px; }
+
 /* Maschinen-Toggle (Segmented-Control) */
 .machine-toggle {
   display: inline-flex;
   border-radius: var(--r-2);
   border: 1px solid var(--border);
   background: var(--bg-card);
-  padding: 3px;
-  gap: 2px;
+  padding: 4px;
+  gap: 3px;
+  flex: 1;
 }
 .machine-btn {
-  padding: 6px 14px;
-  border-radius: calc(var(--r-2) - 3px);
+  padding: 10px 18px;
+  border-radius: calc(var(--r-2) - 4px);
   border: 0;
   background: transparent;
   color: var(--text-secondary, #b0b0b0);
@@ -342,22 +366,83 @@ header.bar {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  line-height: 1.1;
+  line-height: 1.15;
   transition: all var(--t-fast) var(--ease-out-expo);
   font-family: inherit;
+  flex: 1;
 }
-.machine-btn-label { font-size: 13px; font-weight: 600; letter-spacing: 0.02em; }
-.machine-btn-sub   { font-size: 10px; opacity: 0.65; margin-top: 1px; }
+.machine-btn-label { font-size: 14px; font-weight: 700; letter-spacing: 0.02em; }
+.machine-btn-sub   { font-size: 11px; opacity: 0.7; margin-top: 2px; font-weight: 500; }
 .machine-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
 .machine-btn[aria-selected="true"] {
   background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-dark) 100%);
   color: #062b14;
-  box-shadow: 0 2px 8px var(--accent-glow-soft);
+  box-shadow: 0 2px 12px var(--accent-glow-soft);
 }
 .machine-btn[aria-selected="true"] .machine-btn-sub { opacity: 0.85; color: #062b14; }
 @media (max-width: 600px) {
-  .machine-btn { padding: 5px 10px; }
-  .machine-btn-sub { display: none; }
+  .machine-bar { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px; }
+  .machine-bar-label { font-size: 10px; }
+  .machine-btn { padding: 8px 12px; }
+  .machine-btn-label { font-size: 13px; }
+  .machine-btn-sub { font-size: 10px; }
+}
+
+/* Team-Player im Header (sehr kompakt, dezent) */
+.team-player-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: var(--r-2);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  height: 44px;
+  max-width: 360px;
+}
+.team-player-mini-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary, #b0b0b0);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+.team-player-mini audio {
+  height: 30px;
+  max-width: 220px;
+}
+.team-player-mini audio::-webkit-media-controls-panel {
+  background-color: rgba(255,255,255,0.04);
+}
+.team-player-loop {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary, #b0b0b0);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--t-fast) var(--ease-out-expo);
+}
+.team-player-loop svg { width: 14px; height: 14px; }
+.team-player-loop:hover { color: var(--text-primary); border-color: var(--accent-primary); }
+.team-player-loop[aria-pressed="true"] {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-dark) 100%);
+  border-color: var(--accent-primary);
+  color: #062b14;
+  box-shadow: 0 0 10px var(--accent-glow-soft);
+}
+@media (max-width: 800px) {
+  .team-player-mini-label { display: none; }
+  .team-player-mini { max-width: 240px; }
+  .team-player-mini audio { max-width: 160px; }
+}
+@media (max-width: 500px) {
+  .team-player-mini { display: none; }
 }
 
 /* ------- card panels ------- */
@@ -3645,14 +3730,16 @@ audio.team-player-audio::-webkit-media-controls-panel {
       </div>
     </div>
     <div class="bar-actions">
-      <div class="machine-toggle" role="tablist" aria-label="Maschinen-Auswahl">
-        <button type="button" class="machine-btn" data-machine="DCM" role="tab" aria-selected="true">
-          <span class="machine-btn-label">DCM</span>
-          <span class="machine-btn-sub">Panther</span>
-        </button>
-        <button type="button" class="machine-btn" data-machine="EUROMAC" role="tab" aria-selected="false">
-          <span class="machine-btn-label">Euromac</span>
-          <span class="machine-btn-sub">1300 mm</span>
+      <div class="team-player-mini" title="Dein Handgriff">
+        <span class="team-player-mini-label">Dein Handgriff</span>
+        <audio controls preload="none" controlsList="noplaybackrate nodownload noremoteplayback" disablepictureinpicture id="teamPlayerAudio">
+          <source src="./team-handgriff.mp3" type="audio/mpeg">
+        </audio>
+        <button type="button" class="team-player-loop" id="teamPlayerLoop" aria-pressed="false" title="Dauerschleife ein/aus" tabindex="-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+            <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+          </svg>
         </button>
       </div>
       <button class="icon-btn" id="resetBtn" title="Werte zurücksetzen" aria-label="Zurücksetzen">
@@ -4061,6 +4148,24 @@ audio.team-player-audio::-webkit-media-controls-panel {
       </section>
     </div>
 
+    <!-- ============== MASCHINEN-AUSWAHL (prominent vor Aufteilung + Welle) ============== -->
+    <section class="machine-bar fade-up fade-up-2" aria-label="Maschinen-Auswahl">
+      <div class="machine-bar-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        <span>Maschine</span>
+      </div>
+      <div class="machine-toggle" role="tablist" aria-label="Maschinen-Auswahl">
+        <button type="button" class="machine-btn" data-machine="DCM" role="tab" aria-selected="true">
+          <span class="machine-btn-label">DCM Panther</span>
+          <span class="machine-btn-sub">1000 mm Bestückung</span>
+        </button>
+        <button type="button" class="machine-btn" data-machine="EUROMAC" role="tab" aria-selected="false">
+          <span class="machine-btn-label">Euromac</span>
+          <span class="machine-btn-sub">1300 mm zentriert</span>
+        </button>
+      </div>
+    </section>
+
     <!-- ============== VIZ STAGE (full width) ============== -->
     <section class="panel glass viz-stage fade-up fade-up-3" aria-labelledby="viz-title">
       <div class="viz-head">
@@ -4325,38 +4430,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     <button class="btn" id="exampleBtn" type="button" title="Lädt Demo-Werte zum Testen — NICHT für reale Aufträge!">⚙ Demo-Werte (nur zum Testen)</button>
   </div>
 
-  <!-- Song -->
-  <div class="team-player">
-    <div class="team-player-meta">
-      <div class="team-player-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 18V5l12-2v13"/>
-          <circle cx="6" cy="18" r="3"/>
-          <circle cx="18" cy="16" r="3"/>
-        </svg>
-      </div>
-      <div class="team-player-text">
-        <div class="team-player-title">Dein Handgriff</div>
-      </div>
-    </div>
-    <audio controls preload="none" controlsList="noplaybackrate nodownload noremoteplayback" disablepictureinpicture class="team-player-audio" id="teamPlayerAudio">
-      <source src="./team-handgriff.mp3" type="audio/mpeg">
-      Dein Browser unterstützt das Audio-Element nicht.
-    </audio>
-    <button type="button" class="team-player-loop" id="teamPlayerLoop" aria-pressed="false" title="Dauerschleife ein/aus" tabindex="-1">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <polyline points="17 1 21 5 17 9"/>
-        <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
-        <polyline points="7 23 3 19 7 15"/>
-        <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
-      </svg>
-      <span class="team-player-loop-label">Loop</span>
-    </button>
-  </div>
-
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.50 · BETA · offline-fähig</div>
+    <div>v1.51 · BETA · offline-fähig</div>
   </footer>
 </div>
 
