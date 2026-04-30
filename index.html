@@ -4352,7 +4352,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.45 · BETA · offline-fähig</div>
+    <div>v1.46 · BETA · offline-fähig</div>
   </footer>
 </div>
 
@@ -7832,6 +7832,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
     }
 
     let cursor = padX + restLPx;
+
+    // Backward-Compat-Aliase fuer alte Render-Sektionen unterhalb (Width-Labels,
+    // Dimension-Callouts) die noch halfRestPx + nebenGroupRanges nutzen.
+    // Mit Werker-Regel-Verteilung sind die alten "NTZ-Block | Neben-Block"-
+    // Bemassungen nicht mehr semantisch korrekt, aber sie crashen nicht mehr.
+    const halfRestPx = restLPx;
+    const nebenGroupRanges = [];
 
     // === Streifen-Reihenfolge nach Werker-Regel (schmal mittig, breit aussen) ===
     const orderedStripes = applyWerkerRule(schmal, nutzen, slots || []);
