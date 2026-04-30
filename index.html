@@ -3051,7 +3051,9 @@ header.bar {
   border-color: var(--accent-primary);
   box-shadow: 0 0 24px var(--accent-glow-soft);
 }
-.result-card .copy-btn {
+/* Copy-Buttons + Hero-CTA komplett ausgeblendet — AS/400 nimmt keinen Copy-Paste an (v1.49) */
+.copy-btn, .hero-cta { display: none !important; }
+.result-card .copy-btn-DEACTIVATED {
   position: absolute;
   top: 10px; right: 10px;
   width: 32px; height: 32px;
@@ -3064,9 +3066,6 @@ header.bar {
   transition: all var(--t-fast);
   opacity: 1;
 }
-.result-card .copy-btn:hover { background: var(--accent-primary); color: #062b14; transform: scale(1.05); box-shadow: 0 0 16px var(--accent-glow); }
-.result-card .copy-btn:active { transform: scale(0.92); }
-.result-card .copy-btn svg { width: 14px; height: 14px; }
 
 .result-icon {
   display: inline-flex;
@@ -4355,7 +4354,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.48 · BETA · offline-fähig</div>
+    <div>v1.49 · BETA · offline-fähig</div>
   </footer>
 </div>
 
@@ -9220,6 +9219,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
   }
 
   // ============== SE-CAD-Modal Open/Close ==============
+  // Defensive: body.overflow beim Page-Load zuruecksetzen (falls vorher gestickt)
+  document.body.style.overflow = "";
   let seCadRendered = false;
   function openSeCadModal() {
     const modal = document.getElementById("seCadModal");
@@ -9229,7 +9230,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
       renderSeCadSvg();
       seCadRendered = true;
     }
-    document.body.style.overflow = "hidden";
+    // body.overflow nicht mehr aktiv blockieren — Modal hat position:fixed +
+    // z-index 10000, deckt Viewport komplett ab. Bug-Risiko (overflow=hidden
+    // bleibt haengen) > Wert (verhindert Background-Scroll waehrend Modal offen)
   }
   function closeSeCadModal() {
     const modal = document.getElementById("seCadModal");
