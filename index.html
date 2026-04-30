@@ -4352,7 +4352,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.44 · BETA · offline-fähig</div>
+    <div>v1.45 · BETA · offline-fähig</div>
   </footer>
 </div>
 
@@ -5306,13 +5306,16 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const innerSegs = [];
 
     // Trim-Logic: SE-L und SE-R sind nur nötig wenn echter Trim-Cut existiert.
-    // Bei Rest=0 (perfekt-aufgeteilt) entfallen die Außen-SEs — der Operator montiert dort nichts.
-    const TRIM_TOL = 0.5;
+    // Schwelle = BESAEUMUNG_MIN_SOFT (default 5 mm) — bei Trim < 5 mm entfaellt
+    // der Trim-Cut, weil kein Operator wegen 2-3 mm Saeumung eine SE setzt.
+    // (Vorher: TRIM_TOL=0.5 mm war weltfremd; "hasNeben" als haveSeR-Trigger
+    //  war Pre-Werker-Regel-Erbe — bei symmetrischer Werker-Verteilung obsolet.)
+    const TRIM_TOL = M.BESAEUMUNG_MIN_SOFT || 5;
     const trimL = (out.restL != null) ? out.restL : (out.restMM || 0) / 2;
     const trimR = (out.restR != null) ? out.restR : (out.restMM || 0) / 2;
     const haveSeL = trimL > TRIM_TOL;
+    const haveSeR = trimR > TRIM_TOL;
     const hasNeben = slots.length > 0;
-    const haveSeR = hasNeben || trimR > TRIM_TOL;
     // Distanzring-Verlängerung wenn randständige SE entfällt (SCHNITT-Versatz im SE)
     const distLExt = haveSeL ? 0 : (SE - SCHNITT);
     const distRExt = haveSeR ? 0 : (SE - SCHNITT);
@@ -5383,9 +5386,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
     for (let i = 0; i < M.PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: M.PARK_RING, name: "Parkplatz-Ring (R)", short: "P" });
 
     // MR-Position auf der Welle
+    // Bei haveSeL=true sitzt der Trim-Cut INNERHALB der SE-L (an SCHNITT_OFFSET);
+    // der MR-Linke-Rand ist trimL nach links davon.
+    // Bei haveSeL=false (kein Trim) fluchtet der MR-Linke-Rand mit innerStart
+    // (= Anfang des ersten verlängerten Distanzrings).
     const innerStart = restProSeite + M.PARK_TOTAL;
     const innerEnd = innerStart + innerLen;
-    const mrStart = innerStart + M.SCHNITT_OFFSET - (out.restL || (out.restMM || 0)/2);
+    const mrStart = haveSeL
+      ? innerStart + M.SCHNITT_OFFSET - trimL
+      : innerStart;
     const mrEnd = mrStart + mr;
 
     // Hol-Liste
