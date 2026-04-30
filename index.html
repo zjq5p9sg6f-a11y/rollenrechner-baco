@@ -388,60 +388,75 @@ header.bar {
   .machine-btn-sub { font-size: 10px; }
 }
 
-/* Team-Player im Header (sehr kompakt, dezent) */
+/* Team-Player im Header (custom controls, kompakt + dezent) */
 .team-player-mini {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 8px;
+  gap: 4px;
+  padding: 4px 10px 4px 12px;
   border-radius: var(--r-2);
   border: 1px solid var(--border);
   background: var(--bg-card);
   height: 44px;
-  max-width: 360px;
 }
 .team-player-mini-label {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 600;
-  color: var(--text-secondary, #b0b0b0);
-  letter-spacing: 0.04em;
+  color: var(--text-primary);
+  letter-spacing: 0.03em;
   white-space: nowrap;
-  padding: 0 4px;
+  margin-right: 6px;
 }
-.team-player-mini audio {
-  height: 30px;
-  max-width: 220px;
-}
-.team-player-mini audio::-webkit-media-controls-panel {
-  background-color: rgba(255,255,255,0.04);
-}
-.team-player-loop {
+.tp-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 30px; height: 30px;
   border-radius: 6px;
-  border: 1px solid var(--border);
+  border: 0;
   background: transparent;
   color: var(--text-secondary, #b0b0b0);
   cursor: pointer;
   flex-shrink: 0;
-  transition: all var(--t-fast) var(--ease-out-expo);
+  padding: 0;
+  transition: all 140ms var(--ease-out-expo);
+  font-family: inherit;
 }
-.team-player-loop svg { width: 14px; height: 14px; }
-.team-player-loop:hover { color: var(--text-primary); border-color: var(--accent-primary); }
-.team-player-loop[aria-pressed="true"] {
+.tp-btn svg { width: 14px; height: 14px; }
+.tp-btn:hover { color: var(--accent-primary); background: rgba(255,255,255,0.04); }
+.tp-btn:active { transform: scale(0.92); }
+.tp-play {
+  width: 32px; height: 32px;
   background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-dark) 100%);
-  border-color: var(--accent-primary);
   color: #062b14;
-  box-shadow: 0 0 10px var(--accent-glow-soft);
+  box-shadow: 0 0 12px var(--accent-glow-soft);
 }
-@media (max-width: 800px) {
+.tp-play svg { width: 14px; height: 14px; }
+.tp-play:hover { background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-dark) 100%); color: #062b14; transform: scale(1.04); }
+.tp-time {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-secondary, #b0b0b0);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  padding: 0 4px;
+  min-width: 28px;
+  text-align: center;
+}
+.tp-loop[aria-pressed="true"] {
+  color: var(--accent-primary);
+  background: rgba(0,230,118,0.12);
+}
+@media (max-width: 900px) {
   .team-player-mini-label { display: none; }
-  .team-player-mini { max-width: 240px; }
-  .team-player-mini audio { max-width: 160px; }
+  .tp-time { display: none; }
 }
-@media (max-width: 500px) {
+@media (max-width: 600px) {
+  .team-player-mini { padding: 4px 6px; gap: 2px; }
+  .tp-btn { width: 26px; height: 26px; }
+  .tp-play { width: 28px; height: 28px; }
+}
+@media (max-width: 460px) {
   .team-player-mini { display: none; }
 }
 
@@ -2373,17 +2388,18 @@ header.bar {
 /* ============== Auftrags-Meta-Eingaben (für Druck-Header + Datei-Name) ============== */
 .welle-auftrag-meta {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
   margin-bottom: 14px;
   padding: 14px 16px;
   background: rgba(0,0,0,0.3);
-  border: 1px dashed rgba(0,230,118,0.25);
+  border: 1px dashed rgba(0,230,118,0.22);
   border-radius: 8px;
 }
 .welle-auftrag-meta .meta-row {
   display: flex; flex-direction: column;
-  gap: 3px;
+  gap: 4px;
+  min-width: 0; /* erlaubt Schrumpfen ohne Label-Wrap */
 }
 .welle-auftrag-meta .meta-row-full { grid-column: 1 / -1; }
 .welle-auftrag-meta label {
@@ -2391,20 +2407,32 @@ header.bar {
   letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--accent-primary);
   opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .welle-auftrag-meta input {
   background: var(--bg-input);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 7px 10px;
+  padding: 8px 10px;
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   outline: none;
   transition: border-color var(--t-fast);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .welle-auftrag-meta input:focus { border-color: var(--accent-primary); }
+@media (max-width: 900px) {
+  .welle-auftrag-meta { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .welle-auftrag-meta { grid-template-columns: 1fr; }
+}
 
 /* Print-Header (nur beim Drucken sichtbar) */
 .print-header { display: none; }
@@ -3732,11 +3760,30 @@ audio.team-player-audio::-webkit-media-controls-panel {
     <div class="bar-actions">
       <div class="team-player-mini" title="Dein Handgriff">
         <span class="team-player-mini-label">Dein Handgriff</span>
-        <audio controls preload="none" controlsList="noplaybackrate nodownload noremoteplayback" disablepictureinpicture id="teamPlayerAudio">
+        <audio preload="none" id="teamPlayerAudio">
           <source src="./team-handgriff.mp3" type="audio/mpeg">
         </audio>
-        <button type="button" class="team-player-loop" id="teamPlayerLoop" aria-pressed="false" title="Dauerschleife ein/aus" tabindex="-1">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <button type="button" class="tp-btn" id="tpRewind" title="15 Sekunden zurück" tabindex="-1" aria-label="Zurück">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="11 19 2 12 11 5"/><polyline points="22 19 13 12 22 5"/>
+          </svg>
+        </button>
+        <button type="button" class="tp-btn tp-play" id="tpPlay" title="Abspielen / Pause" tabindex="-1" aria-label="Play/Pause">
+          <svg class="tp-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <polygon points="6 4 20 12 6 20 6 4"/>
+          </svg>
+          <svg class="tp-icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none">
+            <rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>
+          </svg>
+        </button>
+        <button type="button" class="tp-btn" id="tpForward" title="15 Sekunden vor" tabindex="-1" aria-label="Vor">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="13 5 22 12 13 19"/><polyline points="2 5 11 12 2 19"/>
+          </svg>
+        </button>
+        <span class="tp-time" id="tpTime" aria-live="off">0:00</span>
+        <button type="button" class="tp-btn tp-loop" id="teamPlayerLoop" aria-pressed="false" title="Dauerschleife" tabindex="-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
             <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
           </svg>
@@ -4236,7 +4283,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       <!-- Auftrags-Identifikation für Druck-Header + Datei-Name -->
       <div class="welle-auftrag-meta">
         <div class="meta-row">
-          <label>Auftrags-Nr / Kommission</label>
+          <label title="Auftrags-Nr / Kommission">Auftrags-Nr</label>
           <input id="welleAuftragNr" type="text" placeholder="z. B. KOM-2026-0421" autocomplete="off">
         </div>
         <div class="meta-row">
@@ -4432,7 +4479,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.51 · BETA · offline-fähig</div>
+    <div>v1.52 · BETA · offline-fähig</div>
   </footer>
 </div>
 
@@ -8447,15 +8494,48 @@ audio.team-player-audio::-webkit-media-controls-panel {
   updateMachineToggleUI();
   updateMachineInfoUI();
 
-  // ---------- Team-Song · Loop-Toggle ----------
+  // ---------- Team-Song · Custom Player (Play/Pause + Skip + Loop + Time) ----------
   const teamAudioEl = document.getElementById("teamPlayerAudio");
+  const tpPlayBtn = document.getElementById("tpPlay");
+  const tpRewindBtn = document.getElementById("tpRewind");
+  const tpForwardBtn = document.getElementById("tpForward");
+  const tpTimeEl = document.getElementById("tpTime");
   const teamLoopBtn = document.getElementById("teamPlayerLoop");
-  if (teamAudioEl && teamLoopBtn) {
+  if (teamAudioEl && tpPlayBtn) {
     const TEAM_LOOP_KEY = "rr.teamLoop";
     const initialLoop = localStorage.getItem(TEAM_LOOP_KEY) === "1";
     teamAudioEl.loop = initialLoop;
-    teamLoopBtn.setAttribute("aria-pressed", initialLoop ? "true" : "false");
-    teamLoopBtn.addEventListener("click", () => {
+    if (teamLoopBtn) teamLoopBtn.setAttribute("aria-pressed", initialLoop ? "true" : "false");
+    const iconPlay = tpPlayBtn.querySelector(".tp-icon-play");
+    const iconPause = tpPlayBtn.querySelector(".tp-icon-pause");
+    const fmtTime = (s) => {
+      if (!isFinite(s)) return "0:00";
+      const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+      return `${m}:${sec.toString().padStart(2, "0")}`;
+    };
+    const updatePlayUI = () => {
+      const isPlaying = !teamAudioEl.paused && !teamAudioEl.ended;
+      if (iconPlay) iconPlay.style.display = isPlaying ? "none" : "";
+      if (iconPause) iconPause.style.display = isPlaying ? "" : "none";
+    };
+    tpPlayBtn.addEventListener("click", () => {
+      if (teamAudioEl.paused) teamAudioEl.play();
+      else teamAudioEl.pause();
+    });
+    if (tpRewindBtn) tpRewindBtn.addEventListener("click", () => {
+      teamAudioEl.currentTime = Math.max(0, teamAudioEl.currentTime - 15);
+    });
+    if (tpForwardBtn) tpForwardBtn.addEventListener("click", () => {
+      const dur = teamAudioEl.duration;
+      teamAudioEl.currentTime = Math.min(isFinite(dur) ? dur : Infinity, teamAudioEl.currentTime + 15);
+    });
+    teamAudioEl.addEventListener("play",  updatePlayUI);
+    teamAudioEl.addEventListener("pause", updatePlayUI);
+    teamAudioEl.addEventListener("ended", updatePlayUI);
+    teamAudioEl.addEventListener("timeupdate", () => {
+      if (tpTimeEl) tpTimeEl.textContent = fmtTime(teamAudioEl.currentTime);
+    });
+    if (teamLoopBtn) teamLoopBtn.addEventListener("click", () => {
       const next = !teamAudioEl.loop;
       teamAudioEl.loop = next;
       teamLoopBtn.setAttribute("aria-pressed", next ? "true" : "false");
