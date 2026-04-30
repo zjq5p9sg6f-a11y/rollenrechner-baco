@@ -3432,18 +3432,44 @@ footer.footer {
 }
 .team-player-audio {
   flex: 1;
-  min-width: 240px;
-  max-width: 380px;
+  min-width: 220px;
+  max-width: 360px;
   height: 36px;
 }
 /* Audio-Controls dunkel passend zum Theme (WebKit) */
 audio.team-player-audio::-webkit-media-controls-panel {
   background-color: rgba(255,255,255,0.04);
 }
+.team-player-loop {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: var(--r-2);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary, #b0b0b0);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: all var(--t-fast) var(--ease-out-expo);
+  flex-shrink: 0;
+}
+.team-player-loop svg { width: 16px; height: 16px; }
+.team-player-loop:hover { color: var(--text-primary); border-color: var(--accent-primary); }
+.team-player-loop[aria-pressed="true"] {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-dark) 100%);
+  border-color: var(--accent-primary);
+  color: #062b14;
+  box-shadow: 0 0 14px var(--accent-glow-soft);
+}
 @media (max-width: 600px) {
   .team-player { padding: 10px 12px; gap: 10px; }
   .team-player-audio { width: 100%; max-width: none; }
   .team-player-sub { display: none; }
+  .team-player-loop-label { display: none; }
 }
 
 /* ------- subtle stagger entry ------- */
@@ -4292,7 +4318,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     <button class="btn" id="exampleBtn" type="button" title="Lädt Demo-Werte zum Testen — NICHT für reale Aufträge!">⚙ Demo-Werte (nur zum Testen)</button>
   </div>
 
-  <!-- Team-Song · "Dein Handgriff — unser Team" -->
+  <!-- Song -->
   <div class="team-player">
     <div class="team-player-meta">
       <div class="team-player-icon" aria-hidden="true">
@@ -4303,19 +4329,27 @@ audio.team-player-audio::-webkit-media-controls-panel {
         </svg>
       </div>
       <div class="team-player-text">
-        <div class="team-player-title">Dein Handgriff — unser Team</div>
-        <div class="team-player-sub">Für die Werker · Längsschneider · Ballerstaedt</div>
+        <div class="team-player-title">Dein Handgriff</div>
       </div>
     </div>
-    <audio controls preload="none" class="team-player-audio">
+    <audio controls preload="none" controlsList="noplaybackrate nodownload noremoteplayback" disablepictureinpicture class="team-player-audio" id="teamPlayerAudio">
       <source src="./team-handgriff.mp3" type="audio/mpeg">
       Dein Browser unterstützt das Audio-Element nicht.
     </audio>
+    <button type="button" class="team-player-loop" id="teamPlayerLoop" aria-pressed="false" title="Dauerschleife ein/aus" tabindex="-1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polyline points="17 1 21 5 17 9"/>
+        <path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+        <polyline points="7 23 3 19 7 15"/>
+        <path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+      </svg>
+      <span class="team-player-loop-label">Loop</span>
+    </button>
   </div>
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.41 · BETA · Werker-Regel im Algorithmus · DCM/Euromac · offline-fähig</div>
+    <div>v1.42 · BETA · offline-fähig</div>
   </footer>
 </div>
 
@@ -5217,6 +5251,38 @@ audio.team-player-audio::-webkit-media-controls-panel {
   // Backward-Compat-Alias für alte Aufrufe (default = aktive Maschine)
   function distanzringeForDCM(ziel) { return distanzringeForMachine(ziel, getMachine()); }
 
+  // Werker-Regel: schmale Streifen mittig, breite aussen.
+  // Anti-Teleskop — schmale Rollen kippen am Aussenrand weg, brauchen
+  // breitere Nachbarn als seitlichen Halt. Aktivierung nur bei mind. 2
+  // verschiedenen Breiten UND mind. einer Breite >= teleskopThresholdMm.
+  // Sonst Standard-Reihenfolge (Haupt zuerst, dann Neben-Slots in Eingabe-Reihenfolge).
+  // Algorithmus: alle Streifen flach sortieren absteigend nach Breite,
+  // zickzack-verteilen (links/rechts wechselnd) — breitester landet aussen,
+  // schmalster automatisch in der Mitte.
+  function applyWerkerRule(haupt, nutzen, slots) {
+    const stripes = [];
+    for (let i = 0; i < nutzen; i++) stripes.push({ breite: haupt, kind: "haupt", anzIdx: i + 1, anzTotal: nutzen });
+    for (const slot of slots) {
+      for (let i = 0; i < slot.anz; i++) {
+        stripes.push({ breite: slot.breite, kind: "neben", slotIdx: slot.slotIdx, anzIdx: i + 1, anzTotal: slot.anz });
+      }
+    }
+    const uniqueBreiten = [...new Set(stripes.map(s => s.breite))];
+    const teleSchwelle = OPERATOR_RULES.teleskopThresholdMm;
+    const werkerRegelAktiv = (uniqueBreiten.length >= 2)
+      && stripes.some(s => s.breite >= teleSchwelle);
+    if (!werkerRegelAktiv) return stripes;
+
+    const sortedDesc = stripes.slice().sort((a, b) => b.breite - a.breite);
+    const ordered = new Array(stripes.length);
+    let lI = 0, rI = stripes.length - 1, side = "L";
+    for (const s of sortedDesc) {
+      if (side === "L") { ordered[lI++] = s; side = "R"; }
+      else              { ordered[rI--] = s; side = "L"; }
+    }
+    return ordered;
+  }
+
   function calcWelleJob(out) {
     if (!out || !out.mutter || !out.schmal) return { ok: false, empty: true, alerts: [] };
     const M = getMachine();
@@ -5249,40 +5315,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const distRExt = haveSeR ? 0 : (SE - SCHNITT);
 
     // ===== Werker-Regel: Streifen sortieren · breit aussen, schmal mittig =====
-    // Anti-Teleskop: schmale Rollen rollen am Aussenrand instabil, brauchen
-    // breitere Nachbarn als seitlichen Halt. Daher Auflösung: alle Streifen
-    // (Haupt + Neben) in eine flache Liste, absteigend nach Breite sortieren,
-    // zickzack-verteilen — breitester ganz aussen, naechster auf der anderen
-    // Seite, ... schmalster landet automatisch in der Mitte.
-    const stripes = [];
-    for (let i = 0; i < N; i++) stripes.push({ breite: haupt, kind: "haupt" });
-    for (const slot of slots) {
-      for (let i = 0; i < slot.anz; i++) {
-        stripes.push({ breite: slot.breite, kind: "neben", slotIdx: slot.slotIdx, anzIdx: i + 1, anzTotal: slot.anz });
-      }
-    }
-    // Aktivierung der Werker-Regel: nur sinnvoll wenn mind. zwei verschiedene Breiten
-    // UND mind. eine Breite >= teleskopThresholdMm (sonst sind alle gleich klein)
-    const uniqueBreiten = [...new Set(stripes.map(s => s.breite))];
-    const teleSchwelle = OPERATOR_RULES.teleskopThresholdMm;
-    const werkerRegelAktiv = (uniqueBreiten.length >= 2)
-      && stripes.some(s => s.breite >= teleSchwelle);
-
-    let ordered;
-    if (werkerRegelAktiv) {
-      // Absteigend sortieren (breit zuerst), zickzack platzieren: 0 nach links,
-      // 1 nach rechts, 2 nach links, ... → breit aussen, schmal mittig
-      const sortedDesc = stripes.slice().sort((a, b) => b.breite - a.breite);
-      ordered = new Array(stripes.length);
-      let lI = 0, rI = stripes.length - 1, side = "L";
-      for (const s of sortedDesc) {
-        if (side === "L") { ordered[lI++] = s; side = "R"; }
-        else              { ordered[rI--] = s; side = "L"; }
-      }
-    } else {
-      // Standard-Reihenfolge (Haupt zuerst, dann Neben in Eingabe-Reihenfolge)
-      ordered = stripes;
-    }
+    // Helper-Funktion (auch von drawViz genutzt) — siehe applyWerkerRule unten.
+    const ordered = applyWerkerRule(haupt, N, slots);
 
     // ===== innerSegs aus geordneter Streifen-Liste aufbauen =====
     // Pattern: [SE-L?] · D₁ SE D₂ SE … SE Dₙ [SE-R?]
@@ -7787,178 +7821,136 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     let cursor = padX + restLPx;
 
-    // === Knife / cut markers above bar ===
-    for (let i = 0; i <= nutzen; i++) {
-      const x = padX + restLPx + (i * segW);
-      // tiny triangle
-      const tri = svg("path", {
-        d: `M${x} ${knifeY+8} L${x-3} ${knifeY} L${x+3} ${knifeY} Z`,
-        fill: "var(--accent-primary)",
-        opacity: "0"
+    // === Streifen-Reihenfolge nach Werker-Regel (schmal mittig, breit aussen) ===
+    const orderedStripes = applyWerkerRule(schmal, nutzen, slots || []);
+    let hauptCounter = 0;
+
+    // === Knife / cut markers above bar (pro Streifen) ===
+    // Erste Cut-Linie am Anfang (nach Trim-L)
+    {
+      const xStart = padX + restLPx;
+      const tri0 = svg("path", {
+        d: `M${xStart} ${knifeY+8} L${xStart-3} ${knifeY} L${xStart+3} ${knifeY} Z`,
+        fill: "var(--accent-primary)", opacity: "0"
       });
-      g.appendChild(tri);
-      animateAttr(tri, "opacity", 0, 0.85, 200, Math.min(15*i, 500));
+      g.appendChild(tri0);
+      animateAttr(tri0, "opacity", 0, 0.85, 200, 0);
     }
 
-    // === Segments (Nutzen) ===
-    for (let i = 0; i < nutzen; i++) {
+    // === Segments aus geordneter Streifen-Liste ===
+    orderedStripes.forEach((stripe, i) => {
+      const isHaupt = stripe.kind === "haupt";
+      const stripeW = stripe.breite * pxPerMM;
       const xPos = cursor;
-      const segPad = segW > 12 ? 1 : 0.5;
+      const segPad = stripeW > 12 ? 1 : 0.5;
+      const delay = Math.min(18 * i, 700);
 
       // body
       const rect = svg("rect", {
         x: xPos + segPad, y: barTop,
-        width: Math.max(0, segW - segPad*2), height: barH,
-        rx: segW > 16 ? 4 : 2,
-        fill: "url(#gradNutzen)",
+        width: Math.max(0, stripeW - segPad*2), height: barH,
+        rx: stripeW > 16 ? 4 : 2,
+        fill: isHaupt ? "url(#gradNutzen)" : "url(#gradNeben)",
         opacity: "0",
         transform: "translate(0, 6)"
       });
       g.appendChild(rect);
-      animateAttr(rect, "opacity", 0, 1, 260, Math.min(18*i, 600));
-      animateTransform(rect, "translate(0, 6)", "translate(0, 0)", 320, Math.min(18*i, 600));
+      animateAttr(rect, "opacity", 0, 1, 260, delay);
+      animateTransform(rect, "translate(0, 6)", "translate(0, 0)", 320, delay);
 
       // top edge highlight
       const edge = svg("rect", {
         x: xPos + segPad, y: barTop,
-        width: Math.max(0, segW - segPad*2),
+        width: Math.max(0, stripeW - segPad*2),
         height: Math.max(2, barH * 0.20),
-        rx: segW > 16 ? 4 : 2,
-        fill: "url(#gradEdge)",
-        opacity: "0"
+        rx: stripeW > 16 ? 4 : 2,
+        fill: "url(#gradEdge)", opacity: "0"
       });
       g.appendChild(edge);
-      animateAttr(edge, "opacity", 0, 0.75, 260, Math.min(18*i, 600));
+      animateAttr(edge, "opacity", 0, isHaupt ? 0.75 : 0.7, 260, delay);
 
-      // bottom shadow
-      const shadow = svg("rect", {
-        x: xPos + segPad, y: barTop + barH * 0.7,
-        width: Math.max(0, segW - segPad*2),
-        height: barH * 0.30,
-        rx: segW > 16 ? 4 : 2,
-        fill: "url(#gradEdgeBottom)",
-        opacity: "0"
-      });
-      g.appendChild(shadow);
-      animateAttr(shadow, "opacity", 0, 0.55, 260, Math.min(18*i, 600));
-
-      // segment number (centered if room)
-      if (segW > 26) {
-        const num = svg("text", {
-          x: xPos + segW/2, y: barTop + barH/2 - 4,
-          "text-anchor": "middle",
-          fill: "rgba(6,43,20,0.85)",
-          "font-size": segW > 50 ? "20" : segW > 36 ? "16" : "12",
-          "font-weight": "800",
-          "font-family": "inherit",
-          opacity: "0"
+      // bottom shadow (nur Haupt für Tiefe)
+      if (isHaupt) {
+        const shadow = svg("rect", {
+          x: xPos + segPad, y: barTop + barH * 0.7,
+          width: Math.max(0, stripeW - segPad*2),
+          height: barH * 0.30,
+          rx: stripeW > 16 ? 4 : 2,
+          fill: "url(#gradEdgeBottom)", opacity: "0"
         });
-        num.textContent = i + 1;
-        g.appendChild(num);
-        animateAttr(num, "opacity", 0, 1, 220, Math.min(18*i, 600) + 80);
+        g.appendChild(shadow);
+        animateAttr(shadow, "opacity", 0, 0.55, 260, delay);
+      }
 
-        // sub-label "Nr."
-        if (segW > 46) {
+      // segment number / label
+      if (stripeW > 26) {
+        if (isHaupt) hauptCounter++;
+        const labelTxt = isHaupt ? String(hauptCounter) : `N${stripe.slotIdx}`;
+        const num = svg("text", {
+          x: xPos + stripeW/2, y: barTop + barH/2 - 4,
+          "text-anchor": "middle",
+          fill: isHaupt ? "rgba(6,43,20,0.85)" : "rgba(60,30,0,0.9)",
+          "font-size": stripeW > 50 ? "20" : stripeW > 36 ? "16" : "12",
+          "font-weight": "800", "font-family": "inherit", opacity: "0"
+        });
+        num.textContent = labelTxt;
+        g.appendChild(num);
+        animateAttr(num, "opacity", 0, 1, 220, delay + 80);
+
+        // Breite unterhalb in der Box
+        if (stripeW > 46) {
           const sub = svg("text", {
-            x: xPos + segW/2, y: barTop + barH/2 + 14,
+            x: xPos + stripeW/2, y: barTop + barH/2 + 14,
             "text-anchor": "middle",
-            fill: "rgba(6,43,20,0.55)",
+            fill: isHaupt ? "rgba(6,43,20,0.55)" : "rgba(60,30,0,0.65)",
             "font-size": "9", "font-weight": "700",
-            "font-family": "inherit",
-            "letter-spacing": "0.1em",
-            opacity: "0"
+            "font-family": "inherit", "letter-spacing": "0.1em", opacity: "0"
           });
-          sub.textContent = "NTZ";
+          sub.textContent = `${nf0.format(stripe.breite)} mm`;
           g.appendChild(sub);
-          animateAttr(sub, "opacity", 0, 1, 220, Math.min(18*i, 600) + 100);
+          animateAttr(sub, "opacity", 0, 1, 220, delay + 100);
         }
       }
 
-      cursor += segW;
-    }
-
-    // === Neben-Blöcke (heterogene Einteilung) — bis zu 4 verschiedene Breiten ===
-    const nebenGroupRanges = [];
-    if (hasNeben && slots.length > 0) {
-      // Trenner-Linie zwischen Haupt-Block und Neben-Block
-      g.appendChild(svg("line", {
-        x1: cursor, y1: barTop - 4, x2: cursor, y2: barBottom + 4,
-        stroke: "rgba(255,180,0,0.4)", "stroke-width": "1", "stroke-dasharray": "4 3"
-      }));
-      let segIdx = 0;
-      slots.forEach(slot => {
-        const groupX1 = cursor;
-        const slotSegW = slot.breite * pxPerMM;
-        for (let j = 0; j < slot.anz; j++) {
-          const xPos = cursor;
-          const segPad = slotSegW > 12 ? 1 : 0.5;
-          const rect = svg("rect", {
-            x: xPos + segPad, y: barTop,
-            width: Math.max(0, slotSegW - segPad*2), height: barH,
-            rx: slotSegW > 16 ? 4 : 2,
-            fill: "url(#gradNeben)",
-            opacity: "0",
-            transform: "translate(0, 6)"
-          });
-          g.appendChild(rect);
-          const delay = Math.min(18 * (nutzen + segIdx), 700);
-          animateAttr(rect, "opacity", 0, 1, 260, delay);
-          animateTransform(rect, "translate(0, 6)", "translate(0, 0)", 320, delay);
-          const edge = svg("rect", {
-            x: xPos + segPad, y: barTop,
-            width: Math.max(0, slotSegW - segPad*2),
-            height: Math.max(2, barH * 0.20),
-            rx: slotSegW > 16 ? 4 : 2,
-            fill: "url(#gradEdge)",
-            opacity: "0"
-          });
-          g.appendChild(edge);
-          animateAttr(edge, "opacity", 0, 0.7, 260, delay);
-          if (slotSegW > 26) {
-            const num = svg("text", {
-              x: xPos + slotSegW/2, y: barTop + barH/2 - 4,
-              "text-anchor": "middle",
-              fill: "rgba(60,30,0,0.9)",
-              "font-size": slotSegW > 50 ? "20" : slotSegW > 36 ? "16" : "12",
-              "font-weight": "800",
-              "font-family": "inherit",
-              opacity: "0"
-            });
-            num.textContent = `N${slot.slotIdx}`;
-            g.appendChild(num);
-            animateAttr(num, "opacity", 0, 1, 220, delay + 80);
-          }
-          // Knife marker
-          const tri = svg("path", {
-            d: `M${xPos + slotSegW} ${knifeY+8} L${xPos + slotSegW - 3} ${knifeY} L${xPos + slotSegW + 3} ${knifeY} Z`,
-            fill: "#ffb400",
-            opacity: "0"
-          });
-          g.appendChild(tri);
-          animateAttr(tri, "opacity", 0, 0.85, 200, delay);
-          cursor += slotSegW;
-          segIdx++;
-        }
-        nebenGroupRanges.push({ slot, x1: groupX1, x2: cursor });
-        // Trenner-Linie zwischen verschiedenen Slot-Gruppen
-        if (slot !== slots[slots.length - 1]) {
-          g.appendChild(svg("line", {
-            x1: cursor, y1: barTop - 2, x2: cursor, y2: barBottom + 2,
-            stroke: "rgba(255,180,0,0.3)", "stroke-width": "0.8", "stroke-dasharray": "3 3"
-          }));
-        }
+      // Knife / Cut marker am rechten Rand des Streifens
+      const cutX = xPos + stripeW;
+      const cutColor = isHaupt ? "var(--accent-primary)" : "#ffb400";
+      const tri = svg("path", {
+        d: `M${cutX} ${knifeY+8} L${cutX-3} ${knifeY} L${cutX+3} ${knifeY} Z`,
+        fill: cutColor, opacity: "0"
       });
-      // Width-Labels pro Gruppe (zentral)
-      nebenGroupRanges.forEach(g_ => {
-        const mid = (g_.x1 + g_.x2) / 2;
-        const lbl = svg("text", {
-          x: mid, y: widthLabelY,
-          "text-anchor": "middle",
-          fill: "#ffb400",
-          "font-size": "11", "font-weight": "700", "font-family": "inherit"
+      g.appendChild(tri);
+      animateAttr(tri, "opacity", 0, 0.85, 200, delay);
+
+      cursor += stripeW;
+    });
+
+    // === Width-Labels pro unterschiedlicher Breite (zentral pro Gruppe) ===
+    // Nach Werker-Regel können Streifen einer Breite verteilt sein —
+    // wir gruppieren nach Breite und labeln unterhalb der Bar
+    if (slots && slots.length > 0) {
+      slots.forEach(slot => {
+        // Finde alle Positions-Bereiche dieser Slot-Breite in orderedStripes
+        let labelX = null, labelCount = 0;
+        let xCursor = padX + restLPx;
+        orderedStripes.forEach(stripe => {
+          const w = stripe.breite * pxPerMM;
+          if (stripe.kind === "neben" && stripe.slotIdx === slot.slotIdx) {
+            if (labelX == null) labelX = xCursor + w / 2;
+            labelCount++;
+          }
+          xCursor += w;
         });
-        lbl.textContent = `${g_.slot.anz}× ${nf0.format(g_.slot.breite)}`;
-        g.appendChild(lbl);
+        if (labelCount > 0 && labelX != null) {
+          const lbl = svg("text", {
+            x: labelX, y: widthLabelY,
+            "text-anchor": "middle",
+            fill: "#ffb400",
+            "font-size": "11", "font-weight": "700", "font-family": "inherit"
+          });
+          lbl.textContent = `${slot.anz}× ${nf0.format(slot.breite)}`;
+          g.appendChild(lbl);
+        }
       });
     }
 
@@ -8350,6 +8342,22 @@ audio.team-player-audio::-webkit-media-controls-panel {
   // Initial-State aus localStorage spiegeln (Toggle + Info-Box)
   updateMachineToggleUI();
   updateMachineInfoUI();
+
+  // ---------- Team-Song · Loop-Toggle ----------
+  const teamAudioEl = document.getElementById("teamPlayerAudio");
+  const teamLoopBtn = document.getElementById("teamPlayerLoop");
+  if (teamAudioEl && teamLoopBtn) {
+    const TEAM_LOOP_KEY = "rr.teamLoop";
+    const initialLoop = localStorage.getItem(TEAM_LOOP_KEY) === "1";
+    teamAudioEl.loop = initialLoop;
+    teamLoopBtn.setAttribute("aria-pressed", initialLoop ? "true" : "false");
+    teamLoopBtn.addEventListener("click", () => {
+      const next = !teamAudioEl.loop;
+      teamAudioEl.loop = next;
+      teamLoopBtn.setAttribute("aria-pressed", next ? "true" : "false");
+      try { localStorage.setItem(TEAM_LOOP_KEY, next ? "1" : "0"); } catch (_) {}
+    });
+  }
 
   // ---------- reset ----------
   els.resetBtn.addEventListener("click", () => {
