@@ -5565,6 +5565,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
       }
     }
     for (const [k,v] of Object.entries(restFill.rings)) distMap[k] = (distMap[k] || 0) + v * 2;
+    // Euromac: Asymmetrie-Ring 20 mm (Default) + Klemm-Ring 5 mm zur Stueckliste hinzufuegen
+    if (activeMachineId === "EUROMAC") {
+      if (M.ASYMMETRY_RING_DEFAULT_ON && M.ASYMMETRY_RING_RIGHT_MM > 0) {
+        distMap[M.ASYMMETRY_RING_RIGHT_MM] = (distMap[M.ASYMMETRY_RING_RIGHT_MM] || 0) + 1;
+      }
+      if (M.KLEMM_DISTANZRING_MM > 0) {
+        distMap[M.KLEMM_DISTANZRING_MM] = (distMap[M.KLEMM_DISTANZRING_MM] || 0) + 1;
+      }
+    }
     const distKeys = Object.keys(distMap).map(parseFloat).sort((a,b)=>b-a);
     for (const k of distKeys) holliste.push({ name: "Distanzring", spec: `${k} mm`, anz: distMap[k] });
 
@@ -6074,7 +6083,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
       return;
     }
     seqEl.innerHTML = "";
-    const MITTE = getMachine().WELLE_MITTE;
+    const M = getMachine();
+    const isEuro = (M.id === "EUROMAC");
+    const MITTE = M.WELLE_MITTE;
     function fromMitte(absPos, breite) {
       // Mittelpunkt des Bauteils relativ zur Welle-Mitte
       const center = absPos + (breite / 2);
@@ -6085,6 +6096,24 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const sequenz = [...result.layoutLR].reverse();  // Rechts → Links
     let kumPos = 0;
     let nr = 1;
+    // EUROMAC PRE-STEP: Asymmetrie-Ring 20 mm Default (ganz rechts auf Welle,
+    // erstes Bestueckungs-Element). Gleicht Welle-Asymmetrie 650/670 → 650/650 aus.
+    if (isEuro && M.ASYMMETRY_RING_DEFAULT_ON && M.ASYMMETRY_RING_RIGHT_MM > 0) {
+      const r = M.ASYMMETRY_RING_RIGHT_MM;
+      const row = document.createElement("div");
+      row.className = "stueck-row";
+      row.innerHTML = `
+        <div class="stueck-nr distanz">${nr++}</div>
+        <div>
+          <div class="stueck-name"><span class="icon" style="background:linear-gradient(180deg,#00e676,#00b85e)"></span>Asymmetrie-Ring <span style="color:var(--accent-primary);font-size:10px;font-weight:700;letter-spacing:0.06em">DEFAULT</span></div>
+          <div class="stueck-detail">gleicht Welle-Asymmetrie 650/670 aus · ${fromMitte(kumPos, r)}</div>
+        </div>
+        <div class="stueck-mass">${r} mm</div>
+        <div class="stueck-pos">@ ${Math.round(kumPos)} mm</div>
+      `;
+      seqEl.appendChild(row);
+      kumPos += r;
+    }
     for (const seg of sequenz) {
       // Rest-Auffüllung als einzelne Distanzringe pro Stack-Größe
       if (seg.kind === "rest" && seg.fill) {
@@ -6157,6 +6186,24 @@ audio.team-player-audio::-webkit-media-controls-panel {
       `;
       seqEl.appendChild(row);
       kumPos += seg.breite;
+    }
+    // EUROMAC POST-STEP: Klemm-Distanzring 5 mm (links auf Gewinde,
+    // letztes Element der Bestueckungs-Sequenz, fixiert die Bestueckung).
+    if (isEuro && M.KLEMM_DISTANZRING_MM > 0) {
+      const r = M.KLEMM_DISTANZRING_MM;
+      const row = document.createElement("div");
+      row.className = "stueck-row";
+      row.innerHTML = `
+        <div class="stueck-nr distanz">${nr++}</div>
+        <div>
+          <div class="stueck-name"><span class="icon" style="background:linear-gradient(180deg,#00e676,#00b85e)"></span>Klemm-Distanzring <span style="color:var(--accent-primary);font-size:10px;font-weight:700;letter-spacing:0.06em">FIXIERT</span></div>
+          <div class="stueck-detail">${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — verspannt Bestueckung gegen Schraubenende</div>
+        </div>
+        <div class="stueck-mass">${r} mm</div>
+        <div class="stueck-pos">@ ${Math.round(kumPos)} mm</div>
+      `;
+      seqEl.appendChild(row);
+      kumPos += r;
     }
   }
 
