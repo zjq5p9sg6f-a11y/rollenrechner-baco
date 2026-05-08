@@ -4209,7 +4209,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         </button>
         <button type="button" class="machine-btn" data-machine="EUROMAC" role="tab" aria-selected="false">
           <span class="machine-btn-label">Euromac</span>
-          <span class="machine-btn-sub">1300 mm zentriert</span>
+          <span class="machine-btn-sub">1320 mm asymm. · 1300 operativ</span>
         </button>
       </div>
     </section>
@@ -4483,7 +4483,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.53 · BETA · Schneidbuchse aktiv · offline-fähig</div>
+    <div>v1.60 · BETA · Euromac-Asymmetrie + Klemm-Ring · offline-fähig</div>
   </footer>
 </div>
 
@@ -5682,7 +5682,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     svgW(g, "path", { d: `M${W-padX} ${dimTop1Y} L${W-padX-8} ${dimTop1Y-5} L${W-padX-8} ${dimTop1Y+5} Z`, fill: dimColor });
     svgW(g, "line", { x1: padX, y1: dimTop1Y - 6, x2: padX, y2: barTop + barH + 6, stroke: dimColor, "stroke-width": "0.8", "stroke-dasharray": "3 4" });
     svgW(g, "line", { x1: W - padX, y1: dimTop1Y - 6, x2: W - padX, y2: barTop + barH + 6, stroke: dimColor, "stroke-width": "0.8", "stroke-dasharray": "3 4" });
-    const lblTxt1 = isCenter ? `Bestückungsbreite ${M.WELLE} mm` : `Welle ${M.WELLE} mm`;
+    const lblTxt1 = isCenter
+      ? `Bestückungsbreite ${M.WELLE} mm operativ${M.WELLE_PHYSISCH_MM ? ` · ${M.WELLE_PHYSISCH_MM} physisch` : ""}`
+      : `Welle ${M.WELLE} mm`;
     const lblW1 = lblTxt1.length * 7.5 + 24;
     svgW(g, "rect", { x: W/2 - lblW1/2, y: dimTop1Y - 12, width: lblW1, height: 24, rx: 6,
       fill: "var(--bg-base)", stroke: "var(--accent-primary)", "stroke-width": "1.5" });
@@ -8688,13 +8690,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // Welle-Head-Label (gut sichtbar VOR der bestückten Welle)
     setTxt("welleHeadMachine",
       isEuro
-        ? `Euromac · ${M.WELLE} mm Bestückung (zentriert)`
+        ? `Euromac · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.WELLE} mm operativ zentriert`
         : `DCM Untermesserwelle · ${M.WELLE} mm`);
 
     // Print-Header (für Druck-Output, daher exakte Maschinen-Spec)
     setTxt("phMachine",
       isEuro
-        ? `Euromac · ${M.WELLE} mm Bestückungsbreite (zentriert ±${M.WELLE/2}) · Park-Plätze baulich`
+        ? `Euromac · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER}) · ${M.WELLE} mm operativ ±${M.WELLE/2} · ${M.KLEMM_DISTANZRING_MM} mm Klemm links + ${M.ASYMMETRY_RING_RIGHT_MM} mm Asymm-Default rechts · Bahn-Versatz +${M.MASCHINEN_BAHN_OFFSET_MM} mm im Einbau`
         : `DCM Untermesserwelle · ${M.WELLE} mm · Bestückungsbereich ${M.BESTUECKUNGS_BREITE} mm`);
   }
 
