@@ -4432,6 +4432,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="info-row"><span>Schnittkante v. links</span><strong id="mcSchnitt">13 mm</strong></div>
           <div class="info-row"><span>Distanzringe</span><strong id="mcDistRings">0,3 / 0,5 / 1 / 2 / 5 / 10 / 20 / 30 / 50 / 100 / 200 / 300 mm</strong></div>
           <div class="info-row" id="mcMrCenterRow" style="display:none"><span>MR-Center-Versatz</span><strong id="mcMrCenter">±20 mm Standard · ±50 mm Trick</strong></div>
+          <div class="info-row" id="mcKlemmRow" style="display:none"><span>Klemm-Distanzring</span><strong id="mcKlemm">5 mm links auf Gewinde</strong></div>
+          <div class="info-row" id="mcAsymmRow" style="display:none"><span>Asymmetrie-Ring</span><strong id="mcAsymm">20 mm rechts (Default an)</strong></div>
+          <div class="info-row" id="mcBahnOffsetRow" style="display:none"><span>Bahn-Versatz Einbau</span><strong id="mcBahnOffset">+15 mm Welle-Mitte zur Bahn-Mitte</strong></div>
         </div>
         <div class="welle-info-box">
           <h4 id="seSortimentHead">Schneideeinheit</h4>
@@ -5314,11 +5317,28 @@ audio.team-player-audio::-webkit-media-controls-panel {
       label: "Euromac",
       welleRenderMode: "center",       // zentriert (-650 ↔ 0 ↔ +650)
       parkRingMode: "builtin",         // Park-Plätze baulich, Operator ignoriert
-      // WELLE = BESTUECKUNGS_BREITE damit DCM-Render-Pipeline automatisch
-      // korrekt rechnet (kein Park-Bereich subtrahiert wird).
-      WELLE: 1300,
-      WELLE_MITTE: 650,
-      BESTUECKUNGS_BREITE: 1300,
+      // WELLE = BESTUECKUNGS_BREITE_OPERATIV damit Render-Pipeline rechnet ohne
+      // Klemm-Ring (links) und Asymmetrie-Ring (rechts). Die physische Welle ist
+      // 1320 mm asymmetrisch (650 links / 670 rechts). 20er rechts gleicht die
+      // 20 mm Asymmetrie aus → operative Bestueckung wieder symmetrisch 650/650.
+      WELLE: 1300,                     // operativ nutzbar (= BESTUECKUNGS_BREITE)
+      WELLE_MITTE: 650,                // operative Mitte (= geometrische Welle-Mitte)
+      BESTUECKUNGS_BREITE: 1300,       // operativ (zwischen Klemm und Asymm-Ring)
+
+      // Welle physisch (Werker-Realität, fuer UI-Anzeige + Sequenz)
+      WELLE_PHYSISCH_MM: 1320,         // physische Bestueckungsbreite gesamt
+      WELLE_LEFT_OF_GEO_CENTER: 650,   // links der Wellen-Mitte
+      WELLE_RIGHT_OF_GEO_CENTER: 670,  // rechts der Wellen-Mitte (asymmetrisch)
+      // Klemm-Distanzring auf Gewinde (Operator-Praxis)
+      KLEMM_DISTANZRING_MM: 5,         // 5 mm Klemm-Reserve auf Gewinde
+      KLEMM_SEITE: "left",             // sitzt links auf Gewinde-Ende
+      // Asymmetrie-Ring (Default an, gleicht 20 mm Welle-Asymmetrie aus)
+      ASYMMETRY_RING_RIGHT_MM: 20,     // 20 mm Standard-Distanzring ganz rechts
+      ASYMMETRY_RING_DEFAULT_ON: true, // immer drauf (Ausnahme: Operator entfernt)
+      // Maschineneinbau: Welle wird gespiegelt eingebaut
+      MASCHINEN_BAHN_OFFSET_MM: 15,    // Wellenmitte +15 mm zur Bahnmitte im Einbau
+      WELLE_REVERSED_ON_MOUNT: true,   // Welle gespiegelt eingebaut → Werker-Hinweis
+
       PARK_RING: 0,
       PARK_PRO_SEITE: 0,
       PARK_TOTAL: 0,
@@ -8580,14 +8600,27 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     // Maschinen-Konstanten-Box
     setTxt("machineConstHead", `Maschinen-Konstanten · ${M.label}`);
-    setTxt("mcWelleLen",       isEuro ? `${M.WELLE} mm (aktive Belegung)` : `${M.WELLE} mm`);
-    setTxt("mcBestueckung",    `${M.BESTUECKUNGS_BREITE} mm${isEuro ? " (zentriert ±" + (M.BESTUECKUNGS_BREITE/2) + ")" : ""}`);
+    setTxt("mcWelleLen",       isEuro
+      ? `${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER} / ${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.)`
+      : `${M.WELLE} mm`);
+    setTxt("mcBestueckung",    isEuro
+      ? `${M.BESTUECKUNGS_BREITE} mm operativ (zentriert ±${M.BESTUECKUNGS_BREITE/2}) · 1325 mm Sequenz inkl. Klemm`
+      : `${M.BESTUECKUNGS_BREITE} mm`);
     setTxt("mcParkRing",       isEuro ? "baulich integriert (kein Operator-Input)" : `${M.PARK_RING} mm · ${M.PARK_PRO_SEITE}/Seite`);
     setTxt("mcSeLen",          `${M.SCHNEIDEEINHEIT} mm`);
     setTxt("mcSchnitt",        `${M.SCHNITT_OFFSET} mm`);
     setTxt("mcDistRings",      M.DISTANZRINGE.slice().sort((a,b)=>a-b).map(r => String(r).replace(".", ",")).join(" / ") + " mm");
     setShow("mcMrCenterRow",   isEuro);
     setTxt("mcMrCenter",       `±${M.MR_CENTER_OFFSET_STD} mm Standard · ±${M.MR_CENTER_OFFSET_TRICK} mm mit Distanzhülsen-Trick`);
+    // Euromac-spezifische Geometrie-Rows (Klemm, Asymmetrie, Bahn-Versatz)
+    setShow("mcKlemmRow",      isEuro);
+    setShow("mcAsymmRow",      isEuro);
+    setShow("mcBahnOffsetRow", isEuro);
+    if (isEuro) {
+      setTxt("mcKlemm",       `${M.KLEMM_DISTANZRING_MM} mm ${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde (Klemm-Reserve)`);
+      setTxt("mcAsymm",       `${M.ASYMMETRY_RING_RIGHT_MM} mm rechts ${M.ASYMMETRY_RING_DEFAULT_ON ? "(Default an — gleicht Welle-Asymmetrie aus)" : "(Default aus)"}`);
+      setTxt("mcBahnOffset",  `+${M.MASCHINEN_BAHN_OFFSET_MM} mm Welle-Mitte zur Bahn-Mitte (Welle gespiegelt eingebaut)`);
+    }
 
     // SE-Sortiment-Box
     const std = (M.SE_SORTIMENT && M.SE_SORTIMENT.find(s => s.id === "standard")) || {};
