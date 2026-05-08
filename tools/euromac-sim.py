@@ -31,7 +31,7 @@ EUROMAC = {
     # Konstanten (unveraendert)
     "SCHNEIDEEINHEIT": 20,
     "SCHNITT_OFFSET": 11,                  # Schnittkante 11 mm v.l. der SE
-    "DISTANZRINGE": [100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3, 0.2, 0.1],
+    "DISTANZRINGE": [100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
     "MAX_MR_MM": 1300,
     "MR_CENTER_OFFSET_STD": 20,           # MR-Bahn ±20 mm um Welle-Center
 }
