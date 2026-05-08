@@ -2441,6 +2441,10 @@ header.bar {
 /* ============== Print-Stylesheet ============== */
 @media print {
   @page { margin: 12mm 14mm; size: A4; }
+  /* Schwarzer Balken im Print kommt von dunklem Body-Background +
+     fixed Background-Layer (.bg-fx, .bg-grid). Explizit white forcen. */
+  html, body { background: white !important; }
+  .bg-fx, .bg-grid, .pw-gate, #pwGate, .toast-stack { display: none !important; }
   body * { visibility: hidden; }
   #welleSection, #welleSection * { visibility: visible; }
   #welleSection {
@@ -2675,12 +2679,13 @@ header.bar {
   #welleSection .stueck-nr.schneid { background: #fdd !important; color: #a00 !important; border-color: #a00 !important; }
   #welleSection .stueck-nr.neben { background: #fed !important; color: #a60 !important; border-color: #a60 !important; }
 
-  /* Picking-Stückliste auf neue Seite */
+  /* Picking-Stückliste vor der Sequenz (DOM-Reorder per JS in beforeprint).
+     Kein erzwungener Page-Break — fließt natürlich zwischen Header und Sequenz. */
   #welleSection .welle-holliste {
     background: white !important;
     border: 1px solid #999 !important;
-    page-break-before: always;
     page-break-inside: avoid;
+    margin-bottom: 5mm;
   }
   #welleSection .welle-holliste h4 { color: black !important; }
   #welleSection .welle-holliste .hl-name { color: black !important; }
@@ -2690,21 +2695,13 @@ header.bar {
   /* Quality-Score / Alerts beim Druck unsichtbar (gehören in Web-Sicht) */
   #welleSection .welle-quality { display: none !important; }
 
-  /* Maschinen-Konstanten + SE-CAD im Print sichtbar — wertvoll für Operator */
-  #welleSection .welle-info-grid {
-    page-break-inside: avoid;
-    margin-bottom: 5mm;
-  }
-  #welleSection .welle-info-box {
-    background: white !important;
-    border: 1px solid #999 !important;
-  }
-  #welleSection .welle-info-box h4 { color: black !important; }
-  #welleSection .welle-info-box .info-row span { color: #555 !important; }
-  #welleSection .welle-info-box .info-row strong { color: black !important; }
-  #welleSection .se-cad { background: #f8f8f8 !important; }
-  #welleSection .se-cad-note { color: #555 !important; }
-  #welleSection .se-cad-note strong { color: #007a3d !important; }
+  /* Maschinen-Konstanten + SE-CAD-Box im Print AUSBLENDEN — Werker kennt
+     die Werte. Nur Auftragsdaten + Stückliste + Bestückungs-Sequenz sind
+     für die Werkstatt relevant. */
+  #welleSection .welle-info-grid,
+  #welleSection .se-cad-modal,
+  #welleSection .welle-machine-toggle,
+  #welleSection .machine-bar { display: none !important; }
 }
 
 /* ============== Auftragserfüllungs-Tabelle (Bottleneck-View) ============== */
@@ -9637,7 +9634,28 @@ audio.team-player-audio::-webkit-media-controls-panel {
     }
   });
 
-  // Print-Handler
+  // Print-Handler · DOM-Reorder: Stückliste VOR Bestückungs-Sequenz (Werker
+  // packt erst die Teile zusammen, dann arbeitet die Sequenz Schritt-für-Schritt
+  // ab). Web-DOM bleibt unverändert (Sequenz oben), Print-DOM swappt.
+  function reorderForPrint() {
+    const seq = document.getElementById("welleSequenzWrap");
+    const holl = document.getElementById("welleHolliste");
+    if (seq && holl && holl.parentNode === seq.parentNode) {
+      seq.parentNode.insertBefore(holl, seq);
+    }
+  }
+  function restoreOrderAfterPrint() {
+    const seq = document.getElementById("welleSequenzWrap");
+    const holl = document.getElementById("welleHolliste");
+    if (seq && holl && holl.parentNode === seq.parentNode) {
+      // Holliste nach Sequenz zurückbewegen (Web-Default)
+      seq.parentNode.insertBefore(holl, seq.nextSibling);
+    }
+  }
+  // Auch bei Browser-eigenem Cmd+P greifen → globaler Listener
+  window.addEventListener("beforeprint", reorderForPrint);
+  window.addEventListener("afterprint", restoreOrderAfterPrint);
+
   const printBtnEl = document.getElementById("printWelleBtn");
   if (printBtnEl) {
     printBtnEl.addEventListener("click", () => {
