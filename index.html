@@ -90,8 +90,13 @@
 html, body {
   /* height:100% entfernt v1.50 — bei langem Content (Welle-Section offen,
      Sequenz, Holliste) blockierte das den Page-Scroll in manchen Browser-
-     Konfigurationen. min-height:100vh auf body genuegt fuer Viewport-Fill. */
+     Konfigurationen. min-height:100vh auf body genuegt fuer Viewport-Fill.
+     v1.62 Firefox-Fix: overflow-y explizit auf auto + overscroll-behavior
+     entfernt — Werker-Firefox auf Windows hat wheel-Events sonst nicht
+     ans body weitergegeben (Mac-Firefox unauffaellig, Windows-FF schluckt
+     wheel ueber overscroll-behavior: contain in bestimmten Configs). */
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body {
@@ -105,7 +110,6 @@ body {
   letter-spacing: -0.011em;
   min-height: 100vh;
   position: relative;
-  overscroll-behavior: contain;
 }
 
 /* ------- password gate ------- */
@@ -334,6 +338,124 @@ header.bar {
   border: 1px solid rgba(0,230,118,0.22);
   border-radius: var(--r-3);
   background: linear-gradient(135deg, rgba(0,230,118,0.04) 0%, rgba(0,230,118,0.02) 100%);
+  flex-wrap: wrap;
+}
+/* Bahn-Mitte-Eichung (pro Maschine, persistiert) */
+.bahn-eich-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: var(--r-2);
+  background: rgba(0,0,0,0.22);
+  border: 1px solid rgba(255,255,255,0.10);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.bahn-eich-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+.bahn-eich-bar input {
+  width: 68px;
+  padding: 5px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+  -moz-appearance: textfield;
+}
+.bahn-eich-bar input::-webkit-outer-spin-button,
+.bahn-eich-bar input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.bahn-eich-bar input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(0,230,118,0.28);
+}
+.bahn-eich-bar.is-active input { border-color: var(--accent-primary); color: var(--accent-primary); }
+.bahn-eich-unit { color: var(--text-secondary); font-size: 11px; font-weight: 600; }
+.bahn-eich-hint { color: var(--text-secondary); opacity: 0.6; font-size: 10px; }
+.bahn-eich-reset {
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  font-size: 13px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  font-family: inherit;
+  line-height: 1;
+}
+.bahn-eich-reset:hover { color: var(--accent-primary); border-color: var(--accent-primary); }
+@media (max-width: 900px) {
+  .bahn-eich-bar { flex-basis: 100%; }
+  .bahn-eich-hint { display: none; }
+}
+/* Trim-Strategie (pro Maschine, persistiert) */
+.trim-strategy-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: var(--r-2);
+  background: rgba(0,0,0,0.22);
+  border: 1px solid rgba(255,255,255,0.10);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.trim-strategy-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+.trim-strategy-segments {
+  display: inline-flex;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  padding: 2px;
+  gap: 2px;
+}
+.ts-seg {
+  padding: 5px 9px;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all var(--t-fast) var(--ease-out-expo);
+}
+.ts-seg:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+.ts-seg[aria-checked="true"] {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-dark) 100%);
+  color: #062b14;
+  box-shadow: 0 1px 6px var(--accent-glow-soft);
+}
+@media (max-width: 900px) {
+  .trim-strategy-bar { flex-basis: 100%; }
 }
 .machine-bar-label {
   display: inline-flex;
@@ -767,6 +889,7 @@ header.bar {
 }
 .hetero-fields[aria-hidden="false"] {
   max-height: 1600px;
+  overflow: visible;  /* v1.62 Firefox-Fix: aktiver Container darf wheel-Events nicht abfangen */
   opacity: 1;
 }
 
@@ -1008,6 +1131,7 @@ header.bar {
 }
 .asym-fields[aria-hidden="false"] {
   max-height: 180px;
+  overflow: visible;  /* v1.62 Firefox-Fix */
   opacity: 1;
 }
 
@@ -1073,6 +1197,10 @@ header.bar {
 }
 .welle-section[aria-hidden="false"] {
   max-height: 99999px;
+  /* v1.62 Firefox-Fix: overflow:visible im aktiven Zustand — sonst fingt
+     Firefox-Windows wheel-Events auf der grossen Section ab, page liess
+     sich nur per Scrollbar-Drag scrollen. */
+  overflow: visible;
   opacity: 1;
   padding: 24px;
   margin-top: var(--s-2);
@@ -1389,6 +1517,18 @@ header.bar {
   font-size: 11px; color: var(--text-secondary);
   font-style: italic;
 }
+.welle-sequenz-disclaimer {
+  margin: 0 0 14px 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border-left: 3px solid #ffb74d;
+  background: rgba(255,183,77,0.07);
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.welle-sequenz-disclaimer strong { color: #ffd28a; font-weight: 700; }
+.welle-sequenz-disclaimer em { font-style: normal; color: var(--accent-primary); font-weight: 700; }
 .welle-sequenz {
   display: flex; flex-direction: column;
   font-variant-numeric: tabular-nums;
@@ -1511,6 +1651,7 @@ header.bar {
 }
 .cluster-section[aria-hidden="false"] {
   max-height: 1200px;
+  overflow: visible;  /* v1.62 Firefox-Fix */
   opacity: 1;
   margin-top: 12px;
 }
@@ -4147,6 +4288,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
             <div class="result-sub" id="rRestSub">≥ 6 mm empfohlen (3 mm/Seite)</div>
           </div>
 
+          <div class="result-card" id="rMaterialEffCard">
+            <button class="copy-btn" data-copy-target="rMaterialEff" data-copy-label="Material-Ausnutzung"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <span class="result-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0-18 0"/><path d="M3 12 A9 9 0 0 1 12 3 L12 12 Z" fill="currentColor" opacity="0.25"/></svg></span>
+            <div class="result-label">Material-Ausnutzung</div>
+            <div class="result-value"><span id="rMaterialEff">—</span><span class="result-unit">%</span></div>
+            <div class="result-sub" id="rMaterialEffSub">— mm Schmalrolle ÷ — mm MR</div>
+          </div>
+
           <div class="result-card">
             <button class="copy-btn" data-copy-target="rProSatz" data-copy-label="LFM/Satz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
             <span class="result-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14M19 5l-7 7"/><circle cx="6" cy="18" r="1.2"/><circle cx="18" cy="6" r="1.2"/></svg></span>
@@ -4208,6 +4357,27 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <span class="machine-btn-label">Euromac</span>
           <span class="machine-btn-sub">1320 mm asymm. · 1300 operativ</span>
         </button>
+      </div>
+      <div class="bahn-eich-bar" title="Bahn-Mitte-Offset (mm): Verschiebung der Stack-Mitte gegenueber der operativen Welle-Mitte. Positiv = Stack nach rechts. Pro Maschine separat einstellbar und gespeichert.">
+        <label for="bahnOffsetInput" class="bahn-eich-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0"><path d="M12 2v20M5 12h14M3 8l2-2M19 8l2-2M3 16l2 2M19 16l2 2"/></svg>
+          <span>Eichung Bahn-Mitte</span>
+        </label>
+        <input id="bahnOffsetInput" type="number" step="0.5" placeholder="0" inputmode="decimal" aria-describedby="bahnOffsetHint">
+        <span class="bahn-eich-unit">mm</span>
+        <span id="bahnOffsetHint" class="bahn-eich-hint">+ = Bahn-Mitte rechts der Welle-Mitte</span>
+        <button type="button" id="bahnOffsetReset" class="bahn-eich-reset" title="Zurueck auf 0 (Welle-Mitte)">↺</button>
+      </div>
+      <div class="trim-strategy-bar" title="Trim-Strategie: Wie wird die Gesamt-Besaeumung auf links/rechts verteilt?\n· Sym = 5+5 mm beidseitig (2 Besaeumungs-SE, Stack mittig)\n· Asym L = ganzer Trim links (1 Besaeumungs-SE, Stack rechts versetzt)\n· Asym R = ganzer Trim rechts (1 Besaeumungs-SE, Stack links versetzt)\nPro Maschine gespeichert.">
+        <label class="trim-strategy-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          <span>Trim-Strategie</span>
+        </label>
+        <div class="trim-strategy-segments" role="radiogroup" aria-label="Trim-Strategie">
+          <button type="button" class="ts-seg" data-trim-mode="asym-l" role="radio" aria-checked="false" title="Asymmetrisch links: gesamter Trim auf der linken Seite, 1 Besaeumungs-SE gespart">← Asym L</button>
+          <button type="button" class="ts-seg ts-seg-sym" data-trim-mode="sym" role="radio" aria-checked="true" title="Symmetrisch: Trim 50/50 auf beide Seiten, 2 Besaeumungs-SE">Sym 5+5</button>
+          <button type="button" class="ts-seg" data-trim-mode="asym-r" role="radio" aria-checked="false" title="Asymmetrisch rechts: gesamter Trim auf der rechten Seite, 1 Besaeumungs-SE gespart">Asym R →</button>
+        </div>
       </div>
     </section>
 
@@ -4466,6 +4636,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <h4>● Bestückungs-Sequenz <span class="seq-arrow">RECHTS → LINKS</span></h4>
           <span class="welle-sequenz-sub">auf Rüstdorn vorbereiten</span>
         </div>
+        <div class="welle-sequenz-disclaimer">
+          <strong>Vorschlag · eine moegliche Realisierung.</strong>
+          Verbindlich sind ausschliesslich die <em>Schnittkanten-Positionen</em> (Mitte&nbsp;±X&nbsp;mm).
+          Die Distanzring-Kombination kann der Werker mit anderen Stueck-Groessen erreichen — solange die Schnittkanten an der gleichen Stelle landen.
+        </div>
         <div class="welle-sequenz" id="welleSequenz"></div>
       </div>
       <div class="welle-holliste" id="welleHolliste"></div>
@@ -4532,6 +4707,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     rRest:      document.getElementById("rRest"),
     rRestSub:   document.getElementById("rRestSub"),
     rRestCard:  document.getElementById("rRestCard"),
+    rMaterialEff:     document.getElementById("rMaterialEff"),
+    rMaterialEffSub:  document.getElementById("rMaterialEffSub"),
+    rMaterialEffCard: document.getElementById("rMaterialEffCard"),
     rProSatz:   document.getElementById("rProSatz"),
     rSaetze:    document.getElementById("rSaetze"),
     rRestsatzSub: document.getElementById("rRestsatzSub"),
@@ -4862,13 +5040,30 @@ audio.team-player-audio::-webkit-media-controls-panel {
       huelsenHaupt, huelsenNebenTotal,
       hauptIstQm, hauptDeltaQm, hauptDeltaPct, hauptStatus,
       hasAnySoll: nebenSlots.some(s => s.sollQm),
-      // Asymmetrische Besäumung-Logik (nur bei Hetero relevant — Default symmetrisch)
+      // Trim-Strategie: legt fest wie der Gesamt-Trim auf L/R verteilt wird.
+      // sym (Default)      = restMM/2 + restMM/2 → 2 Besäumungs-SE, Stack-Mitte = Bahn-Mitte
+      // asym-r             = 0 links, restMM rechts → 1 Besäumungs-SE, Stack 5 mm links
+      // asym-l             = restMM links, 0 rechts → 1 Besäumungs-SE, Stack 5 mm rechts
+      // Manuell-Override (Asymmetrische Besäumung bei Hetero) hat Vorrang.
       ...(function(){
-        if (!hasNeben) return { restL: restMM/2, restR: restMM/2, asymmetric: false };
-        const opL = num(els.besaeumungL);
-        if (!isFinite(opL) || opL < 0) return { restL: restMM/2, restR: restMM/2, asymmetric: false };
-        const clamped = Math.min(Math.max(0, opL), restMM);
-        return { restL: clamped, restR: restMM - clamped, asymmetric: Math.abs(clamped - restMM/2) > 0.05 };
+        // Manueller Hetero-Override per Eingabe
+        if (hasNeben) {
+          const opL = num(els.besaeumungL);
+          if (isFinite(opL) && opL >= 0) {
+            const clamped = Math.min(Math.max(0, opL), restMM);
+            return { restL: clamped, restR: restMM - clamped, asymmetric: Math.abs(clamped - restMM/2) > 0.05, trimMode: "manual" };
+          }
+        }
+        // Strategie aus localStorage (pro Maschine separat)
+        let mode = "sym";
+        try {
+          const stored = localStorage.getItem("rr.trimMode." + activeMachineId);
+          if (stored === "sym" || stored === "asym-r" || stored === "asym-l") mode = stored;
+        } catch (_) {}
+        if (restMM <= 0.001) return { restL: 0, restR: 0, asymmetric: false, trimMode: mode };
+        if (mode === "asym-r") return { restL: 0, restR: restMM, asymmetric: true, trimMode: mode };
+        if (mode === "asym-l") return { restL: restMM, restR: 0, asymmetric: true, trimMode: mode };
+        return { restL: restMM/2, restR: restMM/2, asymmetric: false, trimMode: mode };
       })(),
       speed: hasSpeed ? speed : null,
       ruestBase:    hasBase    ? ruestBase    : null,
@@ -4940,7 +5135,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   // ---------- render ----------
   function renderEmpty() {
-    [els.rHero, els.rGesamt, els.rNutzen, els.rRest, els.rProSatz, els.rSaetze,
+    [els.rHero, els.rGesamt, els.rNutzen, els.rRest, els.rMaterialEff, els.rProSatz, els.rSaetze,
      els.rHuelsen, els.rTPerSatz, els.rTTotal].forEach(e => {
       if (!e) return;
       e.textContent = "—";
@@ -4951,11 +5146,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
     els.rNutzenSub.textContent = "⌊ MR-Breite ÷ SR-Breite ⌋";
     els.rRestSub.textContent = "≥ 6 mm empfohlen (3 mm/Seite)";
     els.rRestsatzSub.textContent = "Restsatz: — LFM";
+    if (els.rMaterialEffSub) els.rMaterialEffSub.textContent = "— mm Schmalrolle ÷ — mm MR";
     if (els.rHuelsenSub)  els.rHuelsenSub.textContent  = "— Sätze × — NTZ á — mm";
     if (els.rTPerSatzSub) els.rTPerSatzSub.textContent = "LFM ÷ Geschwindigkeit";
     if (els.rTTotalSub)   els.rTTotalSub.textContent   = "MR-Menge ÷ Geschwindigkeit";
     if (els.rTTotalUnit)  els.rTTotalUnit.textContent  = "min";
     els.rRestCard.removeAttribute("data-tone");
+    if (els.rMaterialEffCard) els.rMaterialEffCard.removeAttribute("data-tone");
     drawViz(null);
   }
 
@@ -5296,6 +5493,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       PARK_RING: 59,
       PARK_PRO_SEITE: 4,
       PARK_TOTAL: 4 * 59,
+      BAHN_MITTE_OFFSET_MM: 0,         // siehe Euromac-Definition; pro Maschine eichbar
       DISTANZRINGE: [300, 200, 100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
       SCHNEIDEEINHEIT: 20,
       SCHNITT_OFFSET: 13,
@@ -5339,6 +5537,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
       PARK_RING: 0,
       PARK_PRO_SEITE: 0,
       PARK_TOTAL: 0,
+      // Bahn-Mitte-Offset: mm-Verschiebung der Stack-Mitte gegenüber operativer Welle-Mitte.
+      // Positiv = Bahn-Mitte rechts der Welle-Mitte → Stack rechts versetzt.
+      // Default 0; pro Maschine durch Werker eichbar (UI-Feld speichert in localStorage).
+      BAHN_MITTE_OFFSET_MM: 0,
       // 10 Stufen — kein 200/300 mm (Lücken muss Operator durch Kombi 100+X lösen)
       DISTANZRINGE: [100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
       SCHNEIDEEINHEIT: 20,             // Standard-SE: Distanzhülse 10 + Messer 1 + Gegenstück 9
@@ -5473,7 +5675,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // ===== innerSegs aus geordneter Streifen-Liste aufbauen =====
     // Pattern: [SE-L?] · D₁ SE D₂ SE … SE Dₙ [SE-R?]
     if (haveSeL) {
-      innerSegs.push({ kind: "schneid", breite: SE, name: "Schneideeinheit Besäumung-L", short: "SE-L" });
+      innerSegs.push({ kind: "schneid", breite: SE, name: "Schneideeinheit Besäumung-L", short: "SE-L", role: "trim-L", trim: trimL });
     }
     for (let i = 0; i < ordered.length; i++) {
       const s = ordered[i];
@@ -5496,12 +5698,17 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const seName = s.kind === "haupt"
           ? (isLast ? (hasNeben ? "SE Übergang" : "SE Besäumung-R") : "Schneideeinheit innen")
           : (isLast ? "Schneideeinheit Besäumung-R (Neben)" : `Schneideeinheit Neben N${s.slotIdx}-${s.anzIdx}/${s.anzTotal}`);
+        const seRole = s.kind === "haupt"
+          ? (isLast ? (hasNeben ? "uebergang" : "trim-R") : "inner")
+          : (isLast ? "trim-R" : "neben");
         innerSegs.push({
           kind: s.kind === "haupt" ? "schneid" : "neben",
           slotIdx: s.slotIdx,
           breite: SE,
           name: seName,
-          short: s.kind === "haupt" ? "SE" : "SE-N"
+          short: s.kind === "haupt" ? "SE" : "SE-N",
+          role: seRole,
+          ...(seRole === "trim-R" ? { trim: trimR } : {})
         });
       } else {
         // Letzter Streifen ohne SE-R: Distanzring um distRExt verlängern
@@ -5517,18 +5724,37 @@ audio.team-player-audio::-webkit-media-controls-panel {
       return { ok: false, alerts: [{type:"danger", msg:`Bestückung ${innerLen.toFixed(1)} mm überschreitet ${M.label}-Bereich ${M.BESTUECKUNGS_BREITE} mm.${alt}`}] };
     }
 
-    const restProSeite = (M.BESTUECKUNGS_BREITE - innerLen) / 2;
-    const restFill = distanzringeForMachine(restProSeite, M);
-    if (restFill.rest > 0.01) {
-      alerts.push({type:"warn", msg:`Reststrecke ${restProSeite.toFixed(2)} mm pro Seite nicht exakt mit Distanzringen füllbar — Differenz ${restFill.rest.toFixed(2)} mm.`});
+    const restTotal = M.BESTUECKUNGS_BREITE - innerLen;
+    // Bahn-Mitte-Offset: positiv = Bahn-Mitte rechts der Welle-Mitte → Stack rechts versetzt.
+    // Default aus Maschinen-Config, override aus localStorage (Werker-Eichung pro Maschine).
+    const bahnOffsetStored = (function(){
+      try {
+        const v = localStorage.getItem("rr.bahnOffset." + M.id);
+        if (v != null && v !== "") {
+          const n = parseFloat(String(v).replace(",", "."));
+          if (isFinite(n)) return n;
+        }
+      } catch(_) {}
+      return (typeof M.BAHN_MITTE_OFFSET_MM === "number") ? M.BAHN_MITTE_OFFSET_MM : 0;
+    })();
+    const bahnOffsetClamp = restTotal / 2;
+    const bahnOffset = Math.max(-bahnOffsetClamp, Math.min(bahnOffsetClamp, bahnOffsetStored));
+    const restL = restTotal / 2 + bahnOffset;
+    const restR = restTotal / 2 - bahnOffset;
+    const restProSeite = restTotal / 2;  // legacy, falls außerhalb noch referenziert
+    const restFillL = distanzringeForMachine(restL, M);
+    const restFillR = distanzringeForMachine(restR, M);
+    const restFill = restFillL;  // legacy alias
+    if (restFillL.rest > 0.01 || restFillR.rest > 0.01) {
+      alerts.push({type:"warn", msg:`Reststrecke nicht exakt mit Distanzringen füllbar — links Diff ${restFillL.rest.toFixed(2)} mm, rechts Diff ${restFillR.rest.toFixed(2)} mm.`});
     }
 
     // Vollständiges Layout LR — bei builtin-Park entfallen die Park-Ring-Segmente
     const layoutLR = [];
     for (let i = 0; i < M.PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: M.PARK_RING, name: "Parkplatz-Ring (L)", short: "P" });
-    if (restProSeite > 0.001) layoutLR.push({ kind: "rest", breite: restProSeite, name: "Distanzring-Auffüllung L", short: "Rest", fill: restFill.rings });
+    if (restL > 0.001) layoutLR.push({ kind: "rest", breite: restL, name: "Distanzring-Auffüllung L", short: "Rest", fill: restFillL.rings });
     for (const s of innerSegs) layoutLR.push({...s});
-    if (restProSeite > 0.001) layoutLR.push({ kind: "rest", breite: restProSeite, name: "Distanzring-Auffüllung R", short: "Rest", fill: restFill.rings });
+    if (restR > 0.001) layoutLR.push({ kind: "rest", breite: restR, name: "Distanzring-Auffüllung R", short: "Rest", fill: restFillR.rings });
     for (let i = 0; i < M.PARK_PRO_SEITE; i++) layoutLR.push({ kind: "park", breite: M.PARK_RING, name: "Parkplatz-Ring (R)", short: "P" });
 
     // MR-Position auf der Welle
@@ -5536,21 +5762,64 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // der MR-Linke-Rand ist trimL nach links davon.
     // Bei haveSeL=false (kein Trim) fluchtet der MR-Linke-Rand mit innerStart
     // (= Anfang des ersten verlängerten Distanzrings).
-    const innerStart = restProSeite + M.PARK_TOTAL;
+    const innerStart = restL + M.PARK_TOTAL;
     const innerEnd = innerStart + innerLen;
     const mrStart = haveSeL
       ? innerStart + M.SCHNITT_OFFSET - trimL
       : innerStart;
     const mrEnd = mrStart + mr;
 
-    // Hol-Liste
-    const totalSE = innerSegs.filter(s => s.kind === "schneid" || s.kind === "neben").length;
+    // Hol-Liste — SE nach Rolle aufgliedern damit Werker erkennt was
+    // Besäumung (essentiell für korrekte Aussen-Schmalrolle) vs Trennung
+    // (zwischen den Schmalrollen) vs Übergang (Haupt↔Neben) ist.
+    const innerSEs = innerSegs.filter(s => s.kind === "schneid" || s.kind === "neben");
+    const roleCounts = { trimL: 0, trimR: 0, inner: 0, uebergang: 0, neben: 0 };
+    for (const se of innerSEs) {
+      if (se.role === "trim-L") roleCounts.trimL++;
+      else if (se.role === "trim-R") roleCounts.trimR++;
+      else if (se.role === "uebergang") roleCounts.uebergang++;
+      else if (se.role === "neben") roleCounts.neben++;
+      else roleCounts.inner++;
+    }
+    const totalSE = innerSEs.length;
     const seSpec = (activeMachineId === "EUROMAC")
       ? "20 mm (Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9)"
       : "20 mm (10 Schneidring + 10 Nutmesser)";
-    const holliste = [
-      { name: "Schneideeinheit", spec: seSpec, anz: totalSE }
-    ];
+    const holliste = [];
+    // Besäumungs-SE zuerst (Werker muss diese explizit als Trim-Schnitte erkennen,
+    // sonst werden Aussen-Schmalrollen mit dem Trim-Anteil zu breit).
+    const trimTotal = roleCounts.trimL + roleCounts.trimR;
+    if (trimTotal > 0) {
+      const fmt = (n) => (typeof nf1 !== "undefined" && nf1.format) ? nf1.format(n).replace(",0", "") : String(n);
+      const trimDesc = (roleCounts.trimL && roleCounts.trimR)
+        ? `schneidet ${fmt(trimL)} mm links + ${fmt(trimR)} mm rechts Trim weg`
+        : roleCounts.trimL
+          ? `schneidet ${fmt(trimL)} mm Trim links weg (asymmetrisch)`
+          : `schneidet ${fmt(trimR)} mm Trim rechts weg (asymmetrisch)`;
+      holliste.push({
+        name: "Schneideeinheit · Besäumung",
+        spec: `${seSpec} · ${trimDesc}`,
+        anz: trimTotal
+      });
+    }
+    // Trennungs-SE (zwischen den Schmalrollen — bestimmt nur deren Abstand,
+    // nicht ihre Aussen-Breite)
+    const trennTotal = roleCounts.inner + roleCounts.neben;
+    if (trennTotal > 0) {
+      holliste.push({
+        name: "Schneideeinheit · Trennung",
+        spec: `${seSpec} · zwischen den Schmalrollen`,
+        anz: trennTotal
+      });
+    }
+    // Übergangs-SE (Multi-Auftrag: Haupt↔Neben)
+    if (roleCounts.uebergang > 0) {
+      holliste.push({
+        name: "Schneideeinheit · Übergang",
+        spec: `${seSpec} · Haupt ↔ Neben`,
+        anz: roleCounts.uebergang
+      });
+    }
     if (M.PARK_PRO_SEITE > 0) {
       holliste.push({ name: "Parkplatz-Ring", spec: `${M.PARK_RING} mm`, anz: M.PARK_PRO_SEITE * 2 });
     }
@@ -5561,7 +5830,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
         for (const [k,v] of Object.entries(f.rings)) distMap[k] = (distMap[k] || 0) + v;
       }
     }
-    for (const [k,v] of Object.entries(restFill.rings)) distMap[k] = (distMap[k] || 0) + v * 2;
+    for (const [k,v] of Object.entries(restFillL.rings)) distMap[k] = (distMap[k] || 0) + v;
+    for (const [k,v] of Object.entries(restFillR.rings)) distMap[k] = (distMap[k] || 0) + v;
     // Euromac: Asymmetrie-Ring 20 mm (Default) + Klemm-Ring 5 mm zur Stueckliste hinzufuegen
     if (activeMachineId === "EUROMAC") {
       if (M.ASYMMETRY_RING_DEFAULT_ON && M.ASYMMETRY_RING_RIGHT_MM > 0) {
@@ -5576,7 +5846,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     return {
       ok: true,
-      mr, haupt, N, slots, innerLen, restProSeite,
+      mr, haupt, N, slots, innerLen, restProSeite, restL, restR, bahnOffset,
       layoutLR, innerSegs, holliste,
       innerStart, innerEnd, mrStart, mrEnd,
       alerts
@@ -6139,26 +6409,44 @@ audio.team-player-audio::-webkit-media-controls-panel {
       // Schneideeinheit (oder Neben-SE) als EIN Bauteil 20mm
       if (seg.kind === "schneid" || seg.kind === "neben") {
         const isNeben = seg.kind === "neben";
+        const role = seg.role || "inner";
+        const isTrim = (role === "trim-L" || role === "trim-R");
+        const isUeber = (role === "uebergang");
         const cls = isNeben ? "neben" : "schneid";
-        const swatch = isNeben
-          ? "linear-gradient(90deg,#ffb74d 0%,#ffb74d 50%,#ffd54f 50%,#ffd54f 100%)"
-          : "linear-gradient(90deg,#ff5544 0%,#ff5544 50%,#ffd54f 50%,#ffd54f 100%)";
+        // Besäumungs-SE auffaellig markieren — Werker muss erkennen dass diese
+        // Schnitte essentiell sind, sonst werden Aussen-Schmalrollen falsch breit.
+        const swatch = isTrim
+          ? "linear-gradient(90deg,#ffb400 0%,#ffb400 35%,#ff5544 35%,#ff5544 65%,#ffd54f 65%,#ffd54f 100%)"
+          : isNeben
+            ? "linear-gradient(90deg,#ffb74d 0%,#ffb74d 50%,#ffd54f 50%,#ffd54f 100%)"
+            : "linear-gradient(90deg,#ff5544 0%,#ff5544 50%,#ffd54f 50%,#ffd54f 100%)";
         const cutPosLocal = getMachine().SCHNITT_OFFSET;
         const cutAbsPos = Math.round(kumPos + cutPosLocal);
         const cutFromMitte = cutAbsPos - MITTE;
-        const cutMitteTxt = Math.abs(cutFromMitte) < 1
-          ? "Schnitt = Welle-Mitte"
-          : (cutFromMitte > 0 ? `Schnitt: Mitte +${cutFromMitte} mm` : `Schnitt: Mitte ${cutFromMitte} mm`);
+        const cutMitteShort = Math.abs(cutFromMitte) < 1
+          ? "Schnitt @ Mitte"
+          : (cutFromMitte > 0 ? `Schnitt Mitte +${cutFromMitte}` : `Schnitt Mitte ${cutFromMitte}`);
+        const trimMm = (typeof seg.trim === "number") ? seg.trim : 0;
+        const roleBadge = isTrim
+          ? `<span style="display:inline-block;background:#ffb400;color:#1a0e00;font-size:9px;font-weight:800;padding:2px 7px;border-radius:3px;margin-left:8px;letter-spacing:0.06em;vertical-align:1px">BESÄUMUNG ${role === "trim-L" ? "L" : "R"}${trimMm ? ` · ${trimMm} mm Trim` : ""}</span>`
+          : isUeber
+            ? '<span style="display:inline-block;background:rgba(255,180,0,0.18);color:#ffd28a;font-size:9px;font-weight:800;padding:2px 7px;border-radius:3px;margin-left:8px;letter-spacing:0.06em;vertical-align:1px">ÜBERGANG</span>'
+            : isNeben
+              ? ' <span style="color:#ffb400">(Neben)</span>'
+              : '<span style="color:var(--text-secondary);font-size:10px;margin-left:8px;letter-spacing:0.03em;opacity:0.75;font-weight:500">· Trennung</span>';
+        const trimNote = isTrim
+          ? `<br><span style="color:#ffd28a;font-weight:600">⚠ Essentiell — ohne diesen Schnitt wird die Aussen-Schmalrolle ${trimMm} mm zu breit.</span>`
+          : "";
         const r = document.createElement("div");
-        r.className = "stueck-row";
+        r.className = "stueck-row" + (isTrim ? " stueck-row-trim" : "");
         r.innerHTML = `
           <div class="stueck-nr ${cls}">${nr++}</div>
           <div>
-            <div class="stueck-name"><span class="icon" style="background:${swatch}"></span>Schneideeinheit${isNeben ? ' <span style="color:#ffb400">(Neben)</span>' : ''}</div>
-            <div class="stueck-detail">Schnittkante asymmetrisch @ ${getMachine().SCHNITT_OFFSET} mm v. links · Welle-Position ${cutAbsPos} mm · ${cutMitteTxt}</div>
+            <div class="stueck-name"><span class="icon" style="background:${swatch}"></span>Schneideeinheit${roleBadge}</div>
+            <div class="stueck-detail">Schnittkante asymm. @ ${getMachine().SCHNITT_OFFSET} mm v. links der SE · SE-Linke-Kante @ ${Math.round(kumPos)} mm v. rechtem Wellenrand · SE-Mitte ${fromMitte(kumPos, getMachine().SCHNEIDEEINHEIT)}${trimNote}</div>
           </div>
           <div class="stueck-mass">20 mm</div>
-          <div class="stueck-pos">@ ${Math.round(kumPos)} mm<br><span style="font-size:10px;opacity:0.7">${fromMitte(kumPos, getMachine().SCHNEIDEEINHEIT)}</span></div>
+          <div class="stueck-pos"><strong style="color:#ff8a7a;font-size:13px;font-weight:800">${cutMitteShort} mm</strong><br><span style="font-size:10px;opacity:0.7;font-weight:500">Welle-Pos ${cutAbsPos} mm</span></div>
         `;
         seqEl.appendChild(r);
         kumPos += getMachine().SCHNEIDEEINHEIT;
@@ -7692,7 +7980,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
       return;
     }
     const slotsTxt = result.slots.length ? ` + ${result.slots.map(s=>`${s.anz}× ${s.breite} mm`).join(" + ")} Neben` : "";
-    if (sub) sub.textContent = `MR ${result.mr} mm → ${result.N}× ${result.haupt} mm${slotsTxt} · innen ${result.innerLen.toFixed(1)} mm · Rest ${result.restProSeite.toFixed(2)} mm/Seite`;
+    if (sub) {
+      const restTxt = (Math.abs((result.restL || 0) - (result.restR || 0)) < 0.01)
+        ? `Rest ${result.restProSeite.toFixed(2)} mm/Seite`
+        : `Rest L=${result.restL.toFixed(2)} · R=${result.restR.toFixed(2)} mm (Bahn-Offset ${result.bahnOffset > 0 ? "+" : ""}${result.bahnOffset} mm)`;
+      sub.textContent = `MR ${result.mr} mm → ${result.N}× ${result.haupt} mm${slotsTxt} · innen ${result.innerLen.toFixed(1)} mm · ${restTxt}`;
+    }
     renderWelleSvg(result);
     renderWelleSequenz(result);
     renderWelleHolliste(result);
@@ -7743,7 +8036,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
       // Asymmetrische Besäumung bei Hetero möglich — einzeln prüfen
       const toneL = (o.restL > 0 && o.restL < 6) ? "danger" : "";
       const toneR = (o.restR > 0 && o.restR < 6) ? "danger" : "";
-      const asymTag = o.asymmetric ? `<div style="font-size:11px;color:#ffb400;margin-top:6px;font-weight:700;letter-spacing:0.04em">⚖ ASYMMETRISCH</div>` : "";
+      // Trim-Modus-Tag: zeigt explizit ob 5+5 oder asymmetrisch
+      const modeTag = o.trimMode === "asym-l"
+        ? `<div style="font-size:11px;color:#ffb400;margin-top:6px;font-weight:700;letter-spacing:0.04em">⚖ ASYMMETRISCH LINKS · spart 1 SE</div>`
+        : o.trimMode === "asym-r"
+          ? `<div style="font-size:11px;color:#ffb400;margin-top:6px;font-weight:700;letter-spacing:0.04em">⚖ ASYMMETRISCH RECHTS · spart 1 SE</div>`
+          : (o.asymmetric ? `<div style="font-size:11px;color:#ffb400;margin-top:6px;font-weight:700;letter-spacing:0.04em">⚖ MANUELL ASYMMETRISCH</div>` : "");
       els.rRestSub.innerHTML =
         `<div class="side-pills">` +
           `<span class="side-pill"${toneL ? ` data-tone="${toneL}"` : ""}>` +
@@ -7752,7 +8050,28 @@ audio.team-player-audio::-webkit-media-controls-panel {
           `<span class="side-pill"${toneR ? ` data-tone="${toneR}"` : ""}>` +
             `<span class="side-tag">R</span>${nf1.format(o.restR)} mm` +
           `</span>` +
-        `</div>` + asymTag;
+        `</div>` + modeTag;
+    }
+
+    // Material-Ausnutzung — wieviel % der MR-Breite landet in Schmalrollen?
+    // Schmalrollen-Anteil = (mr - restMM) / mr
+    if (els.rMaterialEff) {
+      const mrBreite = o.mutter || 0;
+      const schmalSum = mrBreite - (o.restMM || 0);
+      const effPct = mrBreite > 0 ? (schmalSum / mrBreite) * 100 : 0;
+      animateNumber(els.rMaterialEff, effPct, (n) => nf1.format(n));
+      if (els.rMaterialEffSub) {
+        const trimPct = mrBreite > 0 ? ((o.restMM || 0) / mrBreite) * 100 : 0;
+        els.rMaterialEffSub.innerHTML =
+          `<span style="color:var(--accent-primary);font-weight:700">${nf0.format(schmalSum)} mm</span> Schmalrolle ÷ ${nf0.format(mrBreite)} mm MR` +
+          ` · <span style="color:#ffb400;font-weight:700">${nf1.format(trimPct)}%</span> Trim`;
+      }
+      if (els.rMaterialEffCard) {
+        // Tone-Logik: 100% = signal (perfekt), <95% = warn (zu viel Trim)
+        if (Math.abs(o.restMM) < 0.0001) els.rMaterialEffCard.setAttribute("data-tone", "signal");
+        else if (effPct < 95) els.rMaterialEffCard.setAttribute("data-tone", "warn");
+        else els.rMaterialEffCard.removeAttribute("data-tone");
+      }
     }
 
     // Sätze-Aufschlüsselung: volle + Restsatz (oder nur volle wenn rest = 0)
@@ -8701,6 +9020,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
   function onMachineChanged() {
     updateMachineToggleUI();
     updateMachineInfoUI();
+    if (typeof syncBahnOffsetUI === "function") syncBahnOffsetUI();
+    if (typeof syncTrimModeUI === "function") syncTrimModeUI();
     if (typeof calc === "function") calc();
     if (typeof renderClusterJobs === "function") renderClusterJobs();
     toast(`Maschine: ${getMachine().label}`);
@@ -8712,6 +9033,109 @@ audio.team-player-audio::-webkit-media-controls-panel {
       setActiveMachine(id);
     });
   });
+
+  // ---------- Bahn-Mitte-Eichung (pro Maschine, persistiert in localStorage) ----------
+  function bahnOffsetStorageKey(machineId) { return "rr.bahnOffset." + machineId; }
+  function readBahnOffset(machineId) {
+    try {
+      const v = localStorage.getItem(bahnOffsetStorageKey(machineId));
+      if (v != null && v !== "") {
+        const n = parseFloat(String(v).replace(",", "."));
+        if (isFinite(n)) return n;
+      }
+    } catch (_) {}
+    const M = MACHINES[machineId];
+    return (M && typeof M.BAHN_MITTE_OFFSET_MM === "number") ? M.BAHN_MITTE_OFFSET_MM : 0;
+  }
+  function writeBahnOffset(machineId, value) {
+    try {
+      if (value == null || value === "" || !isFinite(value)) {
+        localStorage.removeItem(bahnOffsetStorageKey(machineId));
+      } else {
+        localStorage.setItem(bahnOffsetStorageKey(machineId), String(value));
+      }
+    } catch (_) {}
+  }
+  function syncBahnOffsetUI() {
+    const inp = document.getElementById("bahnOffsetInput");
+    const bar = inp ? inp.closest(".bahn-eich-bar") : null;
+    if (!inp) return;
+    const M = getMachine();
+    const v = readBahnOffset(M.id);
+    inp.value = (v === 0) ? "" : String(v);
+    inp.placeholder = "0";
+    if (bar) {
+      bar.classList.toggle("is-active", Math.abs(v) > 0.001);
+      bar.setAttribute("data-machine-id", M.id);
+    }
+  }
+  const bahnInput = document.getElementById("bahnOffsetInput");
+  const bahnReset = document.getElementById("bahnOffsetReset");
+  if (bahnInput) {
+    bahnInput.addEventListener("input", () => {
+      const M = getMachine();
+      const raw = bahnInput.value;
+      if (raw === "" || raw === "-") {
+        writeBahnOffset(M.id, null);
+      } else {
+        const n = parseFloat(String(raw).replace(",", "."));
+        if (isFinite(n)) writeBahnOffset(M.id, n);
+      }
+      const bar = bahnInput.closest(".bahn-eich-bar");
+      if (bar) bar.classList.toggle("is-active", !!raw && raw !== "0");
+      if (typeof calc === "function") calc();
+    });
+    bahnInput.addEventListener("blur", () => {
+      // re-sync formatting (e.g. ",5" → "0,5") via re-read
+      syncBahnOffsetUI();
+    });
+  }
+  if (bahnReset) {
+    bahnReset.addEventListener("click", () => {
+      const M = getMachine();
+      writeBahnOffset(M.id, null);
+      syncBahnOffsetUI();
+      if (typeof calc === "function") calc();
+      toast(`Bahn-Mitte-Eichung ${M.label} zurueckgesetzt`);
+    });
+  }
+  // Initial-Sync + bei Maschinen-Wechsel mit aktualisieren
+  syncBahnOffsetUI();
+
+  // ---------- Trim-Strategie (pro Maschine, persistiert) ----------
+  function trimModeStorageKey(machineId) { return "rr.trimMode." + machineId; }
+  function readTrimMode(machineId) {
+    try {
+      const v = localStorage.getItem(trimModeStorageKey(machineId));
+      if (v === "sym" || v === "asym-l" || v === "asym-r") return v;
+    } catch (_) {}
+    return "sym";
+  }
+  function writeTrimMode(machineId, mode) {
+    try {
+      if (mode === "sym") localStorage.removeItem(trimModeStorageKey(machineId));
+      else localStorage.setItem(trimModeStorageKey(machineId), mode);
+    } catch (_) {}
+  }
+  function syncTrimModeUI() {
+    const M = getMachine();
+    const mode = readTrimMode(M.id);
+    document.querySelectorAll(".ts-seg[data-trim-mode]").forEach(b => {
+      b.setAttribute("aria-checked", (b.dataset.trimMode === mode) ? "true" : "false");
+    });
+  }
+  document.querySelectorAll(".ts-seg[data-trim-mode]").forEach(b => {
+    b.addEventListener("click", () => {
+      const M = getMachine();
+      const mode = b.dataset.trimMode;
+      writeTrimMode(M.id, mode);
+      syncTrimModeUI();
+      if (typeof calc === "function") calc();
+      const label = mode === "sym" ? "Symmetrisch 5+5" : (mode === "asym-l" ? "Asymmetrisch links" : "Asymmetrisch rechts");
+      toast(`Trim-Strategie ${M.label}: ${label}`);
+    });
+  });
+  syncTrimModeUI();
   // Initial-State aus localStorage spiegeln (Toggle + Info-Box)
   updateMachineToggleUI();
   updateMachineInfoUI();
