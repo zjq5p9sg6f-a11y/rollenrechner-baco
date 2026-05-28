@@ -4269,10 +4269,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
         <div class="results-grid">
           <div class="result-card" data-tone="signal">
-            <button class="copy-btn" data-copy-target="rGesamt" data-copy-label="Gesamt LFM"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <button class="copy-btn" data-copy-target="rGesamt" data-copy-label="Auftrags-KPI"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
             <span class="result-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 L21 12"/><path d="M3 9 L3 15 M21 9 L21 15"/><path d="M7 11 L7 13 M11 11 L11 13 M15 11 L15 13 M19 11 L19 13"/></svg></span>
-            <div class="result-label">Gesamt-LFM Auftrag</div>
-            <div class="result-value"><span id="rGesamt">—</span><span class="result-unit">LFM</span></div>
+            <div class="result-label" id="rGesamtLabel">Gesamt-LFM Auftrag</div>
+            <div class="result-value"><span id="rGesamt">—</span><span class="result-unit" id="rGesamtUnit">LFM</span></div>
             <div class="result-sub" id="rGesamtSub">Fläche ÷ Schmalrollen-Breite</div>
           </div>
 
@@ -4662,7 +4662,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.64 · BETA · LFM-Eingabe = Einsatzmenge (LFM/MR) — matcht Schneidauftrag · offline-fähig</div>
+    <div>v1.65 · BETA · KPI-Kommutativ: qm-Modus → LFM-KPI · LFM-Modus → qm-KPI · offline-fähig</div>
   </footer>
 </div>
 
@@ -4714,6 +4714,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
     rRest:      document.getElementById("rRest"),
     rRestSub:   document.getElementById("rRestSub"),
     rRestCard:  document.getElementById("rRestCard"),
+    rGesamtLabel: document.getElementById("rGesamtLabel"),
+    rGesamtUnit:  document.getElementById("rGesamtUnit"),
     rMaterialEff:     document.getElementById("rMaterialEff"),
     rMaterialEffSub:  document.getElementById("rMaterialEffSub"),
     rMaterialEffCard: document.getElementById("rMaterialEffCard"),
@@ -5173,7 +5175,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
       e.dataset.raw = "0";
     });
     els.rHeroFormula.textContent = "— ÷ — = —";
-    els.rGesamtSub.textContent = "Fläche ÷ Schmalrollen-Breite";
+    // rGesamt-Card Label/Unit je nach aktiven Modus auf Standard zurücksetzen
+    const _emptyFlaecheMode = (typeof getFlaecheMode === "function") ? getFlaecheMode() : "qm";
+    if (els.rGesamtLabel) els.rGesamtLabel.textContent = _emptyFlaecheMode === "lfm" ? "Auftrags-Fläche" : "Gesamt-LFM Auftrag";
+    if (els.rGesamtUnit)  els.rGesamtUnit.textContent  = _emptyFlaecheMode === "lfm" ? "qm" : "LFM";
+    els.rGesamtSub.textContent = _emptyFlaecheMode === "lfm" ? "Einsatzmenge × Nutzen × Schmalrolle/1000" : "Fläche ÷ Schmalrollen-Breite";
     els.rNutzenSub.textContent = "⌊ MR-Breite ÷ SR-Breite ⌋";
     els.rRestSub.textContent = "≥ 6 mm empfohlen (3 mm/Seite)";
     els.rRestsatzSub.textContent = "Restsatz: — LFM";
@@ -8026,7 +8032,19 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   function render(o) {
     animateNumber(els.rHero,    o.mrMengeLFM);
-    animateNumber(els.rGesamt,  o.gesamtLFM);
+    // rGesamt-KPI ist kommutativ: zeigt das "umgekehrte" Ergebnis zur Eingabe.
+    // qm-Modus → Eingabe ist Fläche, KPI zeigt Gesamt-LFM.
+    // LFM-Modus → Eingabe ist Einsatzmenge, KPI zeigt Auftrags-Fläche (qm).
+    const _flaecheMode = (typeof getFlaecheMode === "function") ? getFlaecheMode() : "qm";
+    if (_flaecheMode === "lfm") {
+      if (els.rGesamtLabel) els.rGesamtLabel.textContent = "Auftrags-Fläche";
+      if (els.rGesamtUnit)  els.rGesamtUnit.textContent  = "qm";
+      animateNumber(els.rGesamt, o.flaeche);
+    } else {
+      if (els.rGesamtLabel) els.rGesamtLabel.textContent = "Gesamt-LFM Auftrag";
+      if (els.rGesamtUnit)  els.rGesamtUnit.textContent  = "LFM";
+      animateNumber(els.rGesamt, o.gesamtLFM);
+    }
     animateNumber(els.rNutzen,  o.nutzen);
     animateNumber(els.rRest,    o.restMM, nf1.format);
     animateNumber(els.rProSatz, o.proSatz);
@@ -8034,11 +8052,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
     animateNumber(els.rHuelsen, o.huelsen);
 
     els.rHeroFormula.textContent = `${nf0.format(o.gesamtLFM)} ÷ ${o.nutzen} = ${nf0.format(o.mrMengeLFM)}`;
-    // Sub-Text je nach Eingabe-Modus: qm-Modus zeigt Umrechnung Fläche→LFM,
-    // LFM-Modus (Einsatzmenge) zeigt × Nutzen-Multiplikation + errechnete Fläche.
-    const flaecheMode = (typeof getFlaecheMode === "function") ? getFlaecheMode() : "qm";
-    els.rGesamtSub.textContent = flaecheMode === "lfm"
-      ? `Einsatzmenge × ${o.nutzen} Nutzen ≙ ${nf0.format(o.flaeche)} qm`
+    // rGesamt Sub-Text: zeigt die Eingabe-Formel + den "anderen" Wert.
+    // qm-Modus (KPI zeigt LFM): Sub zeigt die qm-Quelle.
+    // LFM-Modus (KPI zeigt qm): Sub zeigt den errechneten Gesamt-LFM-Wert.
+    els.rGesamtSub.textContent = _flaecheMode === "lfm"
+      ? `${nf0.format(o.gesamtLFM)} LFM Gesamt · Einsatzmenge × ${o.nutzen} Nutzen`
       : `${nf0.format(o.flaeche)} qm ÷ ${nf2.format(o.schmal/1000)} m`;
 
     // ============== Nutzen-Card: klassisch vs. Hetero ==============
