@@ -5140,7 +5140,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.76 · BETA · A4 Office-Margins: links 25mm (Lochung) · Page-Footer · Premium-Polish · offline-fähig</div>
+    <div>v1.77 · BETA · Print-Fixes: kein Row-Schnitt mid-page · konsistente vertical-align · Brand-Spacing · offline-fähig</div>
   </footer>
 </div>
 
@@ -10721,7 +10721,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const headerHtml = `
       <div class="pm-header">
         <div class="pm-brand-row">
-          <div class="pm-brand"><span class="pm-brand-strong">Ballerstaedt</span> · Bestückungs-Anweisung</div>
+          <div class="pm-brand"><span class="pm-brand-strong">Ballerstaedt</span>&nbsp;·&nbsp;Bestückungs-Anweisung</div>
           <div class="pm-doc-id">Auftrag <strong>${auftragNr}</strong> · ${datum}</div>
         </div>
         <div class="pm-machine">${machineLine} · Trim-Strategie: ${trimLbl}</div>
@@ -10775,7 +10775,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const escape = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     for (const h of welleData.holliste) {
       const isTrim = /Besäumung/i.test(h.name || "");
-      hollHtml += `<tr${isTrim ? ' class="pm-row-trim"' : ""}>
+      hollHtml += `<tr${isTrim ? ' class="pm-row-trim"' : ""} style="page-break-inside:avoid;break-inside:avoid;">
         <td class="check"></td>
         <td class="bauteil">${escape(h.name)}</td>
         <td class="anz">${h.anz}</td>
@@ -10815,7 +10815,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // Euromac Pre-Step: Asymmetrie-Ring
     if (isEuro && M.ASYMMETRY_RING_DEFAULT_ON && M.ASYMMETRY_RING_RIGHT_MM > 0) {
       const r = M.ASYMMETRY_RING_RIGHT_MM;
-      seqHtml += `<tr class="pm-distanz">
+      seqHtml += `<tr class="pm-distanz" style="page-break-inside:avoid;break-inside:avoid;">
         <td class="check"></td>
         <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
         <td class="bauteil"><strong>Asymmetrie-Ring</strong> <span class="pm-tag-default">DEFAULT</span><br><small>gleicht Welle-Asymmetrie 650/670 aus · ${fromMitte(kumPos, r)}</small></td>
@@ -10829,7 +10829,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const fillEntries = Object.entries(seg.fill).map(([k, v]) => [parseFloat(k), v]).sort((a, b) => b[0] - a[0]);
         for (const [size, count] of fillEntries) {
           for (let i = 0; i < count; i++) {
-            seqHtml += `<tr class="pm-distanz">
+            seqHtml += `<tr class="pm-distanz" style="page-break-inside:avoid;break-inside:avoid;">
               <td class="check"></td>
               <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
               <td class="bauteil"><strong>Distanzring (Rest)</strong><br><small>aus ${size} mm Stack · ${fromMitte(kumPos, size)}</small></td>
@@ -10854,7 +10854,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
             ? `<span class="pm-badge-uebergang">ÜBERGANG</span>`
             : (seg.kind === "neben" ? `<span class="pm-badge-neben">Neben</span>` : `<span class="pm-badge-trennung">Trennung</span>`));
         const warn = isTrim ? `<div class="pm-warn">⚠ Essentiell — ohne diesen Schnitt wird die Aussen-Schmalrolle ${seg.trim || "?"} mm zu breit.</div>` : "";
-        seqHtml += `<tr class="${seClass}">
+        seqHtml += `<tr class="${seClass}" style="page-break-inside:avoid;break-inside:avoid;">
           <td class="check"></td>
           <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
           <td class="bauteil"><strong>Schneideeinheit</strong> ${badge}<br><small>SE-Linke-Kante @ ${Math.round(kumPos)} mm · Schnittkante @ ${M.SCHNITT_OFFSET} mm v. links</small>${warn}</td>
@@ -10866,7 +10866,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       }
       // Distanzring innerhalb innerSegs (mit name + breite)
       if (seg.kind === "distanz" && seg.breite > 0) {
-        seqHtml += `<tr class="pm-distanz">
+        seqHtml += `<tr class="pm-distanz" style="page-break-inside:avoid;break-inside:avoid;">
           <td class="check"></td>
           <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
           <td class="bauteil"><strong>${escape(seg.name || "Distanzring")}</strong><br><small>↳ ${fromMitte(kumPos, seg.breite)}</small></td>
@@ -10877,7 +10877,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         continue;
       }
       if (seg.kind === "park") {
-        seqHtml += `<tr class="pm-park">
+        seqHtml += `<tr class="pm-park" style="page-break-inside:avoid;break-inside:avoid;">
           <td class="check"></td>
           <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
           <td class="bauteil"><strong>Parkplatz-Ring</strong></td>
@@ -10890,7 +10890,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // Euromac Post-Step: Klemm-Distanzring
     if (isEuro && M.KLEMM_DISTANZRING_MM > 0) {
       const r = M.KLEMM_DISTANZRING_MM;
-      seqHtml += `<tr class="pm-distanz">
+      seqHtml += `<tr class="pm-distanz" style="page-break-inside:avoid;break-inside:avoid;">
         <td class="check"></td>
         <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
         <td class="bauteil"><strong>Klemm-Distanzring</strong> <span class="pm-tag-fixiert">FIXIERT</span><br><small>${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — verspannt Bestückung</small></td>
@@ -10962,8 +10962,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-meta { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9.5pt; }
       .pm-meta td { padding: 2.5mm 3mm; border-bottom: 1px solid #eee; vertical-align: top; word-wrap: break-word; }
       .pm-meta tr:last-child td { border-bottom: none; }
-      .pm-meta td.lbl { font-weight: 700; font-size: 7pt; text-transform: uppercase; letter-spacing: 0.08em; color: #888; width: 17%; background: #f8f8f8; }
-      .pm-meta td.val { font-weight: 600; width: 33%; color: #1a1a1a; }
+      .pm-meta td.lbl { font-weight: 700; font-size: 7pt; text-transform: uppercase; letter-spacing: 0.06em; color: #888; width: 22%; background: #f8f8f8; white-space: nowrap; }
+      .pm-meta td.val { font-weight: 600; width: 28%; color: #1a1a1a; }
       /* === SVG === */
       .pm-svg-wrap { margin: 0 0 6mm 0; page-break-inside: avoid; }
       .pm-svg-wrap svg { display: block; width: 173mm; height: 46mm; border: 1px solid #ddd; border-radius: 2mm; background: #fff; }
@@ -10975,6 +10975,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-holliste-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; }
       .pm-holliste-table thead th { text-align: left; font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #888; padding: 1.5mm 2mm; border-bottom: 1px solid #ccc; background: #f8f8f8; }
       .pm-holliste-table thead th:nth-child(3) { text-align: right; }
+      .pm-holliste-table tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; }
       .pm-holliste-table tbody td { padding: 2mm 2mm; border-bottom: 1px dashed #e0e0e0; vertical-align: top; word-wrap: break-word; }
       .pm-holliste-table tbody tr:last-child td { border-bottom: none; }
       .pm-holliste-table td.check::before { content: ""; display: inline-block; width: 3.8mm; height: 3.8mm; border: 1.2px solid #999; border-radius: 0.8mm; }
@@ -10988,20 +10989,22 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-seq-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; }
       .pm-seq-table thead th { text-align: left; font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #888; padding: 1.8mm 2mm; border-bottom: 1.5px solid #999; background: #f8f8f8; page-break-after: avoid; }
       .pm-seq-table thead th:nth-child(4), .pm-seq-table thead th:nth-child(5) { text-align: right; }
-      .pm-seq-table tbody tr { page-break-inside: avoid; border-bottom: 1px solid #eee; }
+      .pm-seq-table tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; border-bottom: 1px solid #eee; }
       .pm-seq-table tbody tr:nth-child(even) { background: #fbfbfb; }
       .pm-seq-table tbody tr:last-child { border-bottom: none; }
-      .pm-seq-table tbody td { padding: 1.8mm 2mm; vertical-align: middle; word-wrap: break-word; }
-      .pm-seq-table td.check::before { content: ""; display: inline-block; width: 3.8mm; height: 3.8mm; border: 1.2px solid #999; border-radius: 0.8mm; vertical-align: middle; }
-      .pm-seq-table td.nr { text-align: center; padding: 1.5mm 0.5mm; vertical-align: middle; }
+      .pm-seq-table tbody td { padding: 2mm 2mm; vertical-align: top; word-wrap: break-word; }
+      .pm-seq-table td.check::before { content: ""; display: inline-block; width: 3.8mm; height: 3.8mm; border: 1.2px solid #999; border-radius: 0.8mm; }
+      .pm-seq-table td.nr { text-align: center; padding: 2mm 0.5mm; vertical-align: top; }
       .pm-nr-circle { display: inline-block; min-width: 6mm; padding: 0.8mm 1.5mm; font-weight: 800; font-size: 9pt; text-align: center; color: #555; border-radius: 1.5mm; border: 1px solid #ccc; background: #fafafa; }
-      .pm-seq-table td.bauteil { font-size: 9.5pt; line-height: 1.35; vertical-align: top; padding-top: 2mm; }
+      .pm-seq-table td.bauteil { font-size: 9.5pt; line-height: 1.35; vertical-align: top; }
       .pm-seq-table td.bauteil strong { color: #111; }
       .pm-seq-table td.bauteil small { display: block; font-size: 7.5pt; color: #777; margin-top: 0.8mm; line-height: 1.4; }
-      .pm-seq-table td.mass { font-weight: 800; font-size: 10pt; color: #007a3d; text-align: right; white-space: nowrap; vertical-align: middle; }
-      .pm-seq-table td.pos { text-align: right; white-space: nowrap; font-size: 9pt; vertical-align: middle; padding-right: 1.5mm; }
+      .pm-seq-table td.mass { font-weight: 800; font-size: 10pt; color: #007a3d; text-align: right; white-space: nowrap; vertical-align: top; padding-top: 2mm; }
+      .pm-seq-table td.pos { text-align: right; white-space: nowrap; font-size: 9pt; vertical-align: top; padding: 2mm 1.5mm 2mm 2mm; }
       .pm-seq-table td.pos strong { display: block; color: #c01818; font-weight: 800; font-size: 10.5pt; line-height: 1.2; }
       .pm-seq-table td.pos small { display: block; color: #999; font-size: 7pt; margin-top: 0.5mm; font-weight: 500; }
+      /* Header repeat on every page (browser auto-repeat for thead) */
+      .pm-seq-table thead, .pm-holliste-table thead { display: table-header-group; }
       /* Row-Colors via Nr-Circle */
       .pm-distanz .pm-nr-circle { background: #e6f7e6; color: #007a3d; border-color: #007a3d; }
       .pm-schneid .pm-nr-circle, .pm-trim .pm-nr-circle { background: #fde6e3; color: #a01810; border-color: #a01810; }
