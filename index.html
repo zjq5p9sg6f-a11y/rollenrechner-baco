@@ -2579,25 +2579,19 @@ header.bar {
 /* Print-Header (nur beim Drucken sichtbar) */
 .print-header { display: none; }
 
-/* ============== Print-Stylesheet ============== */
+/* ============== Print-Stylesheet — v1.72 PrintMaster-Strategie ==============
+   Statt das komplexe Web-DOM (Flex/Grid div-Cluster) für Print zu erzwingen,
+   bauen wir vor dem Druck einen sauberen TABELLEN-DOM (#printMaster) und
+   rendern den. Web-DOM wird komplett ausgeblendet via body.printing.
+   Tabellen sind bulletproof für Print-Pagination. */
+#printMaster { display: none; }
+
 @media print {
   @page {
     size: A4;
-    margin: 12mm 12mm 16mm 12mm;
-    @bottom-right {
-      content: "Seite " counter(page) " / " counter(pages);
-      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
-      font-size: 9pt;
-      color: #666;
-    }
-    @bottom-left {
-      content: "Ballerstaedt · Bestückungs-Anweisung · Rollenrechner";
-      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
-      font-size: 8pt;
-      color: #999;
-    }
+    margin: 12mm 12mm 14mm 12mm;
   }
-  /* === Grund-Reset: Body komplett weiß, Farb-Adjustment exakt drucken === */
+  /* === Grund-Reset === */
   html, body {
     background: white !important;
     color: black !important;
@@ -2609,10 +2603,311 @@ header.bar {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  /* Globale Hintergrund-Layer + Web-only Widgets weg */
-  .bg-fx, .bg-grid, .pw-gate, #pwGate, .toast-stack,
-  header.bar, .machine-bar, .viz-stage, .fulfillment-card,
-  .welle-sequenz-disclaimer { display: none !important; }
+  /* Wenn printMaster injiziert: ALLES andere im Body weg, nur printMaster sichtbar */
+  body.printing > * { display: none !important; }
+  body.printing > #printMaster { display: block !important; }
+  body.printing #printMaster {
+    position: static !important;
+    width: 100% !important;
+    max-width: 186mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: white !important;
+    color: black !important;
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif !important;
+    font-size: 9.5pt !important;
+    line-height: 1.35 !important;
+  }
+
+  /* === printMaster · Header === */
+  #printMaster .pm-header {
+    margin: 0 0 5mm 0;
+    padding-bottom: 3mm;
+    border-bottom: 2px solid #007a3d;
+    page-break-inside: avoid;
+  }
+  #printMaster .pm-brand-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4mm;
+    margin-bottom: 1.5mm;
+  }
+  #printMaster .pm-brand {
+    font-size: 16pt;
+    font-weight: 800;
+    color: #000;
+  }
+  #printMaster .pm-brand-strong { color: #007a3d; }
+  #printMaster .pm-doc-id {
+    font-size: 9pt;
+    color: #555;
+    font-weight: 600;
+  }
+  #printMaster .pm-doc-id strong { color: #000; font-weight: 800; }
+  #printMaster .pm-machine {
+    font-size: 8pt;
+    color: #666;
+    margin-bottom: 3mm;
+    letter-spacing: 0.02em;
+  }
+  #printMaster .pm-meta {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    table-layout: fixed;
+  }
+  #printMaster .pm-meta td {
+    padding: 2mm 3mm;
+    border-bottom: 1px solid #eaeaea;
+    vertical-align: top;
+    word-wrap: break-word;
+  }
+  #printMaster .pm-meta td.lbl {
+    font-weight: 700;
+    font-size: 7.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #777;
+    width: 18%;
+    background: #f7f7f7;
+  }
+  #printMaster .pm-meta td.val {
+    font-weight: 600;
+    width: 32%;
+  }
+
+  /* === printMaster · SVG (Welle-Visualisierung) === */
+  #printMaster .pm-svg-wrap {
+    margin: 0 0 5mm 0;
+    page-break-inside: avoid;
+  }
+  #printMaster .pm-svg-wrap svg {
+    display: block;
+    width: 186mm !important;
+    height: 50mm !important;
+    border: 1px solid #ccc;
+    border-radius: 2mm;
+    background: white;
+  }
+
+  /* === printMaster · Sections (Stückliste, Sequenz) === */
+  #printMaster .pm-section {
+    margin: 0 0 5mm 0;
+  }
+  #printMaster .pm-section-title {
+    font-size: 10pt;
+    font-weight: 800;
+    color: #007a3d;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0 0 2mm 0;
+    padding-bottom: 1.5mm;
+    border-bottom: 1px solid #007a3d;
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+  #printMaster .pm-dir {
+    display: inline-block;
+    margin-left: 4mm;
+    padding: 0.5mm 2mm;
+    font-size: 7.5pt;
+    background: #f0fff5;
+    border: 1px solid #007a3d;
+    border-radius: 1.5mm;
+    color: #007a3d;
+    text-transform: none;
+    letter-spacing: 0.04em;
+  }
+
+  /* === printMaster · Stückliste-Tabelle === */
+  #printMaster .pm-holliste-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+  }
+  #printMaster .pm-holliste-table thead th {
+    text-align: left;
+    font-size: 7.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #777;
+    padding: 1.5mm 2mm;
+    border-bottom: 1px solid #ccc;
+    background: #fafafa;
+  }
+  #printMaster .pm-holliste-table thead th:nth-child(3) { text-align: right; }
+  #printMaster .pm-holliste-table tbody td {
+    padding: 1.5mm 2mm;
+    border-bottom: 1px dashed #e0e0e0;
+    vertical-align: top;
+    word-wrap: break-word;
+  }
+  #printMaster .pm-holliste-table td.check::before {
+    content: "";
+    display: inline-block;
+    width: 3.5mm;
+    height: 3.5mm;
+    border: 1px solid #888;
+    border-radius: 0.8mm;
+  }
+  #printMaster .pm-holliste-table td.bauteil { font-weight: 700; }
+  #printMaster .pm-holliste-table td.anz {
+    text-align: right;
+    font-weight: 800;
+    font-size: 11pt;
+    color: #007a3d;
+  }
+  #printMaster .pm-holliste-table td.spec {
+    font-size: 8.5pt;
+    color: #555;
+  }
+  #printMaster .pm-holliste-table tr.pm-row-trim td.bauteil { color: #c87800; }
+
+  /* === printMaster · Sequenz-Tabelle === */
+  #printMaster .pm-seq-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+  }
+  #printMaster .pm-seq-table thead th {
+    text-align: left;
+    font-size: 7.5pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #777;
+    padding: 1.5mm 2mm;
+    border-bottom: 1.5px solid #999;
+    background: #fafafa;
+    page-break-after: avoid;
+  }
+  #printMaster .pm-seq-table thead th:nth-child(4),
+  #printMaster .pm-seq-table thead th:nth-child(5) { text-align: right; }
+  #printMaster .pm-seq-table tbody tr {
+    page-break-inside: avoid;
+    break-inside: avoid;
+    border-bottom: 1px solid #eee;
+  }
+  #printMaster .pm-seq-table tbody tr:nth-child(even) { background: #fbfbfb; }
+  #printMaster .pm-seq-table tbody td {
+    padding: 1.5mm 2mm;
+    vertical-align: top;
+    word-wrap: break-word;
+  }
+  #printMaster .pm-seq-table td.check::before {
+    content: "";
+    display: inline-block;
+    width: 3.5mm;
+    height: 3.5mm;
+    border: 1px solid #888;
+    border-radius: 0.8mm;
+  }
+  #printMaster .pm-seq-table td.nr {
+    font-weight: 800;
+    font-size: 9pt;
+    text-align: center;
+    color: #444;
+  }
+  #printMaster .pm-seq-table td.bauteil {
+    font-size: 9.5pt;
+    line-height: 1.3;
+  }
+  #printMaster .pm-seq-table td.bauteil strong { color: #000; }
+  #printMaster .pm-seq-table td.bauteil small {
+    display: block;
+    font-size: 7.5pt;
+    color: #777;
+    margin-top: 0.5mm;
+  }
+  #printMaster .pm-seq-table td.mass {
+    font-weight: 800;
+    font-size: 10pt;
+    color: #007a3d;
+    text-align: right;
+    white-space: nowrap;
+  }
+  #printMaster .pm-seq-table td.pos {
+    text-align: right;
+    white-space: nowrap;
+    font-size: 9pt;
+  }
+  #printMaster .pm-seq-table td.pos strong {
+    display: block;
+    color: #c01818;
+    font-weight: 800;
+    font-size: 10.5pt;
+  }
+  #printMaster .pm-seq-table td.pos small {
+    display: block;
+    color: #888;
+    font-size: 7pt;
+    margin-top: 0.3mm;
+  }
+  /* Row-Klassen: Distanzring (grün), Schneideeinheit (rot), Besäumung (gelb-Akzent) */
+  #printMaster .pm-distanz td.nr { background: #e6f7e6; color: #007a3d; border-radius: 1.5mm; }
+  #printMaster .pm-schneid td.nr { background: #fde6e3; color: #a01810; border-radius: 1.5mm; }
+  #printMaster .pm-neben td.nr { background: #fff4d6; color: #a06800; border-radius: 1.5mm; }
+  #printMaster .pm-trim {
+    background: #fffbe6 !important;
+    border-left: 3px solid #c87800 !important;
+  }
+  #printMaster .pm-trim td.nr { background: #fde6e3; color: #a01810; border-radius: 1.5mm; }
+  /* Inline-Badges */
+  #printMaster .pm-badge-trim {
+    display: inline-block;
+    background: #ffb400;
+    color: #1a0e00;
+    font-size: 8pt;
+    font-weight: 800;
+    padding: 0.5mm 2mm;
+    border-radius: 1mm;
+    margin-left: 1mm;
+    letter-spacing: 0.04em;
+  }
+  #printMaster .pm-badge-uebergang {
+    display: inline-block;
+    background: #fff4d6;
+    color: #a06800;
+    font-size: 8pt;
+    font-weight: 800;
+    padding: 0.5mm 2mm;
+    border-radius: 1mm;
+    margin-left: 1mm;
+  }
+  #printMaster .pm-badge-trennung,
+  #printMaster .pm-badge-neben {
+    display: inline-block;
+    color: #888;
+    font-size: 8pt;
+    margin-left: 1mm;
+    font-weight: 600;
+  }
+  #printMaster .pm-tag-default,
+  #printMaster .pm-tag-fixiert {
+    display: inline-block;
+    background: #f0fff5;
+    color: #007a3d;
+    font-size: 7.5pt;
+    font-weight: 800;
+    padding: 0.5mm 1.5mm;
+    border-radius: 0.8mm;
+    margin-left: 1mm;
+    letter-spacing: 0.04em;
+  }
+  #printMaster .pm-warn {
+    margin-top: 1mm;
+    padding: 1mm 2mm;
+    background: #fffbe6;
+    border-left: 2px solid #c87800;
+    font-size: 7.5pt;
+    color: #c87800;
+    font-weight: 600;
+  }
+
+  /* Globale Hintergrund-Layer + Web-only Widgets weg (auch wenn nicht printing) */
+  .bg-fx, .bg-grid, .pw-gate, #pwGate, .toast-stack { display: none !important; }
   /* === Vorfahren-Container resetten: Web-CSS hatte max-width/padding die
      im Print zu Overflow führte. Hier komplett auf "fließt im Page-Bereich". */
   .shell, .stage {
@@ -4821,7 +5116,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.71 · BETA · Print-Fixes: Flexbox-Spalten + feste SVG-Höhe + Header-Trigger · offline-fähig</div>
+    <div>v1.72 · BETA · PrintMaster: JS-DOM-Builder mit Tabellen statt CSS-Tricks · offline-fähig</div>
   </footer>
 </div>
 
@@ -10356,30 +10651,251 @@ audio.team-player-audio::-webkit-media-controls-panel {
     }
   });
 
-  // Print-Handler · DOM-Reorder: Stückliste VOR Bestückungs-Sequenz (Werker
-  // packt erst die Teile zusammen, dann arbeitet die Sequenz Schritt-für-Schritt
-  // ab). Web-DOM bleibt unverändert (Sequenz oben), Print-DOM swappt.
-  function reorderForPrint() {
-    const seq = document.getElementById("welleSequenzWrap");
-    const holl = document.getElementById("welleHolliste");
-    if (seq && holl && holl.parentNode === seq.parentNode) {
-      seq.parentNode.insertBefore(holl, seq);
+  // Print-Handler · Statt CSS-Tricks auf Grid/Flex zu hoffen, bauen wir vor
+  // dem Druck einen sauberen HTML-Tabellen-DOM-Subtree (#printMaster) der
+  // im Print sichtbar wird. Web-DOM bleibt unverändert. Tabellen sind im
+  // Print bulletproof — Spalten-Breiten werden 1:1 respektiert, Pagination
+  // läuft natürlich, keine Layout-Bugs durch Flex/Grid quirks.
+  function buildPrintMaster() {
+    // Existierenden printMaster entfernen (falls noch da von vorheriger Session)
+    const existing = document.getElementById("printMaster");
+    if (existing) existing.remove();
+
+    const out = (typeof lastValid !== "undefined" && lastValid) ? lastValid : null;
+    if (!out) return null;
+    // Welle-Daten neu berechnen für aktuelle Print-Sicht
+    const welleData = (typeof calcWelleJob === "function") ? calcWelleJob(out) : null;
+    if (!welleData || !welleData.ok) return null;
+    const M = (typeof getMachine === "function") ? getMachine() : { id: "DCM", label: "—", WELLE_MITTE: 0, SCHNEIDEEINHEIT: 20, SCHNITT_OFFSET: 10 };
+    const isEuro = (M.id === "EUROMAC");
+
+    // Auftrags-Meta aus Input-Feldern
+    const inp = (id) => (document.getElementById(id) || {}).value || "";
+    const auftragNr = inp("welleAuftragNr") || "(ohne Nr)";
+    const datum = inp("welleDatum") || new Date().toISOString().slice(0, 10);
+    const kunde = inp("welleKunde") || "(ohne Kunde)";
+    const material = inp("welleMaterial") || "(ohne Material)";
+    const bemerkung = inp("welleBemerkung") || "—";
+
+    // Trim-Mode-Label
+    let trimLbl = "Symmetrisch 5+5";
+    try {
+      const v = localStorage.getItem("rr.trimMode." + M.id);
+      if (v === "asym-l") trimLbl = "Asymmetrisch links";
+      else if (v === "asym-r") trimLbl = "Asymmetrisch rechts";
+    } catch (_) {}
+
+    const N = welleData.N + (out.nebenAnzTotal || 0);
+    const machineLine = isEuro
+      ? `${M.label} · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER}) · ${M.BESTUECKUNGS_BREITE} mm operativ`
+      : `${M.label} · Welle ${M.WELLE} mm · Bestückungsbereich ${M.BESTUECKUNGS_BREITE} mm`;
+
+    const root = document.createElement("div");
+    root.id = "printMaster";
+
+    // === Header ===
+    const headerHtml = `
+      <div class="pm-header">
+        <div class="pm-brand-row">
+          <div class="pm-brand"><span class="pm-brand-strong">Ballerstaedt</span> · Bestückungs-Anweisung</div>
+          <div class="pm-doc-id">Auftrag <strong>${auftragNr}</strong> · ${datum}</div>
+        </div>
+        <div class="pm-machine">${machineLine} · Trim-Strategie: ${trimLbl}</div>
+        <table class="pm-meta">
+          <tr>
+            <td class="lbl">Kunde</td><td class="val">${kunde}</td>
+            <td class="lbl">Material</td><td class="val">${material}</td>
+          </tr>
+          <tr>
+            <td class="lbl">Mutterrolle</td><td class="val">${out.mutter} mm</td>
+            <td class="lbl">Schmalrolle(n)</td><td class="val">${welleData.N}× ${out.schmal} mm${out.nebenSlots && out.nebenSlots.length ? " + " + out.nebenSlots.map(s => s.anz + "× " + s.breite + " mm").join(" + ") : ""}</td>
+          </tr>
+          <tr>
+            <td class="lbl">Nutzen pro MR</td><td class="val">${N}</td>
+            <td class="lbl">Bemerkung</td><td class="val">${bemerkung}</td>
+          </tr>
+        </table>
+      </div>
+    `;
+    root.insertAdjacentHTML("beforeend", headerHtml);
+
+    // === Welle-SVG Clone ===
+    const svgOrig = document.getElementById("welleSvg");
+    if (svgOrig) {
+      const svgClone = svgOrig.cloneNode(true);
+      svgClone.id = "pmWelleSvg";
+      svgClone.removeAttribute("style");
+      const svgWrap = document.createElement("div");
+      svgWrap.className = "pm-svg-wrap";
+      svgWrap.appendChild(svgClone);
+      root.appendChild(svgWrap);
     }
-  }
-  function restoreOrderAfterPrint() {
-    const seq = document.getElementById("welleSequenzWrap");
-    const holl = document.getElementById("welleHolliste");
-    if (seq && holl && holl.parentNode === seq.parentNode) {
-      // Holliste nach Sequenz zurückbewegen (Web-Default)
-      seq.parentNode.insertBefore(holl, seq.nextSibling);
+
+    // === Stückliste als Tabelle ===
+    const totalParts = welleData.holliste.reduce((s, h) => s + h.anz, 0);
+    let hollHtml = `
+      <div class="pm-section pm-holliste">
+        <h3 class="pm-section-title">Bestückungs-Stückliste · ${totalParts} Bauteile</h3>
+        <table class="pm-holliste-table">
+          <colgroup>
+            <col style="width:6mm">
+            <col>
+            <col style="width:14mm">
+            <col>
+          </colgroup>
+          <thead>
+            <tr><th></th><th>Bauteil</th><th>Anz</th><th>Spezifikation</th></tr>
+          </thead>
+          <tbody>
+    `;
+    const escape = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    for (const h of welleData.holliste) {
+      const isTrim = /Besäumung/i.test(h.name || "");
+      hollHtml += `<tr${isTrim ? ' class="pm-row-trim"' : ""}>
+        <td class="check"></td>
+        <td class="bauteil">${escape(h.name)}</td>
+        <td class="anz">${h.anz}</td>
+        <td class="spec">${escape(h.spec)}</td>
+      </tr>`;
     }
+    hollHtml += `</tbody></table></div>`;
+    root.insertAdjacentHTML("beforeend", hollHtml);
+
+    // === Bestückungs-Sequenz als Tabelle ===
+    const sequenz = [...welleData.layoutLR].reverse();
+    const MITTE = M.WELLE_MITTE || 0;
+    let seqHtml = `
+      <div class="pm-section pm-sequenz">
+        <h3 class="pm-section-title">Bestückungs-Sequenz <span class="pm-dir">RECHTS → LINKS auf Rüstdorn</span></h3>
+        <table class="pm-seq-table">
+          <colgroup>
+            <col style="width:6mm">
+            <col style="width:8mm">
+            <col>
+            <col style="width:16mm">
+            <col style="width:34mm">
+          </colgroup>
+          <thead>
+            <tr><th></th><th>#</th><th>Bauteil · Detail</th><th>Breite</th><th>Schnitt / Position</th></tr>
+          </thead>
+          <tbody>
+    `;
+    let kumPos = 0;
+    let nr = 1;
+    const fromMitte = (absPos, breite) => {
+      const center = absPos + breite / 2;
+      const d = Math.round(center - MITTE);
+      if (Math.abs(d) < 1) return "Mitte";
+      return d > 0 ? `Mitte +${d}` : `Mitte ${d}`;
+    };
+    // Euromac Pre-Step: Asymmetrie-Ring
+    if (isEuro && M.ASYMMETRY_RING_DEFAULT_ON && M.ASYMMETRY_RING_RIGHT_MM > 0) {
+      const r = M.ASYMMETRY_RING_RIGHT_MM;
+      seqHtml += `<tr class="pm-distanz">
+        <td class="check"></td>
+        <td class="nr">${nr++}</td>
+        <td class="bauteil"><strong>Asymmetrie-Ring</strong> <span class="pm-tag-default">DEFAULT</span><br><small>gleicht Welle-Asymmetrie 650/670 aus · ${fromMitte(kumPos, r)}</small></td>
+        <td class="mass">${r} mm</td>
+        <td class="pos">@ ${Math.round(kumPos)} mm</td>
+      </tr>`;
+      kumPos += r;
+    }
+    for (const seg of sequenz) {
+      if (seg.kind === "rest" && seg.fill) {
+        const fillEntries = Object.entries(seg.fill).map(([k, v]) => [parseFloat(k), v]).sort((a, b) => b[0] - a[0]);
+        for (const [size, count] of fillEntries) {
+          for (let i = 0; i < count; i++) {
+            seqHtml += `<tr class="pm-distanz">
+              <td class="check"></td>
+              <td class="nr">${nr++}</td>
+              <td class="bauteil"><strong>Distanzring (Rest)</strong><br><small>aus ${size} mm Stack · ${fromMitte(kumPos, size)}</small></td>
+              <td class="mass">${size} mm</td>
+              <td class="pos">@ ${Math.round(kumPos)} mm</td>
+            </tr>`;
+            kumPos += size;
+          }
+        }
+        continue;
+      }
+      if (seg.kind === "schneid" || seg.kind === "neben") {
+        const role = seg.role || "inner";
+        const isTrim = (role === "trim-L" || role === "trim-R");
+        const cutPos = Math.round(kumPos + M.SCHNITT_OFFSET);
+        const cutDelta = cutPos - MITTE;
+        const schnittTxt = Math.abs(cutDelta) < 1 ? "Mitte" : (cutDelta > 0 ? `+${cutDelta}` : `${cutDelta}`);
+        const seClass = isTrim ? "pm-trim" : (seg.kind === "neben" ? "pm-neben" : "pm-schneid");
+        const badge = isTrim
+          ? `<span class="pm-badge-trim">BESÄUMUNG ${role === "trim-L" ? "L" : "R"}${typeof seg.trim === "number" ? " · " + seg.trim + " mm Trim" : ""}</span>`
+          : (role === "uebergang"
+            ? `<span class="pm-badge-uebergang">ÜBERGANG</span>`
+            : (seg.kind === "neben" ? `<span class="pm-badge-neben">Neben</span>` : `<span class="pm-badge-trennung">Trennung</span>`));
+        const warn = isTrim ? `<div class="pm-warn">⚠ Essentiell — ohne diesen Schnitt wird die Aussen-Schmalrolle ${seg.trim || "?"} mm zu breit.</div>` : "";
+        seqHtml += `<tr class="${seClass}">
+          <td class="check"></td>
+          <td class="nr">${nr++}</td>
+          <td class="bauteil"><strong>Schneideeinheit</strong> ${badge}<br><small>SE-Linke-Kante @ ${Math.round(kumPos)} mm · Schnittkante @ ${M.SCHNITT_OFFSET} mm v. links</small>${warn}</td>
+          <td class="mass">${M.SCHNEIDEEINHEIT} mm</td>
+          <td class="pos"><strong>Schnitt Mitte ${schnittTxt}</strong><br><small>Welle-Pos ${cutPos} mm</small></td>
+        </tr>`;
+        kumPos += M.SCHNEIDEEINHEIT;
+        continue;
+      }
+      // Distanzring innerhalb innerSegs (mit name + breite)
+      if (seg.kind === "distanz" && seg.breite > 0) {
+        seqHtml += `<tr class="pm-distanz">
+          <td class="check"></td>
+          <td class="nr">${nr++}</td>
+          <td class="bauteil"><strong>${escape(seg.name || "Distanzring")}</strong><br><small>↳ ${fromMitte(kumPos, seg.breite)}</small></td>
+          <td class="mass">${seg.breite < 1 ? seg.breite.toFixed(2) : Math.round(seg.breite * 100) / 100} mm</td>
+          <td class="pos">@ ${Math.round(kumPos)} mm</td>
+        </tr>`;
+        kumPos += seg.breite;
+        continue;
+      }
+      if (seg.kind === "park") {
+        seqHtml += `<tr class="pm-park">
+          <td class="check"></td>
+          <td class="nr">${nr++}</td>
+          <td class="bauteil"><strong>Parkplatz-Ring</strong></td>
+          <td class="mass">${seg.breite} mm</td>
+          <td class="pos">@ ${Math.round(kumPos)} mm</td>
+        </tr>`;
+        kumPos += seg.breite;
+      }
+    }
+    // Euromac Post-Step: Klemm-Distanzring
+    if (isEuro && M.KLEMM_DISTANZRING_MM > 0) {
+      const r = M.KLEMM_DISTANZRING_MM;
+      seqHtml += `<tr class="pm-distanz">
+        <td class="check"></td>
+        <td class="nr">${nr++}</td>
+        <td class="bauteil"><strong>Klemm-Distanzring</strong> <span class="pm-tag-fixiert">FIXIERT</span><br><small>${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — verspannt Bestückung</small></td>
+        <td class="mass">${r} mm</td>
+        <td class="pos">@ ${Math.round(kumPos)} mm</td>
+      </tr>`;
+    }
+    seqHtml += `</tbody></table></div>`;
+    root.insertAdjacentHTML("beforeend", seqHtml);
+
+    document.body.appendChild(root);
+    return root;
   }
+
+  function teardownPrintMaster() {
+    const el = document.getElementById("printMaster");
+    if (el) el.remove();
+    document.body.classList.remove("printing");
+  }
+
   // Auch bei Browser-eigenem Cmd+P greifen → globaler Listener
   window.addEventListener("beforeprint", () => {
     if (typeof preparePrintHeader === "function") preparePrintHeader();
-    reorderForPrint();
+    document.body.classList.add("printing");
+    buildPrintMaster();
   });
-  window.addEventListener("afterprint", restoreOrderAfterPrint);
+  window.addEventListener("afterprint", () => {
+    teardownPrintMaster();
+  });
 
   const printBtnEl = document.getElementById("printWelleBtn");
   if (printBtnEl) {
