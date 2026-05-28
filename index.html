@@ -3167,6 +3167,13 @@ header.bar {
 .input-row .unit-toggle { transform: none; }
 .input-row .unit-toggle:hover { transform: scale(1.04); }
 .input-row .unit-toggle:active { transform: scale(0.96); }
+/* Fläche-Mode-Toggle im LFM-Zustand: visuell signalisieren dass abweichend vom Default (qm) */
+.unit-toggle.is-lfm {
+  background: linear-gradient(135deg, rgba(0,230,118,0.18) 0%, rgba(0,230,118,0.06) 100%);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px var(--accent-glow-soft);
+}
+.unit-toggle.is-lfm .unit-text { color: var(--accent-primary); }
 
 .steppers {
   position: absolute;
@@ -3984,13 +3991,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
                 <path d="M6 9 L10 9 M6 12 L14 12 M6 15 L18 15" stroke-dasharray="2 2" opacity="0.5"/>
               </svg>
             </span>
-            <label for="flaeche">Fläche (Auftrag)</label>
+            <label for="flaeche" id="flaecheLabel">Fläche (Auftrag)</label>
             <input id="flaeche" type="text" inputmode="decimal" pattern="[0-9.,]*" placeholder="z. B. 2500" autocomplete="off">
             <div class="steppers">
-              <button class="stepper" data-step="+100" data-target="flaeche" aria-label="Plus 100"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8l3-3 3 3"/></svg></button>
-              <button class="stepper" data-step="-100" data-target="flaeche" aria-label="Minus 100"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 4l3 3 3-3"/></svg></button>
+              <button class="stepper" data-step="+100" data-target="flaeche" data-step-qm="100" data-step-lfm="1000" aria-label="Plus"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 8l3-3 3 3"/></svg></button>
+              <button class="stepper" data-step="-100" data-target="flaeche" data-step-qm="-100" data-step-lfm="-1000" aria-label="Minus"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 4l3 3 3-3"/></svg></button>
             </div>
-            <div class="input-unit"><span class="input-unit-label">qm</span></div>
+            <div class="input-unit"><button type="button" class="unit-toggle" id="flaecheModeToggle" data-flaeche-mode="qm" title="Eingabe-Modus wechseln: Fläche (qm) ↔ Laufmeter (LFM)" aria-label="Eingabe-Modus wechseln"><span class="unit-text" id="flaecheUnitLabel">qm</span><span class="caret" aria-hidden="true"></span></button></div>
           </div>
 
           <div class="input-row" data-field="mutter">
@@ -4655,7 +4662,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.62 · BETA · Trim-Strategie + Material-Ausnutzung + Schnittkanten-Anzeige · offline-fähig</div>
+    <div>v1.63 · BETA · qm⇄LFM-Toggle für Schneidauftrags-Eingabe · offline-fähig</div>
   </footer>
 </div>
 
@@ -4839,10 +4846,24 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   // ---------- core calculation ----------
   function calc() {
-    const flaeche = num(els.flaeche);    // qm
     const schmal  = numMm("schmal");     // → always mm internally
     const lfm     = num(els.lfm);        // LFM/SR
     const mutter  = numMm("mutter");     // → always mm internally
+
+    // Fläche-Modus: User gibt entweder qm (Default) oder LFM direkt ein.
+    // Bei LFM-Modus: Tool rechnet die fiktive Fläche rückwärts aus damit alle
+    // bestehenden Folge-Berechnungen (Sätze, Restsatz, Hülsen) unverändert
+    // funktionieren — gesamtLFM-Formel bleibt mathematisch konsistent.
+    const flaecheInput = num(els.flaeche);
+    const flaecheMode = (typeof getFlaecheMode === "function") ? getFlaecheMode() : "qm";
+    let flaeche;  // qm (interner Standardwert für alle Folge-Rechnungen)
+    if (flaecheMode === "lfm" && isFinite(flaecheInput) && flaecheInput > 0 && isFinite(schmal) && schmal > 0) {
+      // LFM-Modus: Werker hat Gesamt-LFM direkt eingegeben (z.B. aus Schneidauftrag).
+      // → Fläche errechnen: qm = LFM × (Schmalrolle/1000)
+      flaeche = flaecheInput * (schmal / 1000);
+    } else {
+      flaeche = flaecheInput;
+    }
 
     const inputs = { flaeche, schmal, lfm, mutter };
     const valid = isFinite(flaeche) && flaeche > 0
@@ -8003,7 +8024,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
     animateNumber(els.rHuelsen, o.huelsen);
 
     els.rHeroFormula.textContent = `${nf0.format(o.gesamtLFM)} ÷ ${o.nutzen} = ${nf0.format(o.mrMengeLFM)}`;
-    els.rGesamtSub.textContent   = `${nf0.format(o.flaeche)} qm ÷ ${nf2.format(o.schmal/1000)} m`;
+    // Sub-Text je nach Eingabe-Modus: qm-Modus zeigt Umrechnung Fläche→LFM,
+    // LFM-Modus zeigt dass direkt eingegeben wurde + errechnete Fläche zur Plausibilitäts-Kontrolle.
+    const flaecheMode = (typeof getFlaecheMode === "function") ? getFlaecheMode() : "qm";
+    els.rGesamtSub.textContent = flaecheMode === "lfm"
+      ? `Direkt eingegeben · ≙ ${nf0.format(o.flaeche)} qm bei ${nf2.format(o.schmal/1000)} m`
+      : `${nf0.format(o.flaeche)} qm ÷ ${nf2.format(o.schmal/1000)} m`;
 
     // ============== Nutzen-Card: klassisch vs. Hetero ==============
     if (o.hasNeben) {
@@ -9136,6 +9162,73 @@ audio.team-player-audio::-webkit-media-controls-panel {
     });
   });
   syncTrimModeUI();
+
+  // ---------- Fläche-Eingabe-Modus (qm ↔ LFM, Operator-Preference) ----------
+  // Werker mit fertigem Schneidauftrag haben oft die Laufmeter bereits berechnet —
+  // dann LFM direkt eingeben statt umrechnen lassen. Persistiert in localStorage
+  // damit Mode-Wahl Sessions überlebt. Wert beim Switch konvertieren falls
+  // Schmalrolle bekannt — sonst Mode-Switch ohne Wertänderung.
+  const FLAECHE_MODE_KEY = "rr.flaecheMode";
+  function getFlaecheMode() {
+    try { return localStorage.getItem(FLAECHE_MODE_KEY) === "lfm" ? "lfm" : "qm"; } catch (_) { return "qm"; }
+  }
+  function setFlaecheModeStored(mode) {
+    try {
+      if (mode === "lfm") localStorage.setItem(FLAECHE_MODE_KEY, "lfm");
+      else localStorage.removeItem(FLAECHE_MODE_KEY);
+    } catch (_) {}
+  }
+  function syncFlaecheModeUI() {
+    const mode = getFlaecheMode();
+    const labelEl = document.getElementById("flaecheLabel");
+    const unitEl = document.getElementById("flaecheUnitLabel");
+    const btnEl = document.getElementById("flaecheModeToggle");
+    const inputEl = els.flaeche;
+    if (labelEl) labelEl.textContent = mode === "lfm" ? "Laufmeter (Auftrag)" : "Fläche (Auftrag)";
+    if (unitEl) unitEl.textContent = mode === "lfm" ? "LFM" : "qm";
+    if (btnEl) {
+      btnEl.dataset.flaecheMode = mode;
+      btnEl.classList.toggle("is-lfm", mode === "lfm");
+    }
+    if (inputEl) inputEl.placeholder = mode === "lfm" ? "z. B. 125000" : "z. B. 2500";
+    // Stepper-Step-Sizes anpassen: 100 qm vs 1000 LFM
+    document.querySelectorAll('.stepper[data-target="flaeche"]').forEach(b => {
+      const key = mode === "lfm" ? "stepLfm" : "stepQm";
+      if (b.dataset[key]) {
+        const v = parseFloat(b.dataset[key]);
+        b.dataset.step = (v > 0 ? "+" : "") + v;
+      }
+    });
+  }
+  const flaecheModeBtn = document.getElementById("flaecheModeToggle");
+  if (flaecheModeBtn) {
+    flaecheModeBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const oldMode = getFlaecheMode();
+      const newMode = oldMode === "qm" ? "lfm" : "qm";
+      // Wert konvertieren wenn möglich (Schmalrolle bekannt + Input vorhanden)
+      const inputVal = num(els.flaeche);
+      const schmalMm = numMm("schmal");
+      if (isFinite(inputVal) && inputVal > 0 && isFinite(schmalMm) && schmalMm > 0) {
+        let converted;
+        if (oldMode === "qm" && newMode === "lfm") {
+          // qm → LFM: LFM = qm / (schmal/1000)
+          converted = inputVal / (schmalMm / 1000);
+        } else {
+          // LFM → qm: qm = LFM × (schmal/1000)
+          converted = inputVal * (schmalMm / 1000);
+        }
+        if (isFinite(converted) && converted > 0) {
+          els.flaeche.value = fmtNum(converted);
+        }
+      }
+      setFlaecheModeStored(newMode);
+      syncFlaecheModeUI();
+      if (typeof calc === "function") calc();
+      toast(newMode === "lfm" ? "Eingabe: Laufmeter (LFM)" : "Eingabe: Fläche (qm)");
+    });
+  }
+  syncFlaecheModeUI();
   // Initial-State aus localStorage spiegeln (Toggle + Info-Box)
   updateMachineToggleUI();
   updateMachineInfoUI();
