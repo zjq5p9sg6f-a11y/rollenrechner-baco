@@ -2583,8 +2583,17 @@ header.bar {
    Statt das komplexe Web-DOM (Flex/Grid div-Cluster) für Print zu erzwingen,
    bauen wir vor dem Druck einen sauberen TABELLEN-DOM (#printMaster) und
    rendern den. Web-DOM wird komplett ausgeblendet via body.printing.
-   Tabellen sind bulletproof für Print-Pagination. */
-#printMaster { display: none; }
+   Tabellen sind bulletproof für Print-Pagination.
+   v1.73-Fix: NICHT display:none auf #printMaster im Web-CSS — manche Print-
+   Engines cachen display:none auf Descendants und überschreiben das nicht
+   beim print-Override → pm-header + SVG würden invisible bleiben.
+   Stattdessen positionieren wir es offscreen im Web (existiert aber unsichtbar). */
+#printMaster {
+  position: absolute;
+  left: -10000px;
+  top: -10000px;
+  width: 186mm;
+}
 
 @media print {
   @page {
@@ -2608,7 +2617,9 @@ header.bar {
   body.printing > #printMaster { display: block !important; }
   body.printing #printMaster {
     position: static !important;
-    width: 100% !important;
+    left: auto !important;
+    top: auto !important;
+    width: 186mm !important;
     max-width: 186mm !important;
     margin: 0 auto !important;
     padding: 0 !important;
@@ -2618,6 +2629,7 @@ header.bar {
     font-size: 9.5pt !important;
     line-height: 1.35 !important;
   }
+  body.printing #printMaster * { visibility: visible !important; }
 
   /* === printMaster · Header === */
   #printMaster .pm-header {
@@ -2722,7 +2734,8 @@ header.bar {
 
   /* === printMaster · Stückliste-Tabelle === */
   #printMaster .pm-holliste-table {
-    width: 100%;
+    width: 100% !important;
+    table-layout: fixed !important;
     border-collapse: collapse;
     font-size: 9.5pt;
   }
@@ -2767,7 +2780,8 @@ header.bar {
 
   /* === printMaster · Sequenz-Tabelle === */
   #printMaster .pm-seq-table {
-    width: 100%;
+    width: 100% !important;
+    table-layout: fixed !important;
     border-collapse: collapse;
     font-size: 9.5pt;
   }
@@ -2805,10 +2819,20 @@ header.bar {
     border-radius: 0.8mm;
   }
   #printMaster .pm-seq-table td.nr {
+    text-align: center;
+    padding: 1.5mm 1mm !important;
+  }
+  #printMaster .pm-nr-circle {
+    display: inline-block;
+    min-width: 6mm;
+    padding: 0.8mm 1.5mm;
     font-weight: 800;
     font-size: 9pt;
     text-align: center;
     color: #444;
+    border-radius: 1.5mm;
+    border: 1px solid #ccc;
+    background: #fafafa;
   }
   #printMaster .pm-seq-table td.bauteil {
     font-size: 9.5pt;
@@ -2845,15 +2869,15 @@ header.bar {
     font-size: 7pt;
     margin-top: 0.3mm;
   }
-  /* Row-Klassen: Distanzring (grün), Schneideeinheit (rot), Besäumung (gelb-Akzent) */
-  #printMaster .pm-distanz td.nr { background: #e6f7e6; color: #007a3d; border-radius: 1.5mm; }
-  #printMaster .pm-schneid td.nr { background: #fde6e3; color: #a01810; border-radius: 1.5mm; }
-  #printMaster .pm-neben td.nr { background: #fff4d6; color: #a06800; border-radius: 1.5mm; }
+  /* Row-Klassen: nur der Nr-Kreis bekommt Farbe, nicht die ganze Zelle */
+  #printMaster .pm-distanz .pm-nr-circle { background: #e6f7e6; color: #007a3d; border-color: #007a3d; }
+  #printMaster .pm-schneid .pm-nr-circle { background: #fde6e3; color: #a01810; border-color: #a01810; }
+  #printMaster .pm-neben .pm-nr-circle { background: #fff4d6; color: #a06800; border-color: #a06800; }
   #printMaster .pm-trim {
     background: #fffbe6 !important;
     border-left: 3px solid #c87800 !important;
   }
-  #printMaster .pm-trim td.nr { background: #fde6e3; color: #a01810; border-radius: 1.5mm; }
+  #printMaster .pm-trim .pm-nr-circle { background: #fde6e3; color: #a01810; border-color: #a01810; }
   /* Inline-Badges */
   #printMaster .pm-badge-trim {
     display: inline-block;
@@ -5116,7 +5140,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.72 · BETA · PrintMaster: JS-DOM-Builder mit Tabellen statt CSS-Tricks · offline-fähig</div>
+    <div>v1.73 · BETA · PrintMaster v2: table-layout fixed + Nr als span + sichtbar-cascade-fix · offline-fähig</div>
   </footer>
 </div>
 
@@ -10793,7 +10817,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const r = M.ASYMMETRY_RING_RIGHT_MM;
       seqHtml += `<tr class="pm-distanz">
         <td class="check"></td>
-        <td class="nr">${nr++}</td>
+        <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
         <td class="bauteil"><strong>Asymmetrie-Ring</strong> <span class="pm-tag-default">DEFAULT</span><br><small>gleicht Welle-Asymmetrie 650/670 aus · ${fromMitte(kumPos, r)}</small></td>
         <td class="mass">${r} mm</td>
         <td class="pos">@ ${Math.round(kumPos)} mm</td>
@@ -10807,7 +10831,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           for (let i = 0; i < count; i++) {
             seqHtml += `<tr class="pm-distanz">
               <td class="check"></td>
-              <td class="nr">${nr++}</td>
+              <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
               <td class="bauteil"><strong>Distanzring (Rest)</strong><br><small>aus ${size} mm Stack · ${fromMitte(kumPos, size)}</small></td>
               <td class="mass">${size} mm</td>
               <td class="pos">@ ${Math.round(kumPos)} mm</td>
@@ -10832,7 +10856,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const warn = isTrim ? `<div class="pm-warn">⚠ Essentiell — ohne diesen Schnitt wird die Aussen-Schmalrolle ${seg.trim || "?"} mm zu breit.</div>` : "";
         seqHtml += `<tr class="${seClass}">
           <td class="check"></td>
-          <td class="nr">${nr++}</td>
+          <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
           <td class="bauteil"><strong>Schneideeinheit</strong> ${badge}<br><small>SE-Linke-Kante @ ${Math.round(kumPos)} mm · Schnittkante @ ${M.SCHNITT_OFFSET} mm v. links</small>${warn}</td>
           <td class="mass">${M.SCHNEIDEEINHEIT} mm</td>
           <td class="pos"><strong>Schnitt Mitte ${schnittTxt}</strong><br><small>Welle-Pos ${cutPos} mm</small></td>
@@ -10844,7 +10868,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (seg.kind === "distanz" && seg.breite > 0) {
         seqHtml += `<tr class="pm-distanz">
           <td class="check"></td>
-          <td class="nr">${nr++}</td>
+          <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
           <td class="bauteil"><strong>${escape(seg.name || "Distanzring")}</strong><br><small>↳ ${fromMitte(kumPos, seg.breite)}</small></td>
           <td class="mass">${seg.breite < 1 ? seg.breite.toFixed(2) : Math.round(seg.breite * 100) / 100} mm</td>
           <td class="pos">@ ${Math.round(kumPos)} mm</td>
@@ -10855,7 +10879,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (seg.kind === "park") {
         seqHtml += `<tr class="pm-park">
           <td class="check"></td>
-          <td class="nr">${nr++}</td>
+          <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
           <td class="bauteil"><strong>Parkplatz-Ring</strong></td>
           <td class="mass">${seg.breite} mm</td>
           <td class="pos">@ ${Math.round(kumPos)} mm</td>
@@ -10868,7 +10892,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const r = M.KLEMM_DISTANZRING_MM;
       seqHtml += `<tr class="pm-distanz">
         <td class="check"></td>
-        <td class="nr">${nr++}</td>
+        <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
         <td class="bauteil"><strong>Klemm-Distanzring</strong> <span class="pm-tag-fixiert">FIXIERT</span><br><small>${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — verspannt Bestückung</small></td>
         <td class="mass">${r} mm</td>
         <td class="pos">@ ${Math.round(kumPos)} mm</td>
