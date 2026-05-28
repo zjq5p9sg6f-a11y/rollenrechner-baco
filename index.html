@@ -4662,7 +4662,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.67 · BETA · Hero-Umrechnung: qm-Eingabe → LFM-Hero · LFM-Eingabe → qm-Hero · offline-fähig</div>
+    <div>v1.68 · BETA · qm⇄LFM-Live-Konversion · Hero spiegelt Eingabe · offline-fähig</div>
   </footer>
 </div>
 
@@ -9220,7 +9220,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const unitEl = document.getElementById("flaecheUnitLabel");
     const btnEl = document.getElementById("flaecheModeToggle");
     const inputEl = els.flaeche;
-    if (labelEl) labelEl.textContent = mode === "lfm" ? "Einsatzmenge (LFM/MR)" : "Fläche (Auftrag)";
+    if (labelEl) labelEl.textContent = mode === "lfm" ? "Einsatzmenge" : "Fläche (Auftrag)";
     if (unitEl) unitEl.textContent = mode === "lfm" ? "LFM" : "qm";
     if (btnEl) {
       btnEl.dataset.flaecheMode = mode;
