@@ -2581,23 +2581,58 @@ header.bar {
 
 /* ============== Print-Stylesheet ============== */
 @media print {
-  @page { margin: 12mm 14mm; size: A4; }
+  @page {
+    size: A4;
+    margin: 14mm 14mm 18mm 14mm;
+    @bottom-right {
+      content: "Seite " counter(page) " / " counter(pages);
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      font-size: 9pt;
+      color: #666;
+    }
+    @bottom-left {
+      content: "Ballerstaedt · Rollenrechner v1.68";
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      font-size: 8pt;
+      color: #999;
+    }
+  }
+  /* Erste Seite: Header sichtbar, Folge-Seiten reduziert */
+  @page :first {
+    margin-top: 14mm;
+  }
   /* Schwarzer Balken im Print kommt von dunklem Body-Background +
      fixed Background-Layer (.bg-fx, .bg-grid). Explizit white forcen. */
-  html, body { background: white !important; }
-  .bg-fx, .bg-grid, .pw-gate, #pwGate, .toast-stack { display: none !important; }
-  body * { visibility: hidden; }
-  #welleSection, #welleSection * { visibility: visible; }
-  #welleSection {
-    position: absolute;
-    left: 0; top: 0;
-    width: 100%;
-    max-height: none !important;
-    padding: 0 !important;
+  html, body {
     background: white !important;
     color: black !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .bg-fx, .bg-grid, .pw-gate, #pwGate, .toast-stack,
+  header.bar, .machine-bar, .viz-stage, .fulfillment-card { display: none !important; }
+  /* welle-section ist verschachtelt in .shell > .stage. Vorfahren bleiben
+     display:block, aber alle Geschwister werden ausgeblendet. */
+  body > .shell > * { display: none !important; }
+  body > .shell > .stage,
+  body > .shell { display: block !important; }
+  .stage > * { display: none !important; }
+  .stage > #welleSection { display: block !important; }
+  /* welle-section selbst sauber im normalen Page-Flow.
+     KEIN position:absolute mehr (bricht Pagination — A4-Multi-Page-Bug v1.61).
+     KEIN visibility:hidden mehr für andere Elemente (behielt Page-Space). */
+  #welleSection {
+    position: static !important;
+    display: block !important;
+    width: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
     margin: 0 !important;
-    border: 0;
+    background: white !important;
+    color: black !important;
+    border: 0 !important;
+    box-shadow: none !important;
     opacity: 1 !important;
   }
 
@@ -2771,22 +2806,16 @@ header.bar {
     width: 32%;
   }
 
-  /* Welle-SVG sichtbar im Print */
-  #welleSvg {
+  /* Welle-SVG sichtbar im Print, aber Höhe begrenzen damit sie nicht eine
+     ganze A4-Seite frisst — bei 1300 mm Bestückungsbreite ist die Welle
+     extrem breit, ohne max-height streckt sich SVG entsprechend in der Höhe. */
+  #welleSvg, #tracksSvg {
     background: white !important;
     border: 1px solid #999 !important;
     border-radius: 4px;
     width: 100% !important;
     height: auto !important;
-    page-break-inside: avoid;
-    margin-bottom: 5mm;
-  }
-  #tracksSvg {
-    background: white !important;
-    border: 1px solid #999 !important;
-    border-radius: 4px;
-    width: 100% !important;
-    height: auto !important;
+    max-height: 70mm !important;
     page-break-inside: avoid;
     margin-bottom: 5mm;
   }
@@ -2811,7 +2840,14 @@ header.bar {
   #welleSection .stueck-row {
     border-bottom: 1px solid #ddd !important;
     page-break-inside: avoid;  /* nicht mid-row schneiden */
-    padding: 4px 0 !important;
+    padding: 2.5px 0 !important;
+    font-size: 10pt !important;
+    gap: 6px !important;
+  }
+  /* Erstes Element auf neuer Seite: Header der Sequenz mit-wiederholen */
+  #welleSection .welle-sequenz-wrap {
+    -webkit-column-break-inside: auto;
+    break-inside: auto;
   }
   #welleSection .stueck-name, #welleSection .stueck-mass, #welleSection .stueck-pos, #welleSection .stueck-detail { color: black !important; }
   #welleSection .stueck-mass { color: #007a3d !important; font-weight: 800 !important; }
@@ -4662,7 +4698,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.68 · BETA · qm⇄LFM-Live-Konversion · Hero spiegelt Eingabe · offline-fähig</div>
+    <div>v1.69 · BETA · Print-Refactor: saubere A4-Pagination + Seitenzahl-Footer · offline-fähig</div>
   </footer>
 </div>
 
