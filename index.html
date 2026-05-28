@@ -5140,7 +5140,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.74 · BETA · Print-Window: isoliertes HTML in neuem Tab · keine CSS-Konflikte mehr · offline-fähig</div>
+    <div>v1.75 · BETA · Print-Window v2: Schnitt-Mitte-Spalte 42mm · Schnitt nicht mehr abgeschnitten · offline-fähig</div>
   </footer>
 </div>
 
@@ -10796,8 +10796,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
             <col style="width:6mm">
             <col style="width:8mm">
             <col>
-            <col style="width:16mm">
-            <col style="width:34mm">
+            <col style="width:14mm">
+            <col style="width:42mm">
           </colgroup>
           <thead>
             <tr><th></th><th>#</th><th>Bauteil · Detail</th><th>Breite</th><th>Schnitt / Position</th></tr>
@@ -10929,7 +10929,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       @page { size: A4; margin: 12mm 12mm 14mm 12mm; }
       * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       html, body { margin: 0; padding: 0; background: #fff; color: #000; font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 9.5pt; line-height: 1.35; }
-      #printMaster { width: 186mm; max-width: 186mm; margin: 0 auto; padding: 0; }
+      #printMaster { width: 184mm; max-width: 184mm; margin: 0 auto; padding: 0; }
       /* Header */
       .pm-header { margin: 0 0 5mm 0; padding-bottom: 3mm; border-bottom: 2px solid #007a3d; page-break-inside: avoid; }
       .pm-brand-row { display: table; width: 100%; margin-bottom: 1.5mm; }
@@ -10944,7 +10944,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-meta td.val { font-weight: 600; width: 32%; }
       /* SVG */
       .pm-svg-wrap { margin: 0 0 5mm 0; page-break-inside: avoid; }
-      .pm-svg-wrap svg { display: block; width: 186mm; height: 50mm; border: 1px solid #ccc; border-radius: 2mm; background: #fff; }
+      .pm-svg-wrap svg { display: block; width: 184mm; height: 48mm; border: 1px solid #ccc; border-radius: 2mm; background: #fff; }
       /* Section */
       .pm-section { margin: 0 0 5mm 0; }
       .pm-section-title { font-size: 10pt; font-weight: 800; color: #007a3d; letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 2mm 0; padding-bottom: 1.5mm; border-bottom: 1px solid #007a3d; page-break-after: avoid; }
