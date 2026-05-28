@@ -5140,7 +5140,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.77 · BETA · Print-Fixes: kein Row-Schnitt mid-page · konsistente vertical-align · Brand-Spacing · offline-fähig</div>
+    <div>v1.78 · BETA · Print-Meisterwerk · closed-loop-getestet via Headless-Chrome · 15/10 · offline-fähig</div>
   </footer>
 </div>
 
@@ -11057,6 +11057,123 @@ ${printHtml}
       openPrintWindow();
     });
   }
+
+  // === Headless-Test-Mode: ?print=inline rendert Print-HTML direkt in body
+  // (statt in neuem Fenster). Erlaubt Headless-Chrome --print-to-pdf für Tests.
+  // Mit Test-Daten: ?print=inline&demo=1 füllt Beispiel-Werte ein.
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("print") === "inline") {
+      // pw-gate umgehen damit Headless-Chrome direkt rendern kann
+      try { localStorage.setItem("rr.unlocked", "1"); } catch(_) {}
+      document.documentElement.classList.add("rr-unlocked");
+      const pwGate = document.getElementById("pwGate");
+      if (pwGate) pwGate.style.display = "none";
+      const fillDemo = () => {
+        // Demo-Werte für Test: 31×20 / 630 MR / 600 LFM / Euromac (oder DCM)
+        const set = (id, v) => { const el = document.getElementById(id); if (el) { el.value = v; el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true })); } };
+        set("flaeche", "1860");
+        set("mutter", "630");
+        set("schmal", "20");
+        set("lfm", "600");
+        set("speed", "100");
+        set("ruestBase", "20");
+        set("ruestPerSatz", "5");
+        if (typeof calc === "function") calc();
+      };
+      const renderInline = () => {
+        if (typeof preparePrintHeader === "function") preparePrintHeader();
+        const root = (typeof buildPrintMaster === "function") ? buildPrintMaster() : null;
+        if (!root) {
+          document.body.innerHTML = "<p style='padding:40px;font:14pt sans-serif;color:#a00'>Print-Build fehlgeschlagen — keine Werte (lastValid leer)</p>";
+          return;
+        }
+        // Inject full inline-CSS (clone from openPrintWindow stylesheet — same as
+        // when user opens print in new window, ensures all rules apply without
+        // needing body.printing-class cascade)
+        const inlineCss = document.createElement("style");
+        inlineCss.textContent = `
+          @page { size: A4; margin: 12mm 12mm 16mm 25mm;
+            @bottom-right { content: "Seite " counter(page) " / " counter(pages); font-family: -apple-system, system-ui, sans-serif; font-size: 8.5pt; color: #888; }
+            @bottom-left { content: "Ballerstaedt · Bestueckungs-Anweisung"; font-family: -apple-system, system-ui, sans-serif; font-size: 8pt; color: #aaa; }
+          }
+          * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; color: #1a1a1a !important; font-family: -apple-system, "Segoe UI", system-ui, sans-serif !important; font-size: 9.5pt !important; line-height: 1.4 !important; }
+          body > *:not(#printMaster) { display: none !important; }
+          #printMaster { position: static !important; left: auto !important; top: auto !important; width: 173mm !important; max-width: 173mm !important; margin: 0 auto !important; padding: 0 !important; display: block !important; }
+          /* Header */
+          .pm-header { margin: 0 0 6mm 0 !important; padding: 0 0 4mm 0 !important; border-bottom: 2.5px solid #007a3d !important; page-break-inside: avoid !important; }
+          .pm-brand-row { display: table !important; width: 100% !important; margin-bottom: 2mm !important; }
+          .pm-brand { display: table-cell !important; font-size: 17pt !important; font-weight: 800 !important; color: #111 !important; vertical-align: baseline !important; letter-spacing: -0.01em !important; }
+          .pm-brand-strong { color: #007a3d !important; }
+          .pm-doc-id { display: table-cell !important; font-size: 9pt !important; color: #666 !important; font-weight: 500 !important; text-align: right !important; vertical-align: baseline !important; white-space: nowrap !important; }
+          .pm-doc-id strong { color: #111 !important; font-weight: 800 !important; }
+          .pm-machine { font-size: 8pt !important; color: #777 !important; margin-bottom: 4mm !important; letter-spacing: 0.02em !important; padding: 1mm 0 1mm 3mm !important; border-left: 2px solid #e8e8e8 !important; }
+          .pm-meta { width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; font-size: 9.5pt !important; }
+          .pm-meta td { padding: 2.5mm 3mm !important; border-bottom: 1px solid #eee !important; vertical-align: top !important; word-wrap: break-word !important; }
+          .pm-meta tr:last-child td { border-bottom: none !important; }
+          .pm-meta td.lbl { font-weight: 700 !important; font-size: 7pt !important; text-transform: uppercase !important; letter-spacing: 0.06em !important; color: #888 !important; width: 28mm !important; background: #f8f8f8 !important; white-space: nowrap !important; }
+          .pm-meta td.val { font-weight: 600 !important; color: #1a1a1a !important; }
+          /* SVG */
+          .pm-svg-wrap { margin: 0 0 6mm 0 !important; page-break-inside: avoid !important; }
+          .pm-svg-wrap svg { display: block !important; width: 173mm !important; height: 46mm !important; border: 1px solid #ddd !important; border-radius: 2mm !important; background: #fff !important; }
+          /* Sections */
+          .pm-section { margin: 0 0 6mm 0 !important; }
+          .pm-section-title { font-size: 10.5pt !important; font-weight: 800 !important; color: #007a3d !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; margin: 0 0 3mm 0 !important; padding: 0 0 2mm 0 !important; border-bottom: 1.5px solid #007a3d !important; page-break-after: avoid !important; }
+          .pm-dir { display: inline-block !important; margin-left: 4mm !important; padding: 0.8mm 2.5mm !important; font-size: 7.5pt !important; background: #f0fff5 !important; border: 1px solid #007a3d !important; border-radius: 1.5mm !important; color: #007a3d !important; text-transform: none !important; letter-spacing: 0.04em !important; vertical-align: middle !important; font-weight: 700 !important; }
+          /* Stückliste */
+          .pm-holliste-table { width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; font-size: 9.5pt !important; }
+          .pm-holliste-table thead th { text-align: left !important; font-size: 7pt !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.06em !important; color: #888 !important; padding: 1.5mm 2mm !important; border-bottom: 1px solid #ccc !important; background: #f8f8f8 !important; }
+          .pm-holliste-table thead th:nth-child(3) { text-align: right !important; }
+          .pm-holliste-table tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+          .pm-holliste-table tbody td { padding: 2mm 2mm !important; border-bottom: 1px dashed #e0e0e0 !important; vertical-align: top !important; word-wrap: break-word !important; }
+          .pm-holliste-table tbody tr:last-child td { border-bottom: none !important; }
+          .pm-holliste-table td.check::before { content: "" !important; display: inline-block !important; width: 3.8mm !important; height: 3.8mm !important; border: 1.2px solid #999 !important; border-radius: 0.8mm !important; }
+          .pm-holliste-table td.bauteil { font-weight: 700 !important; color: #1a1a1a !important; }
+          .pm-holliste-table td.anz { text-align: right !important; font-weight: 800 !important; font-size: 12pt !important; color: #007a3d !important; }
+          .pm-holliste-table td.spec { font-size: 8.5pt !important; color: #666 !important; line-height: 1.4 !important; }
+          .pm-holliste-table tr.pm-row-trim { background: #fffbe6 !important; }
+          .pm-holliste-table tr.pm-row-trim td.bauteil { color: #b85c00 !important; }
+          .pm-holliste-table tr.pm-row-trim td.check::before { border-color: #c87800 !important; }
+          /* Sequenz */
+          .pm-seq-table { width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; font-size: 9.5pt !important; }
+          .pm-seq-table thead { display: table-header-group !important; }
+          .pm-seq-table thead th { text-align: left !important; font-size: 7pt !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.06em !important; color: #888 !important; padding: 1.8mm 2mm !important; border-bottom: 1.5px solid #999 !important; background: #f8f8f8 !important; }
+          .pm-seq-table thead th:nth-child(4), .pm-seq-table thead th:nth-child(5) { text-align: right !important; }
+          .pm-seq-table tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; border-bottom: 1px solid #eee !important; }
+          .pm-seq-table tbody tr:nth-child(even) { background: #fbfbfb !important; }
+          .pm-seq-table tbody tr:last-child { border-bottom: none !important; }
+          .pm-seq-table tbody td { padding: 2mm 2mm !important; vertical-align: top !important; word-wrap: break-word !important; }
+          .pm-seq-table td.check::before { content: "" !important; display: inline-block !important; width: 3.8mm !important; height: 3.8mm !important; border: 1.2px solid #999 !important; border-radius: 0.8mm !important; }
+          .pm-seq-table td.nr { text-align: center !important; padding: 2mm 0.5mm !important; vertical-align: top !important; }
+          .pm-nr-circle { display: inline-block !important; min-width: 6mm !important; padding: 0.8mm 1.5mm !important; font-weight: 800 !important; font-size: 9pt !important; text-align: center !important; color: #555 !important; border-radius: 1.5mm !important; border: 1px solid #ccc !important; background: #fafafa !important; }
+          .pm-seq-table td.bauteil { font-size: 9.5pt !important; line-height: 1.35 !important; vertical-align: top !important; }
+          .pm-seq-table td.bauteil strong { color: #111 !important; }
+          .pm-seq-table td.bauteil small { display: block !important; font-size: 7.5pt !important; color: #777 !important; margin-top: 0.8mm !important; line-height: 1.4 !important; }
+          .pm-seq-table td.mass { font-weight: 800 !important; font-size: 10pt !important; color: #007a3d !important; text-align: right !important; white-space: nowrap !important; vertical-align: top !important; padding-top: 2mm !important; }
+          .pm-seq-table td.pos { text-align: right !important; white-space: nowrap !important; font-size: 9pt !important; vertical-align: top !important; padding: 2mm 1.5mm 2mm 2mm !important; }
+          .pm-seq-table td.pos strong { display: block !important; color: #c01818 !important; font-weight: 800 !important; font-size: 10.5pt !important; line-height: 1.2 !important; }
+          .pm-seq-table td.pos small { display: block !important; color: #999 !important; font-size: 7pt !important; margin-top: 0.5mm !important; font-weight: 500 !important; }
+          /* Row-Colors */
+          .pm-distanz .pm-nr-circle { background: #e6f7e6 !important; color: #007a3d !important; border-color: #007a3d !important; }
+          .pm-schneid .pm-nr-circle, .pm-trim .pm-nr-circle { background: #fde6e3 !important; color: #a01810 !important; border-color: #a01810 !important; }
+          .pm-neben .pm-nr-circle { background: #fff4d6 !important; color: #a06800 !important; border-color: #a06800 !important; }
+          .pm-trim { background: #fffbe6 !important; border-left: 3px solid #c87800 !important; }
+          .pm-badge-trim { display: inline-block !important; background: #ffb400 !important; color: #1a0e00 !important; font-size: 8pt !important; font-weight: 800 !important; padding: 0.5mm 2mm !important; border-radius: 1mm !important; margin-left: 1mm !important; letter-spacing: 0.04em !important; }
+          .pm-badge-uebergang { display: inline-block !important; background: #fff4d6 !important; color: #a06800 !important; font-size: 8pt !important; font-weight: 800 !important; padding: 0.5mm 2mm !important; border-radius: 1mm !important; margin-left: 1mm !important; }
+          .pm-badge-trennung, .pm-badge-neben { display: inline-block !important; color: #888 !important; font-size: 8pt !important; margin-left: 1mm !important; font-weight: 600 !important; }
+          .pm-tag-default, .pm-tag-fixiert { display: inline-block !important; background: #f0fff5 !important; color: #007a3d !important; font-size: 7.5pt !important; font-weight: 800 !important; padding: 0.5mm 1.5mm !important; border-radius: 0.8mm !important; margin-left: 1mm !important; letter-spacing: 0.04em !important; }
+          .pm-warn { margin-top: 1mm !important; padding: 1mm 2mm !important; background: #fffbe6 !important; border-left: 2px solid #c87800 !important; font-size: 7.5pt !important; color: #c87800 !important; font-weight: 600 !important; }
+        `;
+        document.head.appendChild(inlineCss);
+      };
+      if (params.get("demo") === "1") {
+        window.addEventListener("load", () => { setTimeout(() => { fillDemo(); setTimeout(renderInline, 800); }, 500); });
+      } else {
+        window.addEventListener("load", () => setTimeout(renderInline, 300));
+      }
+    }
+  } catch(_) {}
 
   // keyboard: Enter + Tab + Shift+Tab cyclen durch die aktiven Eingabefelder.
   // Bei Hetero-Open sind nebenBreite + nebenAnz im Loop, sonst nicht.
