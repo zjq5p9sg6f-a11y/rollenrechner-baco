@@ -2583,7 +2583,7 @@ header.bar {
 @media print {
   @page {
     size: A4;
-    margin: 14mm 14mm 18mm 14mm;
+    margin: 12mm 12mm 16mm 12mm;
     @bottom-right {
       content: "Seite " counter(page) " / " counter(pages);
       font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
@@ -2591,40 +2591,49 @@ header.bar {
       color: #666;
     }
     @bottom-left {
-      content: "Ballerstaedt · Rollenrechner v1.68";
+      content: "Ballerstaedt · Bestückungs-Anweisung · Rollenrechner";
       font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
       font-size: 8pt;
       color: #999;
     }
   }
-  /* Erste Seite: Header sichtbar, Folge-Seiten reduziert */
-  @page :first {
-    margin-top: 14mm;
-  }
-  /* Schwarzer Balken im Print kommt von dunklem Body-Background +
-     fixed Background-Layer (.bg-fx, .bg-grid). Explizit white forcen. */
+  /* === Grund-Reset: Body komplett weiß, Farb-Adjustment exakt drucken === */
   html, body {
     background: white !important;
     color: black !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
+  /* Globale Hintergrund-Layer + Web-only Widgets weg */
   .bg-fx, .bg-grid, .pw-gate, #pwGate, .toast-stack,
-  header.bar, .machine-bar, .viz-stage, .fulfillment-card { display: none !important; }
-  /* welle-section ist verschachtelt in .shell > .stage. Vorfahren bleiben
-     display:block, aber alle Geschwister werden ausgeblendet. */
+  header.bar, .machine-bar, .viz-stage, .fulfillment-card,
+  .welle-sequenz-disclaimer { display: none !important; }
+  /* === Vorfahren-Container resetten: Web-CSS hatte max-width/padding die
+     im Print zu Overflow führte. Hier komplett auf "fließt im Page-Bereich". */
+  .shell, .stage {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+  }
+  /* Nur welle-section + Vorfahren-Pfad sichtbar — alles andere weg */
   body > .shell > * { display: none !important; }
-  body > .shell > .stage,
-  body > .shell { display: block !important; }
+  body > .shell > .stage { display: block !important; }
   .stage > * { display: none !important; }
   .stage > #welleSection { display: block !important; }
-  /* welle-section selbst sauber im normalen Page-Flow.
-     KEIN position:absolute mehr (bricht Pagination — A4-Multi-Page-Bug v1.61).
-     KEIN visibility:hidden mehr für andere Elemente (behielt Page-Space). */
+  /* welle-section: normaler Flow, kein position:absolute (das bricht Pagination) */
   #welleSection {
     position: static !important;
     display: block !important;
-    width: auto !important;
+    width: 100% !important;
     max-height: none !important;
     overflow: visible !important;
     padding: 0 !important;
@@ -2636,17 +2645,16 @@ header.bar {
     opacity: 1 !important;
   }
 
-  /* Auftrags-Eingabe + Web-only Buttons ausblenden (Cluster-Section selektiv unten) */
+  /* Auftrags-Eingabe + Web-only Buttons ausblenden */
   #welleSection .welle-head,
   #welleSection .welle-auftrag-meta,
   #welleSection .btn-print,
   #welleSection .cluster-toggle,
   #welleSection .welle-alerts { display: none !important; }
-  /* Cluster-Section: nur Aggregat + Slot-Übersicht drucken, Eingabe-UI raus */
+  /* Cluster-Section: nur drucken wenn aktiv expanded — page-break nur dann */
   #welleSection .cluster-section[aria-hidden="true"] { display: none !important; }
-  #welleSection .cluster-section {
+  #welleSection .cluster-section[aria-hidden="false"] {
     display: block !important;
-    aria-hidden: false !important;
     page-break-before: always;
     margin-top: 8mm;
     background: white !important;
@@ -2765,17 +2773,19 @@ header.bar {
   #welleSection .ca-bestell-breite,
   #welleSection .ca-bestell-meter { color: black !important; }
 
-  /* Print-Header sichtbar machen */
+  /* === Print-Header: erste Seite oben prominent === */
   #welleSection .print-header {
     display: block !important;
-    margin-bottom: 8mm;
-    padding-bottom: 4mm;
-    border-bottom: 2px solid #000;
+    margin: 0 0 6mm 0 !important;
+    padding-bottom: 4mm !important;
+    border-bottom: 2px solid #007a3d !important;
+    page-break-inside: avoid;
   }
   #welleSection .ph-brand {
-    font-size: 16pt; font-weight: 800;
+    font-size: 17pt; font-weight: 800;
     color: black !important;
-    margin-bottom: 2mm;
+    margin-bottom: 1.5mm;
+    line-height: 1.15;
   }
   #welleSection .ph-brand strong { color: #007a3d !important; }
   #welleSection .ph-machine {
@@ -2785,96 +2795,185 @@ header.bar {
     letter-spacing: 0.04em;
   }
   #welleSection .ph-meta-table {
-    width: 100%;
+    width: 100% !important;
     border-collapse: collapse;
     font-size: 10pt;
+    table-layout: fixed;
   }
   #welleSection .ph-meta-table td {
-    padding: 3px 8px;
-    border-bottom: 1px solid #ddd;
+    padding: 3px 6px !important;
+    border-bottom: 1px solid #e0e0e0 !important;
     color: black !important;
+    vertical-align: top;
+    word-wrap: break-word;
   }
   #welleSection .ph-lbl {
-    font-weight: 700; font-size: 8pt;
+    font-weight: 700; font-size: 8pt !important;
     text-transform: uppercase; letter-spacing: 0.06em;
     color: #666 !important;
-    width: 18%;
+    width: 18% !important;
     background: #f5f5f5 !important;
   }
   #welleSection .ph-val {
     font-weight: 600;
-    width: 32%;
+    width: 32% !important;
   }
 
-  /* Welle-SVG sichtbar im Print, aber Höhe begrenzen damit sie nicht eine
-     ganze A4-Seite frisst — bei 1300 mm Bestückungsbreite ist die Welle
-     extrem breit, ohne max-height streckt sich SVG entsprechend in der Höhe. */
+  /* === Welle-SVG: A4-passend, nicht zu hoch === */
   #welleSvg, #tracksSvg {
     background: white !important;
-    border: 1px solid #999 !important;
-    border-radius: 4px;
+    border: 1px solid #bbb !important;
+    border-radius: 3px;
+    display: block !important;
     width: 100% !important;
+    max-width: 186mm !important;  /* A4-content-width = 210 - 2×12 */
     height: auto !important;
-    max-height: 70mm !important;
+    max-height: 55mm !important;
     page-break-inside: avoid;
-    margin-bottom: 5mm;
+    margin: 0 auto 5mm auto !important;
+    box-sizing: border-box;
   }
 
-  /* Sequenz: Page-Break-Disziplin */
-  #welleSection .welle-sequenz-wrap {
-    background: white !important;
-    border: 1px solid #999 !important;
-    page-break-before: auto;
-    page-break-inside: auto;
-    margin-bottom: 5mm;
-  }
-  #welleSection .welle-sequenz-head {
-    page-break-after: avoid;
-    border-bottom: 1px solid #999;
-    padding-bottom: 3mm;
-    margin-bottom: 3mm;
-  }
-  #welleSection .welle-sequenz-wrap h4 { color: black !important; }
-  #welleSection .seq-arrow { background: white !important; color: #007a3d !important; border-color: #007a3d !important; }
-  #welleSection .welle-sequenz-sub { color: #666 !important; }
-  #welleSection .stueck-row {
-    border-bottom: 1px solid #ddd !important;
-    page-break-inside: avoid;  /* nicht mid-row schneiden */
-    padding: 2.5px 0 !important;
-    font-size: 10pt !important;
-    gap: 6px !important;
-  }
-  /* Erstes Element auf neuer Seite: Header der Sequenz mit-wiederholen */
-  #welleSection .welle-sequenz-wrap {
-    -webkit-column-break-inside: auto;
-    break-inside: auto;
-  }
-  #welleSection .stueck-name, #welleSection .stueck-mass, #welleSection .stueck-pos, #welleSection .stueck-detail { color: black !important; }
-  #welleSection .stueck-mass { color: #007a3d !important; font-weight: 800 !important; }
-  #welleSection .stueck-nr.park { background: #eee !important; color: #333 !important; border-color: #999 !important; }
-  #welleSection .stueck-nr.distanz { background: #d0f0d0 !important; color: #007a3d !important; border-color: #007a3d !important; }
-  #welleSection .stueck-nr.schneid { background: #fdd !important; color: #a00 !important; border-color: #a00 !important; }
-  #welleSection .stueck-nr.neben { background: #fed !important; color: #a60 !important; border-color: #a60 !important; }
-
-  /* Picking-Stückliste vor der Sequenz (DOM-Reorder per JS in beforeprint).
-     Kein erzwungener Page-Break — fließt natürlich zwischen Header und Sequenz. */
+  /* === Stückliste: tabellarisch, kompakt === */
   #welleSection .welle-holliste {
     background: white !important;
-    border: 1px solid #999 !important;
+    border: 1px solid #bbb !important;
+    border-radius: 3px !important;
     page-break-inside: avoid;
-    margin-bottom: 5mm;
+    margin-bottom: 5mm !important;
+    padding: 3mm 4mm !important;
   }
-  #welleSection .welle-holliste h4 { color: black !important; }
-  #welleSection .welle-holliste .hl-name { color: black !important; }
-  #welleSection .welle-holliste .hl-anz { color: #007a3d !important; font-weight: 800 !important; }
-  #welleSection .welle-holliste .hl-unit { color: #555 !important; }
+  #welleSection .welle-holliste h4 {
+    color: #007a3d !important;
+    font-size: 10pt !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.06em !important;
+    margin: 0 0 3mm 0 !important;
+    padding-bottom: 2mm !important;
+    border-bottom: 1px solid #ddd !important;
+  }
+  #welleSection .welle-holliste-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 14mm 1.4fr !important;
+    gap: 2mm 5mm !important;
+    font-size: 10pt !important;
+  }
+  #welleSection .welle-holliste-row > * {
+    padding: 2mm 0 !important;
+    border-bottom: 1px dashed #e0e0e0 !important;
+  }
+  #welleSection .welle-holliste .hl-name { color: black !important; font-weight: 700 !important; }
+  #welleSection .welle-holliste .hl-anz { color: #007a3d !important; font-weight: 800 !important; font-size: 12pt !important; text-align: right !important; }
+  #welleSection .welle-holliste .hl-unit { color: #555 !important; font-size: 9pt !important; }
 
-  /* Quality-Score / Alerts beim Druck unsichtbar (gehören in Web-Sicht) */
+  /* === Sequenz: tabellarisch mit FIXEN Spalten damit Pos garantiert sichtbar === */
+  #welleSection .welle-sequenz-wrap {
+    background: white !important;
+    border: 1px solid #bbb !important;
+    border-radius: 3px !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    margin-bottom: 5mm !important;
+    padding: 3mm 4mm !important;
+  }
+  #welleSection .welle-sequenz-head {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    border-bottom: 1px solid #ddd !important;
+    padding-bottom: 2mm !important;
+    margin-bottom: 3mm !important;
+    display: flex !important;
+    align-items: baseline !important;
+    justify-content: space-between !important;
+    gap: 4mm !important;
+  }
+  #welleSection .welle-sequenz-wrap h4 {
+    color: #007a3d !important;
+    font-size: 10pt !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.06em !important;
+    margin: 0 !important;
+  }
+  #welleSection .seq-arrow {
+    background: #f0fff5 !important;
+    color: #007a3d !important;
+    border: 1px solid #007a3d !important;
+    font-size: 8pt !important;
+    padding: 1px 5px !important;
+  }
+  #welleSection .welle-sequenz-sub { color: #666 !important; font-size: 9pt !important; font-style: italic; }
+  /* Sequenz-Row: 4 fixe Spalten. Pos-Spalte rechts hat eine FESTE Breite
+     damit "Schnitt Mitte −289 mm" garantiert sichtbar ist (Hauptbug v1.69). */
+  #welleSection .stueck-row {
+    display: grid !important;
+    grid-template-columns: 8mm 1fr 16mm 30mm !important;
+    gap: 3mm !important;
+    align-items: start !important;
+    border-bottom: 1px solid #eee !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    padding: 2mm 0 !important;
+    font-size: 9.5pt !important;
+    line-height: 1.3 !important;
+  }
+  #welleSection .stueck-row:nth-child(even) { background: #fafafa !important; }
+  #welleSection .stueck-nr {
+    width: 8mm !important; height: 6mm !important;
+    border-radius: 1.5mm !important;
+    font-size: 8pt !important; font-weight: 800 !important;
+    display: grid !important; place-items: center !important;
+    border: 1px solid !important;
+  }
+  #welleSection .stueck-nr.park { background: #eee !important; color: #333 !important; border-color: #999 !important; }
+  #welleSection .stueck-nr.distanz { background: #e6f7e6 !important; color: #007a3d !important; border-color: #007a3d !important; }
+  #welleSection .stueck-nr.schneid { background: #fde6e3 !important; color: #a01810 !important; border-color: #a01810 !important; }
+  #welleSection .stueck-nr.neben { background: #fff4d6 !important; color: #a06800 !important; border-color: #a06800 !important; }
+  #welleSection .stueck-name {
+    font-weight: 700 !important;
+    color: black !important;
+    font-size: 9.5pt !important;
+    line-height: 1.3 !important;
+  }
+  #welleSection .stueck-name .icon { display: none !important; }
+  #welleSection .stueck-detail {
+    color: #555 !important;
+    font-size: 8pt !important;
+    line-height: 1.3 !important;
+    margin-top: 1px !important;
+  }
+  #welleSection .stueck-mass {
+    color: #007a3d !important;
+    font-weight: 800 !important;
+    font-size: 11pt !important;
+    text-align: right !important;
+    white-space: nowrap !important;
+  }
+  #welleSection .stueck-pos {
+    text-align: right !important;
+    white-space: nowrap !important;
+    font-size: 8.5pt !important;
+    color: #555 !important;
+    line-height: 1.25 !important;
+  }
+  /* Schnitt-Mitte-Anzeige in SE-Row: prominent rot, MUSS sichtbar bleiben */
+  #welleSection .stueck-pos strong {
+    color: #a01810 !important;
+    font-size: 10pt !important;
+    font-weight: 800 !important;
+    display: block !important;
+  }
+
+  /* === Print-Only Annotation auf SE-Besäumung — Werker-Warnung kurz === */
+  #welleSection .stueck-row-trim {
+    background: #fffbe6 !important;
+    border-left: 3px solid #c87800 !important;
+    padding-left: 2mm !important;
+  }
+
+  /* Quality-Score / Alerts beim Druck unsichtbar */
   #welleSection .welle-quality { display: none !important; }
 
-  /* Maschinen-Konstanten + SE-CAD-Box im Print AUSBLENDEN — Werker kennt
-     die Werte. Nur Auftragsdaten + Stückliste + Bestückungs-Sequenz sind
-     für die Werkstatt relevant. */
+  /* Maschinen-Konstanten + SE-CAD-Box im Print AUSBLENDEN — Werker kennt die Werte */
   #welleSection .welle-info-grid,
   #welleSection .se-cad-modal,
   #welleSection .welle-machine-toggle,
@@ -4698,7 +4797,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.69 · BETA · Print-Refactor: saubere A4-Pagination + Seitenzahl-Footer · offline-fähig</div>
+    <div>v1.70 · BETA · Print-Meisterwerk: Container-Reset + feste Sequenz-Spalten · offline-fähig</div>
   </footer>
 </div>
 
