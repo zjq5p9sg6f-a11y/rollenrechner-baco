@@ -3951,15 +3951,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
             <span class="pulse" id="livePulse"></span>
             <span id="statusBadge">Live · bereit</span>
           </div>
-          <div class="hero-headline" id="hero-title">Bereitzustellende <em>Mutterrollen-Menge</em></div>
+          <div class="hero-headline" id="hero-title">Bereitzustellende <em id="heroTitleEm">Mutterrollen-Menge</em></div>
           <div class="hero-display">
             <span class="hero-big" id="rHeroValue">—</span>
-            <span class="hero-big-unit">LFM</span>
+            <span class="hero-big-unit" id="rHeroUnit">LFM</span>
           </div>
         </div>
         <div class="hero-aside">
           <div class="hero-formula-block">
-            <span>Formel: <strong>⌈ Gesamt-LFM ÷ NTZ ⌉</strong></span>
+            <span>Formel: <strong id="rHeroFormulaLabel">⌈ Gesamt-LFM ÷ NTZ ⌉</strong></span>
             <span id="rHeroFormula">— ÷ — = —</span>
           </div>
           <button class="hero-cta" data-copy-target="rHeroValue" data-copy-label="MR-Menge">
@@ -4662,7 +4662,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.66 · BETA · qm⇄LFM-Eingabe-Toggle · KPI-Anzeigen bleiben konstant · offline-fähig</div>
+    <div>v1.67 · BETA · Hero-Umrechnung: qm-Eingabe → LFM-Hero · LFM-Eingabe → qm-Hero · offline-fähig</div>
   </footer>
 </div>
 
@@ -4705,7 +4705,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
     heteroFields: document.getElementById("heteroFields"),
 
     rHero:        document.getElementById("rHeroValue"),
+    rHeroUnit:    document.getElementById("rHeroUnit"),
     rHeroFormula: document.getElementById("rHeroFormula"),
+    rHeroFormulaLabel: document.getElementById("rHeroFormulaLabel"),
+    heroTitleEm:  document.getElementById("heroTitleEm"),
 
     rGesamt:    document.getElementById("rGesamt"),
     rGesamtSub: document.getElementById("rGesamtSub"),
@@ -5174,6 +5177,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
       e.textContent = "—";
       e.dataset.raw = "0";
     });
+    // Hero-Defaults je nach aktivem Modus
+    const _emptyFlaecheMode = (typeof getFlaecheMode === "function") ? getFlaecheMode() : "qm";
+    if (els.heroTitleEm) els.heroTitleEm.textContent = _emptyFlaecheMode === "lfm" ? "Auftrags-Fläche" : "Mutterrollen-Menge";
+    if (els.rHeroUnit) els.rHeroUnit.textContent = _emptyFlaecheMode === "lfm" ? "qm" : "LFM";
+    if (els.rHeroFormulaLabel) els.rHeroFormulaLabel.textContent = _emptyFlaecheMode === "lfm" ? "Einsatz × NTZ × Schmal/1000" : "⌈ Gesamt-LFM ÷ NTZ ⌉";
     els.rHeroFormula.textContent = "— ÷ — = —";
     els.rGesamtSub.textContent = "Fläche ÷ Schmalrollen-Breite";
     els.rNutzenSub.textContent = "⌊ MR-Breite ÷ SR-Breite ⌋";
@@ -8027,9 +8035,22 @@ audio.team-player-audio::-webkit-media-controls-panel {
   }
 
   function render(o) {
-    animateNumber(els.rHero,    o.mrMengeLFM);
-    // KPI-Anzeigen bleiben mode-unabhängig konstant (immer Gesamt-LFM in LFM).
-    // Nur das Sub-Text zeigt die Eingabe-Formel — abhängig vom Modus.
+    // Hero zeigt die UMRECHNUNG der Eingabe — der eigentliche Mehrwert des Toggles:
+    // qm-Eingabe → Hero zeigt MR-Menge in LFM ("wieviele LFM Bahn pro Mutterrolle?")
+    // LFM-Eingabe → Hero zeigt Auftrags-Fläche in qm ("wieviel Material total?")
+    const _flaecheMode = (typeof getFlaecheMode === "function") ? getFlaecheMode() : "qm";
+    if (_flaecheMode === "lfm") {
+      if (els.heroTitleEm) els.heroTitleEm.textContent = "Auftrags-Fläche";
+      if (els.rHeroUnit) els.rHeroUnit.textContent = "qm";
+      if (els.rHeroFormulaLabel) els.rHeroFormulaLabel.textContent = "Einsatz × NTZ × Schmal/1000";
+      animateNumber(els.rHero, o.flaeche);
+    } else {
+      if (els.heroTitleEm) els.heroTitleEm.textContent = "Mutterrollen-Menge";
+      if (els.rHeroUnit) els.rHeroUnit.textContent = "LFM";
+      if (els.rHeroFormulaLabel) els.rHeroFormulaLabel.textContent = "⌈ Gesamt-LFM ÷ NTZ ⌉";
+      animateNumber(els.rHero, o.mrMengeLFM);
+    }
+    // KPI-Anzeigen darunter bleiben mode-unabhängig konstant (immer Gesamt-LFM in LFM).
     animateNumber(els.rGesamt,  o.gesamtLFM);
     animateNumber(els.rNutzen,  o.nutzen);
     animateNumber(els.rRest,    o.restMM, nf1.format);
@@ -8037,9 +8058,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
     animateNumber(els.rSaetze,  o.totalSaetze);
     animateNumber(els.rHuelsen, o.huelsen);
 
-    els.rHeroFormula.textContent = `${nf0.format(o.gesamtLFM)} ÷ ${o.nutzen} = ${nf0.format(o.mrMengeLFM)}`;
-    // Sub-Text mode-aware: zeigt Eingabe-Quelle, KPI-Zahl bleibt aber immer Gesamt-LFM
-    const _flaecheMode = (typeof getFlaecheMode === "function") ? getFlaecheMode() : "qm";
+    // Hero-Formel je nach Modus
+    els.rHeroFormula.textContent = _flaecheMode === "lfm"
+      ? `${nf0.format(o.mrMengeLFM)} × ${o.nutzen} × ${nf2.format(o.schmal/1000)} = ${nf0.format(o.flaeche)}`
+      : `${nf0.format(o.gesamtLFM)} ÷ ${o.nutzen} = ${nf0.format(o.mrMengeLFM)}`;
+    // Sub-Text rGesamt: Eingabe-Quelle (KPI-Zahl bleibt immer Gesamt-LFM)
     els.rGesamtSub.textContent = _flaecheMode === "lfm"
       ? `Einsatzmenge ${nf0.format(o.mrMengeLFM)} LFM × ${o.nutzen} Nutzen ≙ ${nf0.format(o.flaeche)} qm`
       : `${nf0.format(o.flaeche)} qm ÷ ${nf2.format(o.schmal/1000)} m`;
