@@ -2819,17 +2819,17 @@ header.bar {
     width: 32% !important;
   }
 
-  /* === Welle-SVG: A4-passend, nicht zu hoch === */
+  /* === Welle-SVG: A4-passend, FESTE Höhe damit Browser sicher rendert.
+     height:auto + max-height kann in Print zu height:0 kollabieren (Bug v1.69+v1.70).
+     Mit fixer height respektiert SVG die viewBox + skaliert proportional via preserveAspectRatio. */
   #welleSvg, #tracksSvg {
     background: white !important;
     border: 1px solid #bbb !important;
     border-radius: 3px;
     display: block !important;
-    width: 100% !important;
-    max-width: 186mm !important;  /* A4-content-width = 210 - 2×12 */
-    height: auto !important;
-    max-height: 55mm !important;
-    page-break-inside: avoid;
+    width: 186mm !important;
+    height: 56mm !important;
+    page-break-inside: avoid !important;
     margin: 0 auto 5mm auto !important;
     box-sizing: border-box;
   }
@@ -2854,17 +2854,19 @@ header.bar {
   }
   #welleSection .welle-holliste-grid {
     display: grid !important;
-    grid-template-columns: 1fr 14mm 1.4fr !important;
-    gap: 2mm 5mm !important;
+    grid-template-columns: 60mm 14mm 1fr !important;
+    gap: 2mm 4mm !important;
     font-size: 10pt !important;
   }
   #welleSection .welle-holliste-row > * {
-    padding: 2mm 0 !important;
+    padding: 1.5mm 0 !important;
     border-bottom: 1px dashed #e0e0e0 !important;
+    overflow-wrap: break-word !important;
+    word-break: break-word !important;
   }
   #welleSection .welle-holliste .hl-name { color: black !important; font-weight: 700 !important; }
   #welleSection .welle-holliste .hl-anz { color: #007a3d !important; font-weight: 800 !important; font-size: 12pt !important; text-align: right !important; }
-  #welleSection .welle-holliste .hl-unit { color: #555 !important; font-size: 9pt !important; }
+  #welleSection .welle-holliste .hl-unit { color: #555 !important; font-size: 8.5pt !important; line-height: 1.3 !important; }
 
   /* === Sequenz: tabellarisch mit FIXEN Spalten damit Pos garantiert sichtbar === */
   #welleSection .welle-sequenz-wrap {
@@ -2902,27 +2904,49 @@ header.bar {
     padding: 1px 5px !important;
   }
   #welleSection .welle-sequenz-sub { color: #666 !important; font-size: 9pt !important; font-style: italic; }
-  /* Sequenz-Row: 4 fixe Spalten. Pos-Spalte rechts hat eine FESTE Breite
-     damit "Schnitt Mitte −289 mm" garantiert sichtbar ist (Hauptbug v1.69). */
+  /* Sequenz-Row: 4-Spalten-FLEXBOX statt Grid (robuster im Print).
+     Pos-Spalte rechts hat eine FESTE flex-basis damit "Schnitt Mitte −289 mm"
+     garantiert sichtbar ist (Hauptbug v1.69+v1.70). */
   #welleSection .stueck-row {
-    display: grid !important;
-    grid-template-columns: 8mm 1fr 16mm 30mm !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
     gap: 3mm !important;
-    align-items: start !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
     border-bottom: 1px solid #eee !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
-    padding: 2mm 0 !important;
+    padding: 2mm 1mm !important;
     font-size: 9.5pt !important;
     line-height: 1.3 !important;
   }
   #welleSection .stueck-row:nth-child(even) { background: #fafafa !important; }
-  #welleSection .stueck-nr {
-    width: 8mm !important; height: 6mm !important;
+  #welleSection .stueck-row > * { box-sizing: border-box !important; }
+  /* Spalte 1: Nr-Kreis */
+  #welleSection .stueck-row > .stueck-nr {
+    flex: 0 0 9mm !important;
+    width: 9mm !important; height: 6.5mm !important;
     border-radius: 1.5mm !important;
-    font-size: 8pt !important; font-weight: 800 !important;
-    display: grid !important; place-items: center !important;
+    font-size: 8.5pt !important; font-weight: 800 !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
     border: 1px solid !important;
+  }
+  /* Spalte 2: Name + Detail (flex-grow) */
+  #welleSection .stueck-row > div:not([class]) {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+  /* Spalte 3: Mass (z.B. "20 mm") */
+  #welleSection .stueck-row > .stueck-mass {
+    flex: 0 0 16mm !important;
+    text-align: right !important;
+  }
+  /* Spalte 4: Pos (Schnitt Mitte ±X mm) — KRITISCH für Werker */
+  #welleSection .stueck-row > .stueck-pos {
+    flex: 0 0 32mm !important;
+    text-align: right !important;
   }
   #welleSection .stueck-nr.park { background: #eee !important; color: #333 !important; border-color: #999 !important; }
   #welleSection .stueck-nr.distanz { background: #e6f7e6 !important; color: #007a3d !important; border-color: #007a3d !important; }
@@ -4797,7 +4821,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.70 · BETA · Print-Meisterwerk: Container-Reset + feste Sequenz-Spalten · offline-fähig</div>
+    <div>v1.71 · BETA · Print-Fixes: Flexbox-Spalten + feste SVG-Höhe + Header-Trigger · offline-fähig</div>
   </footer>
 </div>
 
@@ -10260,6 +10284,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const kunde = get("welleKunde") || "(ohne Kunde)";
     const material = get("welleMaterial") || "(ohne Material)";
     const bemerkung = get("welleBemerkung") || "—";
+    // aria-hidden auf false damit print-header sicher sichtbar wird (sonst
+    // blockiert manche Browser-Konfig die Anzeige im Print)
+    const phEl = document.getElementById("printHeader");
+    if (phEl) phEl.setAttribute("aria-hidden", "false");
     txt("printAuftragNr", auftragNr);
     txt("printDatum", datum);
     txt("printKunde", kunde);
@@ -10347,7 +10375,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
     }
   }
   // Auch bei Browser-eigenem Cmd+P greifen → globaler Listener
-  window.addEventListener("beforeprint", reorderForPrint);
+  window.addEventListener("beforeprint", () => {
+    if (typeof preparePrintHeader === "function") preparePrintHeader();
+    reorderForPrint();
+  });
   window.addEventListener("afterprint", restoreOrderAfterPrint);
 
   const printBtnEl = document.getElementById("printWelleBtn");
