@@ -5140,7 +5140,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.78 · BETA · Print-Meisterwerk · closed-loop-getestet via Headless-Chrome · 15/10 · offline-fähig</div>
+    <div>v1.79 · BETA · Print 15/10: 3 Seiten statt 5, kompakte Rows, kein Orphan · offline-fähig</div>
   </footer>
 </div>
 
@@ -10992,17 +10992,17 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-seq-table tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; border-bottom: 1px solid #eee; }
       .pm-seq-table tbody tr:nth-child(even) { background: #fbfbfb; }
       .pm-seq-table tbody tr:last-child { border-bottom: none; }
-      .pm-seq-table tbody td { padding: 2mm 2mm; vertical-align: top; word-wrap: break-word; }
-      .pm-seq-table td.check::before { content: ""; display: inline-block; width: 3.8mm; height: 3.8mm; border: 1.2px solid #999; border-radius: 0.8mm; }
-      .pm-seq-table td.nr { text-align: center; padding: 2mm 0.5mm; vertical-align: top; }
-      .pm-nr-circle { display: inline-block; min-width: 6mm; padding: 0.8mm 1.5mm; font-weight: 800; font-size: 9pt; text-align: center; color: #555; border-radius: 1.5mm; border: 1px solid #ccc; background: #fafafa; }
-      .pm-seq-table td.bauteil { font-size: 9.5pt; line-height: 1.35; vertical-align: top; }
+      .pm-seq-table tbody td { padding: 1.2mm 2mm; vertical-align: top; word-wrap: break-word; }
+      .pm-seq-table td.check::before { content: ""; display: inline-block; width: 3.5mm; height: 3.5mm; border: 1.2px solid #999; border-radius: 0.8mm; }
+      .pm-seq-table td.nr { text-align: center; padding: 1.2mm 0.5mm; vertical-align: top; }
+      .pm-nr-circle { display: inline-block; min-width: 6mm; padding: 0.5mm 1.2mm; font-weight: 800; font-size: 8.5pt; text-align: center; color: #555; border-radius: 1.2mm; border: 1px solid #ccc; background: #fafafa; }
+      .pm-seq-table td.bauteil { font-size: 9pt; line-height: 1.25; vertical-align: top; }
       .pm-seq-table td.bauteil strong { color: #111; }
-      .pm-seq-table td.bauteil small { display: block; font-size: 7.5pt; color: #777; margin-top: 0.8mm; line-height: 1.4; }
-      .pm-seq-table td.mass { font-weight: 800; font-size: 10pt; color: #007a3d; text-align: right; white-space: nowrap; vertical-align: top; padding-top: 2mm; }
-      .pm-seq-table td.pos { text-align: right; white-space: nowrap; font-size: 9pt; vertical-align: top; padding: 2mm 1.5mm 2mm 2mm; }
-      .pm-seq-table td.pos strong { display: block; color: #c01818; font-weight: 800; font-size: 10.5pt; line-height: 1.2; }
-      .pm-seq-table td.pos small { display: block; color: #999; font-size: 7pt; margin-top: 0.5mm; font-weight: 500; }
+      .pm-seq-table td.bauteil small { display: block; font-size: 7pt; color: #777; margin-top: 0.3mm; line-height: 1.3; }
+      .pm-seq-table td.mass { font-weight: 800; font-size: 9.5pt; color: #007a3d; text-align: right; white-space: nowrap; vertical-align: top; padding-top: 1.2mm; }
+      .pm-seq-table td.pos { text-align: right; white-space: nowrap; font-size: 8.5pt; vertical-align: top; padding: 1.2mm 1.5mm 1.2mm 2mm; }
+      .pm-seq-table td.pos strong { display: block; color: #c01818; font-weight: 800; font-size: 10pt; line-height: 1.15; }
+      .pm-seq-table td.pos small { display: block; color: #999; font-size: 6.5pt; margin-top: 0.3mm; font-weight: 500; }
       /* Header repeat on every page (browser auto-repeat for thead) */
       .pm-seq-table thead, .pm-holliste-table thead { display: table-header-group; }
       /* Row-Colors via Nr-Circle */
@@ -11143,17 +11143,17 @@ ${printHtml}
           .pm-seq-table tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; border-bottom: 1px solid #eee !important; }
           .pm-seq-table tbody tr:nth-child(even) { background: #fbfbfb !important; }
           .pm-seq-table tbody tr:last-child { border-bottom: none !important; }
-          .pm-seq-table tbody td { padding: 2mm 2mm !important; vertical-align: top !important; word-wrap: break-word !important; }
-          .pm-seq-table td.check::before { content: "" !important; display: inline-block !important; width: 3.8mm !important; height: 3.8mm !important; border: 1.2px solid #999 !important; border-radius: 0.8mm !important; }
-          .pm-seq-table td.nr { text-align: center !important; padding: 2mm 0.5mm !important; vertical-align: top !important; }
-          .pm-nr-circle { display: inline-block !important; min-width: 6mm !important; padding: 0.8mm 1.5mm !important; font-weight: 800 !important; font-size: 9pt !important; text-align: center !important; color: #555 !important; border-radius: 1.5mm !important; border: 1px solid #ccc !important; background: #fafafa !important; }
-          .pm-seq-table td.bauteil { font-size: 9.5pt !important; line-height: 1.35 !important; vertical-align: top !important; }
+          .pm-seq-table tbody td { padding: 1.2mm 2mm !important; vertical-align: top !important; word-wrap: break-word !important; }
+          .pm-seq-table td.check::before { content: "" !important; display: inline-block !important; width: 3.5mm !important; height: 3.5mm !important; border: 1.2px solid #999 !important; border-radius: 0.8mm !important; }
+          .pm-seq-table td.nr { text-align: center !important; padding: 1.2mm 0.5mm !important; vertical-align: top !important; }
+          .pm-nr-circle { display: inline-block !important; min-width: 6mm !important; padding: 0.5mm 1.2mm !important; font-weight: 800 !important; font-size: 8.5pt !important; text-align: center !important; color: #555 !important; border-radius: 1.2mm !important; border: 1px solid #ccc !important; background: #fafafa !important; }
+          .pm-seq-table td.bauteil { font-size: 9pt !important; line-height: 1.25 !important; vertical-align: top !important; }
           .pm-seq-table td.bauteil strong { color: #111 !important; }
-          .pm-seq-table td.bauteil small { display: block !important; font-size: 7.5pt !important; color: #777 !important; margin-top: 0.8mm !important; line-height: 1.4 !important; }
-          .pm-seq-table td.mass { font-weight: 800 !important; font-size: 10pt !important; color: #007a3d !important; text-align: right !important; white-space: nowrap !important; vertical-align: top !important; padding-top: 2mm !important; }
-          .pm-seq-table td.pos { text-align: right !important; white-space: nowrap !important; font-size: 9pt !important; vertical-align: top !important; padding: 2mm 1.5mm 2mm 2mm !important; }
-          .pm-seq-table td.pos strong { display: block !important; color: #c01818 !important; font-weight: 800 !important; font-size: 10.5pt !important; line-height: 1.2 !important; }
-          .pm-seq-table td.pos small { display: block !important; color: #999 !important; font-size: 7pt !important; margin-top: 0.5mm !important; font-weight: 500 !important; }
+          .pm-seq-table td.bauteil small { display: block !important; font-size: 7pt !important; color: #777 !important; margin-top: 0.3mm !important; line-height: 1.3 !important; }
+          .pm-seq-table td.mass { font-weight: 800 !important; font-size: 9.5pt !important; color: #007a3d !important; text-align: right !important; white-space: nowrap !important; vertical-align: top !important; padding-top: 1.2mm !important; }
+          .pm-seq-table td.pos { text-align: right !important; white-space: nowrap !important; font-size: 8.5pt !important; vertical-align: top !important; padding: 1.2mm 1.5mm 1.2mm 2mm !important; }
+          .pm-seq-table td.pos strong { display: block !important; color: #c01818 !important; font-weight: 800 !important; font-size: 10pt !important; line-height: 1.15 !important; }
+          .pm-seq-table td.pos small { display: block !important; color: #999 !important; font-size: 6.5pt !important; margin-top: 0.3mm !important; font-weight: 500 !important; }
           /* Row-Colors */
           .pm-distanz .pm-nr-circle { background: #e6f7e6 !important; color: #007a3d !important; border-color: #007a3d !important; }
           .pm-schneid .pm-nr-circle, .pm-trim .pm-nr-circle { background: #fde6e3 !important; color: #a01810 !important; border-color: #a01810 !important; }
