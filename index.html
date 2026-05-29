@@ -5140,7 +5140,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.81 · BETA · Euromac-Geometrie Werker-konform: 2×50mm Park, geo-center, Vorzeichen-Flip · offline-fähig</div>
+    <div>v1.82 · BETA · Euromac Park-Reduzierung-Vorschlag bei super-breiter MR · Werker-Math verifiziert · offline-fähig</div>
   </footer>
 </div>
 
@@ -6094,7 +6094,40 @@ audio.team-player-audio::-webkit-media-controls-panel {
       return (stored && MACHINES[stored]) ? stored : "DCM";
     } catch (_) { return "DCM"; }
   })();
-  function getMachine() { return MACHINES[activeMachineId]; }
+  function getMachine() {
+    const base = MACHINES[activeMachineId];
+    // Euromac: Park-Reduzierung bei breiter MR (1 oder 0 Ringe statt 2)
+    if (base.id === "EUROMAC") {
+      let override = base.PARK_PRO_SEITE;
+      try {
+        const v = localStorage.getItem("rr.parkPerSide.EUROMAC");
+        if (v === "0" || v === "1" || v === "2") override = parseInt(v, 10);
+      } catch (_) {}
+      if (override !== base.PARK_PRO_SEITE) {
+        const total = override * base.PARK_RING;
+        return Object.assign({}, base, {
+          PARK_PRO_SEITE: override,
+          PARK_TOTAL: total,
+          BESTUECKUNGS_BREITE: base.WELLE - 2 * total,
+          MAX_MR_MM: base.WELLE - 2 * total,
+        });
+      }
+    }
+    return base;
+  }
+  function getEuroParkPerSide() {
+    try {
+      const v = localStorage.getItem("rr.parkPerSide.EUROMAC");
+      if (v === "0" || v === "1" || v === "2") return parseInt(v, 10);
+    } catch (_) {}
+    return MACHINES.EUROMAC.PARK_PRO_SEITE;
+  }
+  function setEuroParkPerSide(n) {
+    try {
+      if (n === MACHINES.EUROMAC.PARK_PRO_SEITE) localStorage.removeItem("rr.parkPerSide.EUROMAC");
+      else localStorage.setItem("rr.parkPerSide.EUROMAC", String(n));
+    } catch (_) {}
+  }
   function setActiveMachine(id) {
     if (!MACHINES[id]) return;
     activeMachineId = id;
@@ -6240,8 +6273,26 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const innerLen = innerSegs.reduce((s,x)=>s+x.breite, 0);
 
     if (innerLen > M.BESTUECKUNGS_BREITE + 0.001) {
-      const alt = (activeMachineId === "DCM") ? " Reduziere Anzahl oder wechsle auf Euromac." : " Reduziere Anzahl.";
-      return { ok: false, alerts: [{type:"danger", msg:`Bestückung ${innerLen.toFixed(1)} mm überschreitet ${M.label}-Bereich ${M.BESTUECKUNGS_BREITE} mm.${alt}`}] };
+      // Euromac: prüfe ob Park-Reduzierung helfen würde
+      const isEuroMain = (activeMachineId === "EUROMAC");
+      const currentPark = isEuroMain ? M.PARK_PRO_SEITE : 0;
+      let suggestion = "";
+      let actionPark = null;
+      if (isEuroMain && currentPark > 0) {
+        const nextPark = currentPark - 1;
+        const nextBreite = MACHINES.EUROMAC.WELLE - 2 * nextPark * MACHINES.EUROMAC.PARK_RING;
+        if (innerLen <= nextBreite + 0.001) {
+          const gain = nextBreite - M.BESTUECKUNGS_BREITE;
+          suggestion = ` Mit ${nextPark}× Park-Ring pro Seite waeren ${nextBreite} mm verfuegbar (+${gain} mm). Werker-Entscheidung — Werkzeug zur Reduzierung unten.`;
+          actionPark = nextPark;
+        }
+      }
+      const alt = (activeMachineId === "DCM") ? " Reduziere Anzahl oder wechsle auf Euromac." : (suggestion || " Reduziere Anzahl.");
+      const alertObj = {type:"danger", msg:`Bestueckung ${innerLen.toFixed(1)} mm ueberschreitet ${M.label}-Bereich ${M.BESTUECKUNGS_BREITE} mm.${alt}`};
+      if (actionPark !== null) {
+        alertObj.action = { label: `Auf ${actionPark}× Park-Ring reduzieren`, parkPerSide: actionPark };
+      }
+      return { ok: false, alerts: [alertObj] };
     }
 
     const restTotal = M.BESTUECKUNGS_BREITE - innerLen;
@@ -7058,7 +7109,42 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const div = document.createElement("div");
       div.className = `welle-alert ${a.type}`;
       div.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>${a.msg}</span>`;
+      if (a.action && a.action.parkPerSide !== undefined) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "welle-alert-action";
+        btn.textContent = a.action.label || "Park reduzieren";
+        btn.style.cssText = "margin-left:auto;padding:6px 12px;background:#c87800;color:#fff;border:0;border-radius:6px;font-weight:700;font-size:11px;cursor:pointer;letter-spacing:0.04em;text-transform:uppercase;flex-shrink:0";
+        btn.addEventListener("click", () => {
+          if (typeof setEuroParkPerSide === "function") setEuroParkPerSide(a.action.parkPerSide);
+          if (typeof calc === "function") calc();
+          if (typeof toast === "function") toast(`Park-Ringe reduziert auf ${a.action.parkPerSide}× pro Seite`);
+        });
+        div.appendChild(btn);
+      }
       cont.appendChild(div);
+    }
+    // Info-Banner wenn aktuell reduziert ist (sichtbar bei jeder calc, ermutigt
+    // den Werker, wieder auf Default zurueckzukehren wenn moeglich)
+    if (activeMachineId === "EUROMAC" && typeof getEuroParkPerSide === "function") {
+      const cur = getEuroParkPerSide();
+      const def = MACHINES.EUROMAC.PARK_PRO_SEITE;
+      if (cur !== def) {
+        const info = document.createElement("div");
+        info.className = "welle-alert info";
+        info.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Park-Ringe aktuell auf <strong>${cur}× pro Seite</strong> reduziert (Default: ${def}×).</span>`;
+        const resetBtn = document.createElement("button");
+        resetBtn.type = "button";
+        resetBtn.textContent = "Zurueck auf Default";
+        resetBtn.style.cssText = "margin-left:auto;padding:5px 10px;background:transparent;color:#007a3d;border:1px solid #007a3d;border-radius:5px;font-weight:700;font-size:10px;cursor:pointer;letter-spacing:0.04em;text-transform:uppercase;flex-shrink:0";
+        resetBtn.addEventListener("click", () => {
+          if (typeof setEuroParkPerSide === "function") setEuroParkPerSide(def);
+          if (typeof calc === "function") calc();
+          if (typeof toast === "function") toast(`Park-Ringe wieder auf ${def}× pro Seite`);
+        });
+        info.appendChild(resetBtn);
+        cont.appendChild(info);
+      }
     }
   }
 
@@ -11159,18 +11245,17 @@ ${printHtml}
       const pwGate = document.getElementById("pwGate");
       if (pwGate) pwGate.style.display = "none";
       const fillDemo = () => {
-        // Demo-Werte für Test: Werker-Beispiel 14×29 mm Euromac
-        // Erwartung: erste SE-Linke-Kante ~467mm vom rechtem Wellenrand
+        // Demo-Werte für Test: Werker-Beispiel 8×122 mm Euromac
+        // Erwartung: 670 - 488 = 182 mm zur ersten SE (Werker rechnet)
         try { localStorage.setItem("activeMachine", "EUROMAC"); } catch(_) {}
         const set = (id, v) => { const el = document.getElementById(id); if (el) { el.value = v; el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true })); } };
-        set("flaeche", "1218");  // 14×29mm @ 3000 LFM = ca. 1218 qm
-        set("mutter", "416");    // 14×29 + 5+5 trim = 416mm
-        set("schmal", "29");
+        set("flaeche", "3660");  // 8×122mm @ 3000 LFM = 2928 qm + Trim ≈ 3660
+        set("mutter", "986");    // 8×122 + 5+5 trim = 986mm
+        set("schmal", "122");
         set("lfm", "3000");
         set("speed", "100");
         set("ruestBase", "20");
         set("ruestPerSatz", "5");
-        // Maschinen-toggle UI synchronisieren falls vorhanden
         const euroBtn = document.querySelector('.machine-btn[data-machine="EUROMAC"]');
         if (euroBtn) euroBtn.click();
         if (typeof calc === "function") calc();
