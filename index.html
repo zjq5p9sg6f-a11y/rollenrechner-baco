@@ -5140,7 +5140,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.80 · BETA · Print 15/10: Welle-SVG lesbar (CSS-vars resolved) + Auftrag-Nr im Footer · offline-fähig</div>
+    <div>v1.81 · BETA · Euromac-Geometrie Werker-konform: 2×50mm Park, geo-center, Vorzeichen-Flip · offline-fähig</div>
   </footer>
 </div>
 
@@ -6030,14 +6030,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
       id: "EUROMAC",
       label: "Euromac",
       welleRenderMode: "center",       // zentriert (-650 ↔ 0 ↔ +650)
-      parkRingMode: "builtin",         // Park-Plätze baulich, Operator ignoriert
-      // WELLE = BESTUECKUNGS_BREITE_OPERATIV damit Render-Pipeline rechnet ohne
-      // Klemm-Ring (links) und Asymmetrie-Ring (rechts). Die physische Welle ist
-      // 1320 mm asymmetrisch (650 links / 670 rechts). 20er rechts gleicht die
-      // 20 mm Asymmetrie aus → operative Bestueckung wieder symmetrisch 650/650.
-      WELLE: 1300,                     // operativ nutzbar (= BESTUECKUNGS_BREITE)
-      WELLE_MITTE: 650,                // operative Mitte (= geometrische Welle-Mitte)
-      BESTUECKUNGS_BREITE: 1300,       // operativ (zwischen Klemm und Asymm-Ring)
+      parkRingMode: "external",        // 2× 50mm Messer-Park-Ringe pro Seite, Werker bestückt
+      // v1.81 (Werker-Korrektur): Asymm-Ring 20mm und Bahn-Versatz waren falsche
+      // Annahmen. Realität: 2× 50mm Messer-Parkplatz-Ringe pro Seite halten die
+      // Obermesser, dazwischen wird bestueckt. Werker-Messung: ~1118mm zwischen
+      // den 4 Park-Ringen. Stack zentriert auf geo-center (=670 vom rechtem Rand).
+      WELLE: 1320,                     // operativ nutzbar = physische Welle
+      WELLE_MITTE: 670,                // geo-center (Werker-Konvention) vom rechtem Wellenrand
+      BESTUECKUNGS_BREITE: 1120,       // zwischen den 4 Messer-Park-Ringen (1320 - 2×100)
 
       // Welle physisch (Werker-Realität, fuer UI-Anzeige + Sequenz)
       WELLE_PHYSISCH_MM: 1320,         // physische Bestueckungsbreite gesamt
@@ -6046,20 +6046,21 @@ audio.team-player-audio::-webkit-media-controls-panel {
       // Klemm-Distanzring auf Gewinde (Operator-Praxis)
       KLEMM_DISTANZRING_MM: 5,         // 5 mm Klemm-Reserve auf Gewinde
       KLEMM_SEITE: "left",             // sitzt links auf Gewinde-Ende
-      // Asymmetrie-Ring (Default an, gleicht 20 mm Welle-Asymmetrie aus)
-      ASYMMETRY_RING_RIGHT_MM: 20,     // 20 mm Standard-Distanzring ganz rechts
-      ASYMMETRY_RING_DEFAULT_ON: true, // immer drauf (Ausnahme: Operator entfernt)
-      // Maschineneinbau: Welle wird gespiegelt eingebaut
-      MASCHINEN_BAHN_OFFSET_MM: 15,    // Wellenmitte +15 mm zur Bahnmitte im Einbau
-      WELLE_REVERSED_ON_MOUNT: true,   // Welle gespiegelt eingebaut → Werker-Hinweis
+      // Asymmetrie-Ring (DEFAULT OFF in v1.81 — Werker nutzt nicht, war Tool-Annahme)
+      ASYMMETRY_RING_RIGHT_MM: 20,     // bleibt für optionalen Toggle
+      ASYMMETRY_RING_DEFAULT_ON: false, // v1.81: aus Default raus
+      // Maschineneinbau-Info (nur informativ, nicht in Berechnungs-Logik)
+      MASCHINEN_BAHN_OFFSET_MM: 0,     // v1.81: 15mm war falsche Annahme
+      WELLE_REVERSED_ON_MOUNT: true,
 
-      PARK_RING: 0,
-      PARK_PRO_SEITE: 0,
-      PARK_TOTAL: 0,
-      // Bahn-Mitte-Offset: mm-Verschiebung der Stack-Mitte gegenüber operativer Welle-Mitte.
-      // Positiv = Bahn-Mitte rechts der Welle-Mitte → Stack rechts versetzt.
-      // Default 0; pro Maschine durch Werker eichbar (UI-Feld speichert in localStorage).
-      BAHN_MITTE_OFFSET_MM: 0,
+      // Messer-Parkplatz-Ringe (2× 50mm pro Seite, halten Obermesser außen)
+      PARK_RING: 50,
+      PARK_PRO_SEITE: 2,
+      PARK_TOTAL: 100,                 // 2 × 50mm pro Seite
+      // Bahn-Mitte-Offset: -10mm wegen asymmetrischer Welle (650/670).
+      // Stack soll auf geo-center sitzen (Werker), aber op-Mitte ist 10mm rechts
+      // davon (= (670-650)/2). Daher Stack 10mm links der op-Mitte → restR größer.
+      BAHN_MITTE_OFFSET_MM: -10,
       // 10 Stufen — kein 200/300 mm (Lücken muss Operator durch Kombi 100+X lösen)
       DISTANZRINGE: [100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
       SCHNEIDEEINHEIT: 20,             // Standard-SE: Distanzhülse 10 + Messer 1 + Gegenstück 9
@@ -6071,7 +6072,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           cutSpacing: 5, cutPositions: [2.5, 7.5, 12.5, 17.5, 22.5, 27.5],
           note: "30 mm Block · 6 Schnittkanten symmetrisch alle 5 mm" }
       ],
-      MAX_MR_MM: 1300,                 // = Bestueckungs-Breite
+      MAX_MR_MM: 1120,                 // = Bestueckungs-Breite (zwischen Park-Ringen)
       MAX_SPEED_MMIN: 500,
       MR_CENTER_OFFSET_STD: 20,        // ±20 mm Standard-Versatz
       MR_CENTER_OFFSET_TRICK: 50,      // ±50 mm mit Distanzhülsen-Trick (Warning)
@@ -6875,9 +6876,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const isEuro = (M.id === "EUROMAC");
     const MITTE = M.WELLE_MITTE;
     function fromMitte(absPos, breite) {
-      // Mittelpunkt des Bauteils relativ zur Welle-Mitte
+      // Werker-Konvention: rechts der Bahn-Mitte = positiv, links = negativ.
+      // kumPos wächst nach links (von rechtem Wellenrand). MITTE - center > 0
+      // bedeutet Bauteil ist rechts der Mitte → positiv anzeigen.
       const center = absPos + (breite / 2);
-      const delta = center - MITTE;
+      const delta = MITTE - center;  // Vorzeichen-Flip für Werker-Sicht
       if (Math.abs(delta) < 1) return "Mitte";
       return delta > 0 ? `Mitte +${Math.round(delta)}` : `Mitte ${Math.round(delta)}`;
     }
@@ -6941,7 +6944,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
             : "linear-gradient(90deg,#ff5544 0%,#ff5544 50%,#ffd54f 50%,#ffd54f 100%)";
         const cutPosLocal = getMachine().SCHNITT_OFFSET;
         const cutAbsPos = Math.round(kumPos + cutPosLocal);
-        const cutFromMitte = cutAbsPos - MITTE;
+        // Werker-Vorzeichen-Konvention: rechts der Mitte = positiv
+        const cutFromMitte = MITTE - cutAbsPos;
         const cutMitteShort = Math.abs(cutFromMitte) < 1
           ? "Schnitt @ Mitte"
           : (cutFromMitte > 0 ? `Schnitt Mitte +${cutFromMitte}` : `Schnitt Mitte ${cutFromMitte}`);
@@ -10886,8 +10890,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     let kumPos = 0;
     let nr = 1;
     const fromMitte = (absPos, breite) => {
+      // Werker-Konvention: rechts der Mitte = positiv (kumPos wächst nach links)
       const center = absPos + breite / 2;
-      const d = Math.round(center - MITTE);
+      const d = Math.round(MITTE - center);
       if (Math.abs(d) < 1) return "Mitte";
       return d > 0 ? `Mitte +${d}` : `Mitte ${d}`;
     };
@@ -10924,7 +10929,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const role = seg.role || "inner";
         const isTrim = (role === "trim-L" || role === "trim-R");
         const cutPos = Math.round(kumPos + M.SCHNITT_OFFSET);
-        const cutDelta = cutPos - MITTE;
+        const cutDelta = MITTE - cutPos;  // Werker-Vorzeichen: rechts = positiv
         const schnittTxt = Math.abs(cutDelta) < 1 ? "Mitte" : (cutDelta > 0 ? `+${cutDelta}` : `${cutDelta}`);
         const seClass = isTrim ? "pm-trim" : (seg.kind === "neben" ? "pm-neben" : "pm-schneid");
         const badge = isTrim
@@ -11154,15 +11159,20 @@ ${printHtml}
       const pwGate = document.getElementById("pwGate");
       if (pwGate) pwGate.style.display = "none";
       const fillDemo = () => {
-        // Demo-Werte für Test: 31×20 / 630 MR / 600 LFM / Euromac (oder DCM)
+        // Demo-Werte für Test: Werker-Beispiel 14×29 mm Euromac
+        // Erwartung: erste SE-Linke-Kante ~467mm vom rechtem Wellenrand
+        try { localStorage.setItem("activeMachine", "EUROMAC"); } catch(_) {}
         const set = (id, v) => { const el = document.getElementById(id); if (el) { el.value = v; el.dispatchEvent(new Event("input", { bubbles: true })); el.dispatchEvent(new Event("change", { bubbles: true })); } };
-        set("flaeche", "1860");
-        set("mutter", "630");
-        set("schmal", "20");
-        set("lfm", "600");
+        set("flaeche", "1218");  // 14×29mm @ 3000 LFM = ca. 1218 qm
+        set("mutter", "416");    // 14×29 + 5+5 trim = 416mm
+        set("schmal", "29");
+        set("lfm", "3000");
         set("speed", "100");
         set("ruestBase", "20");
         set("ruestPerSatz", "5");
+        // Maschinen-toggle UI synchronisieren falls vorhanden
+        const euroBtn = document.querySelector('.machine-btn[data-machine="EUROMAC"]');
+        if (euroBtn) euroBtn.click();
         if (typeof calc === "function") calc();
       };
       const renderInline = () => {
