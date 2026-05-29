@@ -5152,7 +5152,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.91 · BETA · Klemm-Distanzring Werker-Wahl · offline-fähig</div>
+    <div>v1.92 · BETA · ID-Kollision Fix · Web-Welle wieder edel · offline-fähig</div>
   </footer>
 </div>
 
@@ -10822,7 +10822,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.91";
+    const PRINT_VERSION = "v1.92";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
     const headerHtml = `
       <div class="pm-header">
@@ -10855,10 +10855,30 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const svgClone = svgOrig.cloneNode(true);
       svgClone.id = "pmWelleSvg";
       svgClone.removeAttribute("style");
-      // Welle-Body + Park: dunkle Gradients → helle Gradients (sonst überdeckt
-      // schwarzer Welle-Body die Bemaßungs-Texte beim Drucken).
+      // v1.92-FIX: SVG-IDs sind GLOBAL im Document. Wenn der Print-Clone die
+      // gleichen IDs wie das Original (gWelleBody, gPark, gSchneid, ...) hat
+      // und im DOM ist, kollidiert das — die url(#xxx)-Referenzen im Web-SVG
+      // koennen die Clone-Defs aufloesen → Web-Welle wird "elend hell".
+      // Fix: alle IDs im Clone mit "pm_" prefixen + alle url(#xxx) refs auch.
+      const idMap = {};
+      svgClone.querySelectorAll("[id]").forEach(el => {
+        const old = el.id;
+        const neu = "pm_" + old;
+        idMap[old] = neu;
+        el.id = neu;
+      });
+      // Refs: fill="url(#xxx)", stroke="url(#xxx)", filter="url(#xxx)"
+      const refAttrs = ["fill", "stroke", "filter", "mask", "clip-path", "marker-start", "marker-end", "marker-mid"];
+      svgClone.querySelectorAll("*").forEach(el => {
+        refAttrs.forEach(attr => {
+          const v = el.getAttribute(attr);
+          if (!v) return;
+          const m = v.match(/^url\(#(.+)\)$/);
+          if (m && idMap[m[1]]) el.setAttribute(attr, `url(#${idMap[m[1]]})`);
+        });
+      });
       const lightenGradient = (id, shades) => {
-        const grad = svgClone.querySelector("#" + id);
+        const grad = svgClone.querySelector("#pm_" + id);  // jetzt mit prefix
         if (!grad) return;
         const stops = grad.querySelectorAll("stop");
         stops.forEach((stop, i) => {
@@ -10867,11 +10887,28 @@ audio.team-player-audio::-webkit-media-controls-panel {
       };
       lightenGradient("gWelleBody", ["#e8e8e8", "#dcdcdc", "#cfcfcf"]);
       lightenGradient("gPark", ["#d8d8d8", "#c8c8c8", "#b8b8b8"]);
-      // v1.90: SW-Print — alle bunten Gradients (Schneide rot, Neben gelb,
-      // Distanz gruen) auf graue Stufen mappen. Differenzierung via Helligkeit.
-      lightenGradient("gSchneid",  ["#444", "#333", "#222"]);  // dunkelgrau = "Schnitt"
-      lightenGradient("gNeben",    ["#aaa", "#888", "#666"]);  // mittelgrau = "Neben"
-      lightenGradient("gDistanz",  ["#ddd", "#c0c0c0", "#a8a8a8"]);  // hellgrau = "Distanz/Schmalrolle"
+      // v1.92: Alle Bauteil-Gradients HELL halten — dunkle Streifen 20mm
+      // breit, 30+ Mal nebeneinander wirken auf SW-Druck wie EIN schwarzer
+      // Balken in der Welle-Mitte. Differenzierung statt durch Helligkeit
+      // jetzt durch DUENNE BORDER + Hell-Hintergrund.
+      lightenGradient("gSchneid",  ["#f0f0f0", "#e8e8e8", "#e0e0e0"]);
+      lightenGradient("gNeben",    ["#ececec", "#e4e4e4", "#dcdcdc"]);
+      lightenGradient("gDistanz",  ["#f8f8f8", "#f0f0f0", "#e8e8e8"]);
+      // v1.92: CAD-Mittellinie + Cross-Marks komplett aus Print entfernen.
+      // Sind Web-CAD-Style, fuer Werker nicht relevant. L=470/R=460 unten
+      // zeigt eh die Mitte. Plus: ergaben optisch einen dunklen Balken.
+      // Strategie: alle dashed-line elements + alle circle-mit-cross entfernen.
+      svgClone.querySelectorAll('line[stroke-dasharray]').forEach(l => {
+        const dash = l.getAttribute("stroke-dasharray") || "";
+        // Mittellinie hat "10 3 1 3" pattern — gezielt entfernen
+        if (dash.includes("10 3") || dash.includes("10,3")) l.remove();
+      });
+      // Cross-Mark Circles haben r="6.5" und filter="url(#glowGreen)" oder
+      // sind kleine Circles in der Welle-Mitte → entfernen
+      svgClone.querySelectorAll('circle').forEach(c => {
+        const r = parseFloat(c.getAttribute("r") || "0");
+        if (r > 5 && r < 8) c.remove();  // ⊕ Cross-Marks
+      });
       // Highlight-Layer (white opacity) im Print weglassen — addiert nur Rauschen
       const hiGrad = svgClone.querySelector("#gWelleHi");
       if (hiGrad) {
