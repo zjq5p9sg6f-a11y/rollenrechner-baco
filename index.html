@@ -4840,7 +4840,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         </button>
         <button type="button" class="machine-btn" data-machine="EUROMAC" role="tab" aria-selected="false">
           <span class="machine-btn-label">Euromac</span>
-          <span class="machine-btn-sub">1320 mm asymm. · 1300 operativ</span>
+          <span class="machine-btn-sub">1320 mm asymm. · 1120 mm Bestückung</span>
         </button>
       </div>
       <div class="bahn-eich-bar" title="Bahn-Mitte-Offset (mm): Verschiebung der Stack-Mitte gegenueber der operativen Welle-Mitte. Positiv = Stack nach rechts. Pro Maschine separat einstellbar und gespeichert.">
@@ -5140,7 +5140,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.82 · BETA · Euromac Park-Reduzierung-Vorschlag bei super-breiter MR · Werker-Math verifiziert · offline-fähig</div>
+    <div>v1.84 · BETA · Print-Iframe via Blob-URL · Welle dunkel-grüne fix · Display-Audit · offline-fähig</div>
   </footer>
 </div>
 
@@ -6521,7 +6521,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     svgW(g, "line", { x1: padX, y1: dimTop1Y - 6, x2: padX, y2: barTop + barH + 6, stroke: dimColor, "stroke-width": "0.8", "stroke-dasharray": "3 4" });
     svgW(g, "line", { x1: W - padX, y1: dimTop1Y - 6, x2: W - padX, y2: barTop + barH + 6, stroke: dimColor, "stroke-width": "0.8", "stroke-dasharray": "3 4" });
     const lblTxt1 = isCenter
-      ? `Bestückungsbreite ${M.WELLE} mm operativ${M.WELLE_PHYSISCH_MM ? ` · ${M.WELLE_PHYSISCH_MM} physisch` : ""}`
+      ? `Bestueckungsbreite ${M.BESTUECKUNGS_BREITE} mm${M.WELLE_PHYSISCH_MM ? ` · ${M.WELLE_PHYSISCH_MM} mm physisch` : ""}`
       : `Welle ${M.WELLE} mm`;
     const lblW1 = lblTxt1.length * 7.5 + 24;
     svgW(g, "rect", { x: W/2 - lblW1/2, y: dimTop1Y - 12, width: lblW1, height: 24, rx: 6,
@@ -9599,9 +9599,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
       ? `${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER} / ${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.)`
       : `${M.WELLE} mm`);
     setTxt("mcBestueckung",    isEuro
-      ? `${M.BESTUECKUNGS_BREITE} mm operativ (zentriert ±${M.BESTUECKUNGS_BREITE/2}) · 1325 mm Sequenz inkl. Klemm`
+      ? `${M.BESTUECKUNGS_BREITE} mm zwischen ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Park-Ringen pro Seite · Stack auf geo-center (Bahn-Offset ${M.BAHN_MITTE_OFFSET_MM} mm)`
       : `${M.BESTUECKUNGS_BREITE} mm`);
-    setTxt("mcParkRing",       isEuro ? "baulich integriert (kein Operator-Input)" : `${M.PARK_RING} mm · ${M.PARK_PRO_SEITE}/Seite`);
+    setTxt("mcParkRing",       `${M.PARK_RING} mm · ${M.PARK_PRO_SEITE}/Seite${isEuro ? " (Messer-Park)" : ""}`);
     setTxt("mcSeLen",          `${M.SCHNEIDEEINHEIT} mm`);
     setTxt("mcSchnitt",        `${M.SCHNITT_OFFSET} mm`);
     setTxt("mcDistRings",      M.DISTANZRINGE.slice().sort((a,b)=>a-b).map(r => String(r).replace(".", ",")).join(" / ") + " mm");
@@ -9636,13 +9636,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // Welle-Head-Label (gut sichtbar VOR der bestückten Welle)
     setTxt("welleHeadMachine",
       isEuro
-        ? `Euromac · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.WELLE} mm operativ zentriert`
+        ? `Euromac · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.BESTUECKUNGS_BREITE} mm Bestueckungsbereich (zwischen ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Messer-Park pro Seite)`
         : `DCM Untermesserwelle · ${M.WELLE} mm`);
 
     // Print-Header (für Druck-Output, daher exakte Maschinen-Spec)
     setTxt("phMachine",
       isEuro
-        ? `Euromac · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER}) · ${M.WELLE} mm operativ ±${M.WELLE/2} · ${M.KLEMM_DISTANZRING_MM} mm Klemm links + ${M.ASYMMETRY_RING_RIGHT_MM} mm Asymm-Default rechts · Bahn-Versatz +${M.MASCHINEN_BAHN_OFFSET_MM} mm im Einbau`
+        ? `Euromac · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.BESTUECKUNGS_BREITE} mm Bestueckungsbereich · ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Messer-Park pro Seite · ${M.KLEMM_DISTANZRING_MM} mm Klemm links`
         : `DCM Untermesserwelle · ${M.WELLE} mm · Bestückungsbereich ${M.BESTUECKUNGS_BREITE} mm`);
   }
 
@@ -10801,7 +10801,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     const N = welleData.N + (out.nebenAnzTotal || 0);
     const machineLine = isEuro
-      ? `${M.label} · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER}) · ${M.BESTUECKUNGS_BREITE} mm operativ`
+      ? `${M.label} · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.BESTUECKUNGS_BREITE} mm Bestueckung zwischen ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Messer-Park pro Seite`
       : `${M.label} · Welle ${M.WELLE} mm · Bestückungsbereich ${M.BESTUECKUNGS_BREITE} mm`;
 
     const root = document.createElement("div");
@@ -10887,8 +10887,16 @@ audio.team-player-audio::-webkit-media-controls-panel {
         if (fillMap[fill]) {
           el.setAttribute("fill", fillMap[fill]);
         } else if (fill.startsWith("rgba(0,0,0,") || fill === "#000" || fill === "#000000" || fill === "black") {
-          // Dunkle Semi-Transparent-Layer (rgba(0,0,0,0.18) usw.) → transparent
+          // Dunkle Semi-Transparent-Layer → fast transparent
           el.setAttribute("fill", "rgba(0,0,0,0.04)");
+        } else if (fill.startsWith("rgba(6,43,20") || fill.startsWith("rgba(6, 43, 20")) {
+          // Dunkel-gruene Annotation-Box-Background (Web: weisser Text auf dunkel
+          // gruen, sieht im Print mit hellem Welle-Body wie schwarz aus)
+          // → CARLON-Akzent (weiß Text bleibt darauf lesbar)
+          el.setAttribute("fill", "#007a3d");
+        } else if (fill === "#1a1a1a" || fill === "#0a0a0a" || fill === "#2a2a2a" || fill === "#1f1f1f" || fill === "#202020") {
+          // Dunkle direkte fills (Welle-Body-Highlights, Annotation-BG)
+          el.setAttribute("fill", "#007a3d");
         } else if (fill.startsWith("var(--")) {
           // Unbekannte CSS-Variable → fallback grau
           el.setAttribute("fill", "#cccccc");
@@ -11212,43 +11220,48 @@ ${printHtml}
 </body>
 </html>`;
 
-    // v1.83: iframe statt window.open — Firefox-Windows Pop-up-Blocker hat
-    // window.open zuverlaessig blockiert ausser bei Browser-eigenem Ctrl+P.
-    // Hidden iframe wird nicht als Popup blockiert + funktioniert in allen
-    // Browsern. srcdoc liefert das komplette Print-HTML, iframe.print() druckt
-    // nur den iframe-Inhalt (CSS-isoliert).
-    const existingFrame = document.getElementById("printFrame");
-    if (existingFrame) existingFrame.remove();
-    const iframe = document.createElement("iframe");
-    iframe.id = "printFrame";
-    iframe.style.cssText = "position:fixed;left:-10000px;top:-10000px;width:1px;height:1px;border:0;opacity:0";
-    iframe.srcdoc = fullHtml;
-    iframe.onload = function() {
-      try {
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
-      } catch (e) {
-        // Fallback: wenn iframe.print() versagt, alte window.open-Methode
-        if (typeof toast === "function") toast("Print-Iframe fehlgeschlagen, oeffne neues Fenster");
-        const win = window.open("", "_blank");
-        if (win) {
-          win.document.open();
-          win.document.write(fullHtml);
-          win.document.close();
-        }
+    // v1.84: Primaer iframe (kein Pop-up), Fallback auf window.open im
+    // SELBEN Click-Tick (user-trusted) damit Pop-up-Blocker nicht greift.
+    // Vorher: iframe.srcdoc onload triggert print() ueber 200ms script —
+    // funktionierte nicht zuverlaessig auf allen Browsern.
+    // Jetzt: blob-URL Approach. iframe mit blob-URL ist robuster als srcdoc.
+    let printed = false;
+    try {
+      const blob = new Blob([fullHtml], { type: "text/html" });
+      const blobUrl = URL.createObjectURL(blob);
+      const existingFrame = document.getElementById("printFrame");
+      if (existingFrame) existingFrame.remove();
+      const iframe = document.createElement("iframe");
+      iframe.id = "printFrame";
+      iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
+      iframe.src = blobUrl;
+      iframe.onload = function() {
+        setTimeout(function() {
+          try {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+            printed = true;
+          } catch (e) {
+            console.warn("Iframe print failed:", e);
+          }
+        }, 300);
+        setTimeout(function() {
+          URL.revokeObjectURL(blobUrl);
+          if (document.getElementById("printFrame")) iframe.remove();
+        }, 30000);
+      };
+      document.body.appendChild(iframe);
+    } catch (eOuter) {
+      // Fallback: window.open im Click-Handler-Tick (user-trusted, kein Popup-Block)
+      const win = window.open("", "_blank", "width=900,height=1100");
+      if (win) {
+        win.document.open();
+        win.document.write(fullHtml);
+        win.document.close();
+      } else {
+        if (typeof toast === "function") toast("Bitte Popups erlauben fuer Druck");
       }
-      // Iframe nach Print entfernen (Cleanup)
-      try {
-        iframe.contentWindow.onafterprint = function() {
-          setTimeout(function() { iframe.remove(); }, 200);
-        };
-      } catch (_) {}
-      // Safety-Cleanup falls afterprint nicht feuert (manche Browser)
-      setTimeout(function() {
-        if (document.getElementById("printFrame")) iframe.remove();
-      }, 60000);
-    };
-    document.body.appendChild(iframe);
+    }
   }
 
   const printBtnEl = document.getElementById("printWelleBtn");
