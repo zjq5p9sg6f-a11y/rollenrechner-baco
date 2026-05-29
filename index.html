@@ -2631,315 +2631,10 @@ header.bar {
   }
   body.printing #printMaster * { visibility: visible !important; }
 
-  /* === printMaster · Header === */
-  #printMaster .pm-header {
-    margin: 0 0 5mm 0;
-    padding-bottom: 3mm;
-    border-bottom: 2px solid #000;
-    page-break-inside: avoid;
-  }
-  #printMaster .pm-brand-row {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 4mm;
-    margin-bottom: 1.5mm;
-    flex-wrap: nowrap;
-  }
-  #printMaster .pm-brand {
-    font-size: 15pt;
-    font-weight: 800;
-    color: #000;
-    white-space: nowrap;
-    flex: 0 1 auto;
-  }
-  #printMaster .pm-brand-strong { color: #000; }
-  #printMaster .pm-doc-id {
-    font-size: 8.5pt;
-    color: #555;
-    font-weight: 600;
-    text-align: right;
-    white-space: nowrap;
-    flex: 0 0 auto;
-  }
-  #printMaster .pm-doc-id strong { color: #000; font-weight: 800; }
-  #printMaster .pm-machine {
-    font-size: 8pt;
-    color: #666;
-    margin-bottom: 3mm;
-    letter-spacing: 0.02em;
-  }
-  #printMaster .pm-meta {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 9.5pt;
-    table-layout: fixed;
-  }
-  #printMaster .pm-meta td {
-    padding: 2mm 3mm;
-    border-bottom: 1px solid #eaeaea;
-    vertical-align: top;
-    word-wrap: break-word;
-  }
-  #printMaster .pm-meta td.lbl {
-    font-weight: 700;
-    font-size: 7.5pt;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #777;
-    width: 18%;
-    background: #f7f7f7;
-  }
-  #printMaster .pm-meta td.val {
-    font-weight: 600;
-    width: 32%;
-  }
-
-  /* === printMaster · SVG (Welle-Visualisierung) === */
-  #printMaster .pm-svg-wrap {
-    margin: 0 0 5mm 0;
-    page-break-inside: avoid;
-  }
-  #printMaster .pm-svg-wrap svg {
-    display: block;
-    width: 186mm !important;
-    height: 50mm !important;
-    border: 1px solid #ccc;
-    border-radius: 2mm;
-    background: white;
-  }
-
-  /* === printMaster · Sections (Stückliste, Sequenz) === */
-  #printMaster .pm-section {
-    margin: 0 0 5mm 0;
-  }
-  #printMaster .pm-section-title {
-    font-size: 10pt;
-    font-weight: 800;
-    color: #000;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    margin: 0 0 2mm 0;
-    padding-bottom: 1.5mm;
-    border-bottom: 1px solid #000;
-    page-break-after: avoid;
-    break-after: avoid;
-  }
-  #printMaster .pm-dir {
-    display: inline-block;
-    margin-left: 4mm;
-    padding: 0.5mm 2mm;
-    font-size: 7.5pt;
-    background: #fff;
-    border: 1px solid #000;
-    border-radius: 1.5mm;
-    color: #000;
-    text-transform: none;
-    letter-spacing: 0.04em;
-  }
-
-  /* === printMaster · Stückliste-Tabelle === */
-  #printMaster .pm-holliste-table {
-    width: 100% !important;
-    table-layout: fixed !important;
-    border-collapse: collapse;
-    font-size: 9.5pt;
-  }
-  #printMaster .pm-holliste-table thead th {
-    text-align: left;
-    font-size: 7.5pt;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #777;
-    padding: 1.5mm 2mm;
-    border-bottom: 1px solid #ccc;
-    background: #fafafa;
-  }
-  #printMaster .pm-holliste-table thead th:nth-child(3) { text-align: right; }
-  #printMaster .pm-holliste-table tbody td {
-    padding: 1.5mm 2mm;
-    border-bottom: 1px dashed #e0e0e0;
-    vertical-align: top;
-    word-wrap: break-word;
-  }
-  #printMaster .pm-holliste-table td.check::before {
-    content: "";
-    display: inline-block;
-    width: 3.5mm;
-    height: 3.5mm;
-    border: 1px solid #888;
-    border-radius: 0.8mm;
-  }
-  #printMaster .pm-holliste-table td.bauteil { font-weight: 700; }
-  #printMaster .pm-holliste-table td.anz {
-    text-align: right;
-    font-weight: 800;
-    font-size: 11pt;
-    color: #000;
-  }
-  #printMaster .pm-holliste-table td.spec {
-    font-size: 8.5pt;
-    color: #555;
-  }
-  #printMaster .pm-holliste-table tr.pm-row-trim td.bauteil { color: #000; }
-
-  /* === printMaster · Sequenz-Tabelle === */
-  #printMaster .pm-seq-table {
-    width: 100% !important;
-    table-layout: fixed !important;
-    border-collapse: collapse;
-    font-size: 9.5pt;
-  }
-  #printMaster .pm-seq-table thead th {
-    text-align: left;
-    font-size: 7.5pt;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #777;
-    padding: 1.5mm 2mm;
-    border-bottom: 1.5px solid #999;
-    background: #fafafa;
-    page-break-after: avoid;
-  }
-  #printMaster .pm-seq-table thead th:nth-child(4),
-  #printMaster .pm-seq-table thead th:nth-child(5) { text-align: right; }
-  #printMaster .pm-seq-table tbody tr {
-    page-break-inside: avoid;
-    break-inside: avoid;
-    border-bottom: 1px solid #eee;
-  }
-  #printMaster .pm-seq-table tbody tr:nth-child(even) { background: #fbfbfb; }
-  #printMaster .pm-seq-table tbody td {
-    padding: 1.5mm 2mm;
-    vertical-align: top;
-    word-wrap: break-word;
-  }
-  #printMaster .pm-seq-table td.check::before {
-    content: "";
-    display: inline-block;
-    width: 3.5mm;
-    height: 3.5mm;
-    border: 1px solid #888;
-    border-radius: 0.8mm;
-  }
-  #printMaster .pm-seq-table td.nr {
-    text-align: center;
-    padding: 1.5mm 1mm !important;
-  }
-  #printMaster .pm-nr-circle {
-    display: inline-block;
-    min-width: 6mm;
-    padding: 0.8mm 1.5mm;
-    font-weight: 800;
-    font-size: 9pt;
-    text-align: center;
-    color: #444;
-    border-radius: 1.5mm;
-    border: 1px solid #ccc;
-    background: #fafafa;
-  }
-  #printMaster .pm-seq-table td.bauteil {
-    font-size: 9.5pt;
-    line-height: 1.3;
-  }
-  #printMaster .pm-seq-table td.bauteil strong { color: #000; }
-  #printMaster .pm-seq-table td.bauteil small {
-    display: block;
-    font-size: 7.5pt;
-    color: #777;
-    margin-top: 0.5mm;
-  }
-  #printMaster .pm-seq-table td.mass {
-    font-weight: 800;
-    font-size: 10pt;
-    color: #000;
-    text-align: right;
-    white-space: nowrap;
-  }
-  #printMaster .pm-seq-table td.pos {
-    text-align: right;
-    white-space: nowrap;
-    font-size: 9pt;
-  }
-  #printMaster .pm-seq-table td.pos strong {
-    display: block;
-    color: #000;
-    font-weight: 800;
-    font-size: 10.5pt;
-  }
-  #printMaster .pm-seq-table td.pos small {
-    display: block;
-    color: #888;
-    font-size: 7pt;
-    margin-top: 0.3mm;
-  }
-  /* v1.90 SW-Differenzierung: Border-Stil + invertierte BG damit Werker
-     auf SW-Druck unterscheiden kann was Schritt fuer Schritt zu tun ist */
-  #printMaster .pm-distanz .pm-nr-circle { background: #fff !important; color: #000 !important; border: 1px solid #999 !important; }
-  #printMaster .pm-schneid .pm-nr-circle { background: #000 !important; color: #fff !important; border: 1.5px solid #000 !important; }
-  #printMaster .pm-neben .pm-nr-circle { background: #fff !important; color: #000 !important; border: 1.5px dashed #000 !important; }
-  #printMaster .pm-trim {
-    background: #fff !important;
-    border-left: 4px solid #000 !important;
-  }
-  #printMaster .pm-trim .pm-nr-circle { background: #000 !important; color: #fff !important; border: 1.5px solid #000 !important; }
-  /* Schnitt-Pos: unterstrichen statt rot (SW-Drucker = kein Farb-Hervorhebung) */
-  #printMaster .pm-seq-table td.pos strong { text-decoration: underline !important; }
-  /* pos kompakter damit Wrap nicht passiert */
-  #printMaster .pm-seq-table td.pos { padding: 1.5mm 2mm 1.5mm 0.5mm !important; }
-  /* Inline-Badges */
-  #printMaster .pm-badge-trim {
-    display: inline-block;
-    background: #000;
-    color: #fff;
-    font-size: 8pt;
-    font-weight: 800;
-    padding: 0.5mm 2mm;
-    border-radius: 1mm;
-    margin-left: 1mm;
-    letter-spacing: 0.04em;
-  }
-  #printMaster .pm-badge-uebergang {
-    display: inline-block;
-    background: #fff;
-    color: #000;
-    font-size: 8pt;
-    font-weight: 800;
-    padding: 0.5mm 2mm;
-    border-radius: 1mm;
-    margin-left: 1mm;
-  }
-  #printMaster .pm-badge-trennung,
-  #printMaster .pm-badge-neben {
-    display: inline-block;
-    color: #888;
-    font-size: 8pt;
-    margin-left: 1mm;
-    font-weight: 600;
-  }
-  #printMaster .pm-tag-default,
-  #printMaster .pm-tag-fixiert {
-    display: inline-block;
-    background: #fff;
-    color: #000;
-    font-size: 7.5pt;
-    font-weight: 800;
-    padding: 0.5mm 1.5mm;
-    border-radius: 0.8mm;
-    margin-left: 1mm;
-    letter-spacing: 0.04em;
-  }
-  #printMaster .pm-warn {
-    margin-top: 1mm;
-    padding: 1mm 2mm;
-    background: #fff;
-    border-left: 2px solid #000;
-    font-size: 7.5pt;
-    color: #000;
-    font-weight: 600;
-  }
+  /* v1.93: #printMaster .pm-* rules sind jetzt zentral in
+     buildPmStyleRules() im JS-Block und werden beim Page-Load via
+     <style id="defaultPmCss"> injected. Single source of truth.
+     Vorher: dreifach dupliziert (hier + openPrintWindow + Test-Mode). */
 
   /* Globale Hintergrund-Layer + Web-only Widgets weg (auch wenn nicht printing) */
   .bg-fx, .bg-grid, .pw-gate, #pwGate, .toast-stack { display: none !important; }
@@ -5152,7 +4847,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.92 · BETA · ID-Kollision Fix · Web-Welle wieder edel · offline-fähig</div>
+    <div>v1.93 · BETA · Print-CSS dedupliziert · 700 Zeilen weg · offline-fähig</div>
   </footer>
 </div>
 
@@ -10822,7 +10517,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.92";
+    const PRINT_VERSION = "v1.93";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
     const headerHtml = `
       <div class="pm-header">
@@ -11176,32 +10871,96 @@ audio.team-player-audio::-webkit-media-controls-panel {
     document.body.classList.remove("printing");
   }
 
-  // v1.74-Strategie: Print öffnet ein SEPARATES Browser-Fenster mit isoliertem
-  // HTML+CSS. Keine Konflikte mit den hunderten von Web-CSS-Regeln, keine
-  // Cascade-Tricks. Werker drückt im neuen Fenster "Drucken" oder Cmd+P,
-  // speichert als PDF, schliesst das Fenster.
-  function openPrintWindow() {
-    console.log("[Print] openPrintWindow() called");
-    const hasValid = (typeof lastValid !== "undefined" && lastValid);
-    console.log("[Print] lastValid present:", !!hasValid);
-    const root = buildPrintMaster();  // baut printMaster und haengt ihn an document.body
-    console.log("[Print] buildPrintMaster() returned:", !!root, root);
-    if (!root) {
-      const msg = hasValid
-        ? "Drucken: Welle-Daten ungueltig — Werte oben pruefen (rote Warnung)?"
-        : "Drucken: Keine gueltigen Eingaben — bitte erst Mutterrolle + Schmalrolle eingeben und 'Berechnen' druecken";
-      if (typeof toast === "function") toast(msg);
-      else alert(msg);
-      return;
-    }
-    // v1.86: KEIN teardown vor Print! @media print zeigt #printMaster,
-    // cleanup laeuft im afterprint-Handler.
+  // v1.93: SINGLE SOURCE OF TRUTH fuer Print-CSS.
+  // Wird genutzt von: (a) openPrintWindow, (b) ?print=inline Test-Mode,
+  // (c) defaultPmCss beim Page-Load (fuer direkten Cmd+P-Fallback).
+  // Vorher dreifach dupliziert mit Drift-Risk (v1.86 SW-Update wurde 3x
+  // gebraucht und der Test-Mode hat es nie bekommen).
+  function buildPmStyleRules() {
+    return `
+      /* SW-Druck-optimiert (Firma druckt meist schwarz-weiss).
+         Hierarchie via FETT / BORDER-DICKE / GROESSE, nicht via FARBE. */
+      * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      html, body { margin: 0; padding: 0; background: #fff; color: #000; font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 9.5pt; line-height: 1.4; }
+      #printMaster { width: 173mm; max-width: 173mm; margin: 0 auto; padding: 0; }
+      /* === Header === */
+      .pm-header { margin: 0 0 6mm 0; padding: 0 0 4mm 0; border-bottom: 2.5px solid #000; page-break-inside: avoid; }
+      .pm-brand-row { display: flex; align-items: baseline; justify-content: space-between; gap: 4mm; margin-bottom: 2mm; flex-wrap: nowrap; }
+      .pm-brand { font-size: 15pt; font-weight: 800; color: #000; letter-spacing: -0.01em; white-space: nowrap; flex: 0 1 auto; }
+      .pm-brand-strong { color: #000; }
+      .pm-doc-id { font-size: 8.5pt; color: #555; font-weight: 600; text-align: right; white-space: nowrap; flex: 0 0 auto; }
+      .pm-doc-id strong { color: #000; font-weight: 800; }
+      .pm-machine { font-size: 8pt; color: #333; margin-bottom: 4mm; letter-spacing: 0.02em; border-left: 2px solid #999; padding: 1mm 0 1mm 3mm; }
+      .pm-meta { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9.5pt; }
+      .pm-meta td { padding: 2.5mm 3mm; border-bottom: 1px solid #ccc; vertical-align: top; word-wrap: break-word; }
+      .pm-meta tr:last-child td { border-bottom: none; }
+      .pm-meta td.lbl { font-weight: 700; font-size: 7pt; text-transform: uppercase; letter-spacing: 0.06em; color: #333; width: 22%; background: #f0f0f0; white-space: nowrap; }
+      .pm-meta td.val { font-weight: 600; width: 28%; color: #000; }
+      /* === SVG === */
+      .pm-svg-wrap { margin: 0 0 6mm 0; page-break-inside: avoid; }
+      .pm-svg-wrap svg { display: block; width: 173mm; height: 56mm; border: 1px solid #999; border-radius: 2mm; background: #fff; }
+      /* === Sections === */
+      .pm-section { margin: 0 0 6mm 0; page-break-inside: auto; }
+      .pm-section-title { font-size: 10.5pt; font-weight: 800; color: #000; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 3mm 0; padding: 0 0 2mm 0; border-bottom: 1.5px solid #000; page-break-after: avoid; break-after: avoid; }
+      .pm-dir { display: inline-block; margin-left: 4mm; padding: 0.8mm 2.5mm; font-size: 7.5pt; background: #fff; border: 1.2px solid #000; border-radius: 1.5mm; color: #000; text-transform: none; letter-spacing: 0.04em; vertical-align: middle; font-weight: 700; }
+      .pm-sequenz { page-break-before: always !important; break-before: page !important; }
+      .pm-section-title + table { page-break-before: avoid; break-before: avoid; }
+      /* === Stueckliste === */
+      .pm-holliste-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; page-break-inside: auto; }
+      .pm-holliste-table thead th { text-align: left; font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #333; padding: 1.5mm 2mm; border-bottom: 1px solid #999; background: #f0f0f0; }
+      .pm-holliste-table thead th:nth-child(3) { text-align: right; }
+      .pm-holliste-table tbody { page-break-inside: auto; }
+      .pm-holliste-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+      .pm-holliste-table tbody td { padding: 2mm 2mm; border-bottom: 1px dashed #bbb; vertical-align: top; word-wrap: break-word; page-break-inside: avoid !important; break-inside: avoid !important; }
+      .pm-holliste-table tbody tr:last-child td { border-bottom: none; }
+      .pm-holliste-table td.check::before { content: ""; display: inline-block; width: 3.8mm; height: 3.8mm; border: 1.2px solid #333; border-radius: 0.8mm; }
+      .pm-holliste-table td.bauteil { font-weight: 700; color: #000; }
+      .pm-holliste-table td.anz { text-align: right; font-weight: 800; font-size: 12pt; color: #000; }
+      .pm-holliste-table td.spec { font-size: 8.5pt; color: #333; line-height: 1.4; }
+      .pm-holliste-table tr.pm-row-trim { background: #fff; border-left: 3px solid #000; }
+      .pm-holliste-table tr.pm-row-trim td.bauteil { color: #000; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; }
+      .pm-holliste-table tr.pm-row-trim td.check::before { border: 1.5px solid #000; border-radius: 0.8mm; }
+      /* === Sequenz === */
+      .pm-seq-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; page-break-inside: auto; }
+      .pm-seq-table thead th { text-align: left; font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #333; padding: 1.8mm 2mm; border-bottom: 1.5px solid #000; background: #f0f0f0; page-break-after: avoid; }
+      .pm-seq-table thead th:nth-child(4), .pm-seq-table thead th:nth-child(5) { text-align: right; }
+      .pm-seq-table tbody { page-break-inside: auto; }
+      .pm-seq-table tr { page-break-inside: avoid !important; break-inside: avoid !important; page-break-after: auto; border-bottom: 1px solid #ccc; }
+      .pm-seq-table tbody tr:nth-child(even) { background: #f6f6f6; }
+      .pm-seq-table tbody tr:last-child { border-bottom: none; }
+      .pm-seq-table tbody td { padding: 1.2mm 2mm; vertical-align: top; word-wrap: break-word; page-break-inside: avoid !important; break-inside: avoid !important; }
+      .pm-seq-table td.check::before { content: ""; display: inline-block; width: 3.5mm; height: 3.5mm; border: 1.2px solid #333; border-radius: 0.8mm; }
+      .pm-seq-table td.nr { text-align: center; padding: 1.2mm 0.5mm; vertical-align: top; }
+      .pm-nr-circle { display: inline-block; min-width: 6mm; padding: 0.5mm 1.2mm; font-weight: 800; font-size: 8.5pt; text-align: center; color: #000; border-radius: 1.2mm; border: 1px solid #333; background: #fff; }
+      .pm-seq-table td.bauteil { font-size: 9pt; line-height: 1.25; vertical-align: top; color: #000; }
+      .pm-seq-table td.bauteil strong { color: #000; }
+      .pm-seq-table td.bauteil small { display: block; font-size: 7pt; color: #444; margin-top: 0.3mm; line-height: 1.3; }
+      .pm-seq-table td.mass { font-weight: 800; font-size: 9.5pt; color: #000; text-align: right; white-space: nowrap; vertical-align: top; padding-top: 1.2mm; }
+      .pm-seq-table td.pos { text-align: right; white-space: nowrap; font-size: 8.5pt; vertical-align: top; padding: 1.2mm 1.5mm 1.2mm 0.5mm; color: #000; }
+      .pm-seq-table td.pos strong { display: block; color: #000; font-weight: 800; font-size: 10pt; line-height: 1.15; text-decoration: underline; }
+      .pm-seq-table td.pos small { display: block; color: #555; font-size: 6.5pt; margin-top: 0.3mm; font-weight: 500; }
+      .pm-seq-table thead, .pm-holliste-table thead { display: table-header-group; }
+      /* SW-Differenzierung Circle-Borders statt Farbe */
+      .pm-distanz .pm-nr-circle { background: #fff; color: #000; border: 1px solid #999; }
+      .pm-schneid .pm-nr-circle, .pm-trim .pm-nr-circle { background: #000; color: #fff; border: 1.5px solid #000; }
+      .pm-neben .pm-nr-circle { background: #fff; color: #000; border: 1.5px dashed #000; font-weight: 800; }
+      .pm-trim { background: #fff !important; border-left: 4px solid #000 !important; }
+      .pm-badge-trim { display: inline-block; background: #000; color: #fff; font-size: 8pt; font-weight: 800; padding: 0.5mm 2mm; border-radius: 1mm; margin-left: 1mm; letter-spacing: 0.04em; }
+      .pm-badge-uebergang { display: inline-block; background: #fff; color: #000; border: 1.2px dashed #000; font-size: 8pt; font-weight: 800; padding: 0.3mm 2mm; border-radius: 1mm; margin-left: 1mm; }
+      .pm-badge-trennung, .pm-badge-neben { display: inline-block; color: #333; font-size: 8pt; margin-left: 1mm; font-weight: 600; }
+      .pm-tag-default, .pm-tag-fixiert { display: inline-block; background: #fff; color: #000; border: 1px solid #000; font-size: 7.5pt; font-weight: 800; padding: 0.3mm 1.5mm; border-radius: 0.8mm; margin-left: 1mm; letter-spacing: 0.04em; }
+      .pm-warn { margin-top: 1mm; padding: 1mm 2mm; background: #fff; border: 1.2px solid #000; border-left-width: 3px; font-size: 7.5pt; color: #000; font-weight: 700; }
+    `;
+  }
 
-    // Auftrags-Nr fuer @page footer einlesen
+  // v1.93: @page rule baut die dynamischen Footer-Inhalte (Auftrag-Nr +
+  // Seitenzahl) aus den aktuellen Input-Feldern. Separat von buildPmStyleRules
+  // damit das default-CSS beim Page-Load OHNE Auftrag-Nr injected werden kann.
+  function buildPmPageCss() {
     const inp = (id) => (document.getElementById(id) || {}).value || "";
     const auftragNrSafe = (inp("welleAuftragNr") || "(ohne Nr)").replace(/"/g, '\\"');
     const datumSafe = (inp("welleDatum") || new Date().toISOString().slice(0, 10)).replace(/"/g, '\\"');
-    const styleSheet = `
+    return `
       @page {
         size: A4;
         margin: 12mm 12mm 18mm 25mm;
@@ -11222,88 +10981,46 @@ audio.team-player-audio::-webkit-media-controls-panel {
           content: "";
         }
       }
-      /* v1.86: SW-Druck-optimiert (Firma druckt meist schwarz-weiss).
-         Hierarchie via FETT / BORDER-DICKE / GROESSE, nicht via FARBE. */
-      * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-      html, body { margin: 0; padding: 0; background: #fff; color: #000; font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 9.5pt; line-height: 1.4; }
-      #printMaster { width: 173mm; max-width: 173mm; margin: 0 auto; padding: 0; }
-      /* === Header === */
-      .pm-header { margin: 0 0 6mm 0; padding: 0 0 4mm 0; border-bottom: 2.5px solid #000; page-break-inside: avoid; }
-      .pm-brand-row { display: table; width: 100%; margin-bottom: 2mm; }
-      .pm-brand { display: table-cell; font-size: 17pt; font-weight: 800; color: #000; vertical-align: baseline; letter-spacing: -0.01em; }
-      .pm-brand-strong { color: #000; }
-      .pm-doc-id { display: table-cell; font-size: 9pt; color: #333; font-weight: 500; text-align: right; vertical-align: baseline; white-space: nowrap; }
-      .pm-doc-id strong { color: #000; font-weight: 800; }
-      .pm-machine { font-size: 8pt; color: #333; margin-bottom: 4mm; letter-spacing: 0.02em; padding-left: 1mm; border-left: 2px solid #999; padding: 1mm 0 1mm 3mm; }
-      .pm-meta { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9.5pt; }
-      .pm-meta td { padding: 2.5mm 3mm; border-bottom: 1px solid #ccc; vertical-align: top; word-wrap: break-word; }
-      .pm-meta tr:last-child td { border-bottom: none; }
-      .pm-meta td.lbl { font-weight: 700; font-size: 7pt; text-transform: uppercase; letter-spacing: 0.06em; color: #333; width: 22%; background: #f0f0f0; white-space: nowrap; }
-      .pm-meta td.val { font-weight: 600; width: 28%; color: #000; }
-      /* === SVG === */
-      .pm-svg-wrap { margin: 0 0 6mm 0; page-break-inside: avoid; }
-      .pm-svg-wrap svg { display: block; width: 173mm; height: 56mm; border: 1px solid #999; border-radius: 2mm; background: #fff; }
-      /* === Section === */
-      .pm-section { margin: 0 0 6mm 0; }
-      .pm-section-title { font-size: 10.5pt; font-weight: 800; color: #000; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 3mm 0; padding: 0 0 2mm 0; border-bottom: 1.5px solid #000; page-break-after: avoid; break-after: avoid; }
-      .pm-dir { display: inline-block; margin-left: 4mm; padding: 0.8mm 2.5mm; font-size: 7.5pt; background: #fff; border: 1.2px solid #000; border-radius: 1.5mm; color: #000; text-transform: none; letter-spacing: 0.04em; vertical-align: middle; font-weight: 700; }
-      /* v1.88: Sequenz IMMER auf neuer Seite — Werker hat Stueckliste in einer
-         Hand, Sequenz in der anderen. Kein Mix der beiden Listen pro Blatt. */
-      .pm-sequenz { page-break-before: always !important; break-before: page !important; }
-      /* Section-Wrap: nicht zwischen Titel und erstem Row brechen */
-      .pm-section { page-break-inside: auto; }
-      .pm-section-title + table { page-break-before: avoid; break-before: avoid; }
-      /* === Stückliste === */
-      .pm-holliste-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; page-break-inside: auto; }
-      .pm-holliste-table thead th { text-align: left; font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #333; padding: 1.5mm 2mm; border-bottom: 1px solid #999; background: #f0f0f0; }
-      .pm-holliste-table thead th:nth-child(3) { text-align: right; }
-      .pm-holliste-table tbody { page-break-inside: auto; }
-      .pm-holliste-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
-      .pm-holliste-table tbody td { padding: 2mm 2mm; border-bottom: 1px dashed #bbb; vertical-align: top; word-wrap: break-word; page-break-inside: avoid !important; break-inside: avoid !important; }
-      .pm-holliste-table tbody tr:last-child td { border-bottom: none; }
-      .pm-holliste-table td.check::before { content: ""; display: inline-block; width: 3.8mm; height: 3.8mm; border: 1.2px solid #333; border-radius: 0.8mm; }
-      .pm-holliste-table td.bauteil { font-weight: 700; color: #000; }
-      .pm-holliste-table td.anz { text-align: right; font-weight: 800; font-size: 12pt; color: #000; }
-      .pm-holliste-table td.spec { font-size: 8.5pt; color: #333; line-height: 1.4; }
-      /* Trim-Zeile: dicker linker Strich + bold, kein gelber BG (SW-Druck) */
-      .pm-holliste-table tr.pm-row-trim { background: #fff; border-left: 3px solid #000; }
-      .pm-holliste-table tr.pm-row-trim td.bauteil { color: #000; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; }
-      .pm-holliste-table tr.pm-row-trim td.check::before { border: 1.5px solid #000; border-radius: 0.8mm; }
-      /* === Sequenz === */
-      .pm-seq-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; page-break-inside: auto; }
-      .pm-seq-table thead th { text-align: left; font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #333; padding: 1.8mm 2mm; border-bottom: 1.5px solid #000; background: #f0f0f0; page-break-after: avoid; }
-      .pm-seq-table thead th:nth-child(4), .pm-seq-table thead th:nth-child(5) { text-align: right; }
-      /* v1.88: Anti-Split — page-break-inside auf TR UND TD UND tbody-children.
-         Chrome ignoriert tr-only page-break-inside wenn die Row mehrzeilig ist. */
-      .pm-seq-table tbody { page-break-inside: auto; }
-      .pm-seq-table tr { page-break-inside: avoid !important; break-inside: avoid !important; page-break-after: auto; border-bottom: 1px solid #ccc; }
-      .pm-seq-table tbody tr:nth-child(even) { background: #f6f6f6; }
-      .pm-seq-table tbody tr:last-child { border-bottom: none; }
-      .pm-seq-table tbody td { padding: 1.2mm 2mm; vertical-align: top; word-wrap: break-word; page-break-inside: avoid !important; break-inside: avoid !important; }
-      .pm-seq-table td.check::before { content: ""; display: inline-block; width: 3.5mm; height: 3.5mm; border: 1.2px solid #333; border-radius: 0.8mm; }
-      .pm-seq-table td.nr { text-align: center; padding: 1.2mm 0.5mm; vertical-align: top; }
-      .pm-nr-circle { display: inline-block; min-width: 6mm; padding: 0.5mm 1.2mm; font-weight: 800; font-size: 8.5pt; text-align: center; color: #000; border-radius: 1.2mm; border: 1px solid #333; background: #fff; }
-      .pm-seq-table td.bauteil { font-size: 9pt; line-height: 1.25; vertical-align: top; color: #000; }
-      .pm-seq-table td.bauteil strong { color: #000; }
-      .pm-seq-table td.bauteil small { display: block; font-size: 7pt; color: #444; margin-top: 0.3mm; line-height: 1.3; }
-      .pm-seq-table td.mass { font-weight: 800; font-size: 9.5pt; color: #000; text-align: right; white-space: nowrap; vertical-align: top; padding-top: 1.2mm; }
-      .pm-seq-table td.pos { text-align: right; white-space: nowrap; font-size: 8.5pt; vertical-align: top; padding: 1.2mm 1.5mm 1.2mm 2mm; color: #000; }
-      .pm-seq-table td.pos strong { display: block; color: #000; font-weight: 800; font-size: 10pt; line-height: 1.15; text-decoration: underline; }
-      .pm-seq-table td.pos small { display: block; color: #555; font-size: 6.5pt; margin-top: 0.3mm; font-weight: 500; }
-      /* Header repeat on every page (browser auto-repeat for thead) */
-      .pm-seq-table thead, .pm-holliste-table thead { display: table-header-group; }
-      /* SW-Differenzierung: Nr-Circle Border-Stil/-Dicke statt Farbe */
-      .pm-distanz .pm-nr-circle { background: #fff; color: #000; border: 1px solid #999; }
-      .pm-schneid .pm-nr-circle, .pm-trim .pm-nr-circle { background: #000; color: #fff; border: 1.5px solid #000; }
-      .pm-neben .pm-nr-circle { background: #fff; color: #000; border: 1.5px dashed #000; font-weight: 800; }
-      /* Trim-Row: dicker schwarzer Strich links + leichter Hintergrund-Hatch via BG */
-      .pm-trim { background: #fff !important; border-left: 4px solid #000 !important; }
-      .pm-badge-trim { display: inline-block; background: #000; color: #fff; font-size: 8pt; font-weight: 800; padding: 0.5mm 2mm; border-radius: 1mm; margin-left: 1mm; letter-spacing: 0.04em; }
-      .pm-badge-uebergang { display: inline-block; background: #fff; color: #000; border: 1.2px dashed #000; font-size: 8pt; font-weight: 800; padding: 0.3mm 2mm; border-radius: 1mm; margin-left: 1mm; }
-      .pm-badge-trennung, .pm-badge-neben { display: inline-block; color: #333; font-size: 8pt; margin-left: 1mm; font-weight: 600; }
-      .pm-tag-default, .pm-tag-fixiert { display: inline-block; background: #fff; color: #000; border: 1px solid #000; font-size: 7.5pt; font-weight: 800; padding: 0.3mm 1.5mm; border-radius: 0.8mm; margin-left: 1mm; letter-spacing: 0.04em; }
-      .pm-warn { margin-top: 1mm; padding: 1mm 2mm; background: #fff; border: 1.2px solid #000; border-left-width: 3px; font-size: 7.5pt; color: #000; font-weight: 700; }
     `;
+  }
+
+  // v1.93: Page-Load-Time Print-CSS-Injection.
+  // Das Web @media print Block hatte vorher dieselben #printMaster .pm-* Rules
+  // wie openPrintWindow/?print=inline. Jetzt: buildPmStyleRules() ist Single
+  // Source of Truth, beim Page-Load in <style id="defaultPmCss"> injected in
+  // @media print wrap. So greift's auch bei direktem Cmd+P (ohne Button-Klick)
+  // — printMaster muss aber per Button-Klick erst erstellt werden, sonst ist
+  // er nicht im DOM.
+  (function injectDefaultPrintCss() {
+    if (document.getElementById("defaultPmCss")) return;
+    const el = document.createElement("style");
+    el.id = "defaultPmCss";
+    el.textContent = `@media print {\n${buildPmStyleRules()}\n}`;
+    document.head.appendChild(el);
+  })();
+
+  // v1.74-Strategie: Print öffnet ein SEPARATES Browser-Fenster mit isoliertem
+  // HTML+CSS. Keine Konflikte mit den hunderten von Web-CSS-Regeln, keine
+  // Cascade-Tricks. Werker drückt im neuen Fenster "Drucken" oder Cmd+P,
+  // speichert als PDF, schliesst das Fenster.
+  function openPrintWindow() {
+    console.log("[Print] openPrintWindow() called");
+    const hasValid = (typeof lastValid !== "undefined" && lastValid);
+    console.log("[Print] lastValid present:", !!hasValid);
+    const root = buildPrintMaster();  // baut printMaster und haengt ihn an document.body
+    console.log("[Print] buildPrintMaster() returned:", !!root, root);
+    if (!root) {
+      const msg = hasValid
+        ? "Drucken: Welle-Daten ungueltig — Werte oben pruefen (rote Warnung)?"
+        : "Drucken: Keine gueltigen Eingaben — bitte erst Mutterrolle + Schmalrolle eingeben und 'Berechnen' druecken";
+      if (typeof toast === "function") toast(msg);
+      else alert(msg);
+      return;
+    }
+    // v1.86: KEIN teardown vor Print! @media print zeigt #printMaster,
+    // cleanup laeuft im afterprint-Handler.
+    // v1.93: CSS ist jetzt zentralisiert in buildPmStyleRules() + buildPmPageCss().
+    const styleSheet = buildPmPageCss() + "\n" + buildPmStyleRules();
 
     // v1.86: Native window.print() im aktuellen Window — kein iframe, kein
     // Pop-up. printMaster bleibt im DOM (buildPrintMaster hat ihn angehaengt).
@@ -11393,82 +11110,15 @@ body > *:not(#printMaster) { display: none !important; }
           document.body.innerHTML = "<p style='padding:40px;font:14pt sans-serif;color:#a00'>Print-Build fehlgeschlagen — keine Werte (lastValid leer)</p>";
           return;
         }
-        // Inject full inline-CSS (clone from openPrintWindow stylesheet — same as
-        // when user opens print in new window, ensures all rules apply without
-        // needing body.printing-class cascade)
+        // v1.93: CSS aus zentraler Quelle — keine Duplikation mehr.
+        // Test-Mode rendert immer (kein @media print wrap noetig).
+        // body > * hide ist hier essential weil Headless-Chrome alles druckt.
         const inlineCss = document.createElement("style");
         inlineCss.textContent = `
-          @page { size: A4; margin: 12mm 12mm 16mm 25mm;
-            @bottom-right { content: "Seite " counter(page) " / " counter(pages); font-family: -apple-system, system-ui, sans-serif; font-size: 8.5pt; color: #888; }
-            @bottom-left { content: "Ballerstaedt · Bestueckungs-Anweisung"; font-family: -apple-system, system-ui, sans-serif; font-size: 8pt; color: #aaa; }
-          }
-          * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-          html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; color: #1a1a1a !important; font-family: -apple-system, "Segoe UI", system-ui, sans-serif !important; font-size: 9.5pt !important; line-height: 1.4 !important; }
+          ${buildPmPageCss()}
+          ${buildPmStyleRules()}
           body > *:not(#printMaster) { display: none !important; }
-          #printMaster { position: static !important; left: auto !important; top: auto !important; width: 173mm !important; max-width: 173mm !important; margin: 0 auto !important; padding: 0 !important; display: block !important; }
-          /* Header */
-          .pm-header { margin: 0 0 6mm 0 !important; padding: 0 0 4mm 0 !important; border-bottom: 2.5px solid #007a3d !important; page-break-inside: avoid !important; }
-          .pm-brand-row { display: table !important; width: 100% !important; margin-bottom: 2mm !important; }
-          .pm-brand { display: table-cell !important; font-size: 17pt !important; font-weight: 800 !important; color: #111 !important; vertical-align: baseline !important; letter-spacing: -0.01em !important; }
-          .pm-brand-strong { color: #007a3d !important; }
-          .pm-doc-id { display: table-cell !important; font-size: 9pt !important; color: #666 !important; font-weight: 500 !important; text-align: right !important; vertical-align: baseline !important; white-space: nowrap !important; }
-          .pm-doc-id strong { color: #111 !important; font-weight: 800 !important; }
-          .pm-machine { font-size: 8pt !important; color: #777 !important; margin-bottom: 4mm !important; letter-spacing: 0.02em !important; padding: 1mm 0 1mm 3mm !important; border-left: 2px solid #e8e8e8 !important; }
-          .pm-meta { width: 100% !important; border-collapse: collapse !important; table-layout: fixed !important; font-size: 9.5pt !important; }
-          .pm-meta td { padding: 2.5mm 3mm !important; border-bottom: 1px solid #eee !important; vertical-align: top !important; word-wrap: break-word !important; }
-          .pm-meta tr:last-child td { border-bottom: none !important; }
-          .pm-meta td.lbl { font-weight: 700 !important; font-size: 7pt !important; text-transform: uppercase !important; letter-spacing: 0.06em !important; color: #888 !important; width: 28mm !important; background: #f8f8f8 !important; white-space: nowrap !important; }
-          .pm-meta td.val { font-weight: 600 !important; color: #1a1a1a !important; }
-          /* SVG */
-          .pm-svg-wrap { margin: 0 0 6mm 0 !important; page-break-inside: avoid !important; }
-          .pm-svg-wrap svg { display: block !important; width: 173mm !important; height: 56mm !important; border: 1px solid #ddd !important; border-radius: 2mm !important; background: #fff !important; }
-          /* Sections */
-          .pm-section { margin: 0 0 6mm 0 !important; }
-          .pm-section-title { font-size: 10.5pt !important; font-weight: 800 !important; color: #007a3d !important; letter-spacing: 0.08em !important; text-transform: uppercase !important; margin: 0 0 3mm 0 !important; padding: 0 0 2mm 0 !important; border-bottom: 1.5px solid #007a3d !important; page-break-after: avoid !important; }
-          .pm-dir { display: inline-block !important; margin-left: 4mm !important; padding: 0.8mm 2.5mm !important; font-size: 7.5pt !important; background: #f0fff5 !important; border: 1px solid #007a3d !important; border-radius: 1.5mm !important; color: #007a3d !important; text-transform: none !important; letter-spacing: 0.04em !important; vertical-align: middle !important; font-weight: 700 !important; }
-          /* Stückliste */
-          .pm-holliste-table { width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; font-size: 9.5pt !important; }
-          .pm-holliste-table thead th { text-align: left !important; font-size: 7pt !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.06em !important; color: #888 !important; padding: 1.5mm 2mm !important; border-bottom: 1px solid #ccc !important; background: #f8f8f8 !important; }
-          .pm-holliste-table thead th:nth-child(3) { text-align: right !important; }
-          .pm-holliste-table tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; }
-          .pm-holliste-table tbody td { padding: 2mm 2mm !important; border-bottom: 1px dashed #e0e0e0 !important; vertical-align: top !important; word-wrap: break-word !important; }
-          .pm-holliste-table tbody tr:last-child td { border-bottom: none !important; }
-          .pm-holliste-table td.check::before { content: "" !important; display: inline-block !important; width: 3.8mm !important; height: 3.8mm !important; border: 1.2px solid #999 !important; border-radius: 0.8mm !important; }
-          .pm-holliste-table td.bauteil { font-weight: 700 !important; color: #1a1a1a !important; }
-          .pm-holliste-table td.anz { text-align: right !important; font-weight: 800 !important; font-size: 12pt !important; color: #007a3d !important; }
-          .pm-holliste-table td.spec { font-size: 8.5pt !important; color: #666 !important; line-height: 1.4 !important; }
-          .pm-holliste-table tr.pm-row-trim { background: #fffbe6 !important; }
-          .pm-holliste-table tr.pm-row-trim td.bauteil { color: #b85c00 !important; }
-          .pm-holliste-table tr.pm-row-trim td.check::before { border-color: #c87800 !important; }
-          /* Sequenz */
-          .pm-seq-table { width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; font-size: 9.5pt !important; }
-          .pm-seq-table thead { display: table-header-group !important; }
-          .pm-seq-table thead th { text-align: left !important; font-size: 7pt !important; font-weight: 700 !important; text-transform: uppercase !important; letter-spacing: 0.06em !important; color: #888 !important; padding: 1.8mm 2mm !important; border-bottom: 1.5px solid #999 !important; background: #f8f8f8 !important; }
-          .pm-seq-table thead th:nth-child(4), .pm-seq-table thead th:nth-child(5) { text-align: right !important; }
-          .pm-seq-table tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; border-bottom: 1px solid #eee !important; }
-          .pm-seq-table tbody tr:nth-child(even) { background: #fbfbfb !important; }
-          .pm-seq-table tbody tr:last-child { border-bottom: none !important; }
-          .pm-seq-table tbody td { padding: 1.2mm 2mm !important; vertical-align: top !important; word-wrap: break-word !important; }
-          .pm-seq-table td.check::before { content: "" !important; display: inline-block !important; width: 3.5mm !important; height: 3.5mm !important; border: 1.2px solid #999 !important; border-radius: 0.8mm !important; }
-          .pm-seq-table td.nr { text-align: center !important; padding: 1.2mm 0.5mm !important; vertical-align: top !important; }
-          .pm-nr-circle { display: inline-block !important; min-width: 6mm !important; padding: 0.5mm 1.2mm !important; font-weight: 800 !important; font-size: 8.5pt !important; text-align: center !important; color: #555 !important; border-radius: 1.2mm !important; border: 1px solid #ccc !important; background: #fafafa !important; }
-          .pm-seq-table td.bauteil { font-size: 9pt !important; line-height: 1.25 !important; vertical-align: top !important; }
-          .pm-seq-table td.bauteil strong { color: #111 !important; }
-          .pm-seq-table td.bauteil small { display: block !important; font-size: 7pt !important; color: #777 !important; margin-top: 0.3mm !important; line-height: 1.3 !important; }
-          .pm-seq-table td.mass { font-weight: 800 !important; font-size: 9.5pt !important; color: #007a3d !important; text-align: right !important; white-space: nowrap !important; vertical-align: top !important; padding-top: 1.2mm !important; }
-          .pm-seq-table td.pos { text-align: right !important; white-space: nowrap !important; font-size: 8.5pt !important; vertical-align: top !important; padding: 1.2mm 1.5mm 1.2mm 2mm !important; }
-          .pm-seq-table td.pos strong { display: block !important; color: #c01818 !important; font-weight: 800 !important; font-size: 10pt !important; line-height: 1.15 !important; }
-          .pm-seq-table td.pos small { display: block !important; color: #999 !important; font-size: 6.5pt !important; margin-top: 0.3mm !important; font-weight: 500 !important; }
-          /* Row-Colors */
-          .pm-distanz .pm-nr-circle { background: #e6f7e6 !important; color: #007a3d !important; border-color: #007a3d !important; }
-          .pm-schneid .pm-nr-circle, .pm-trim .pm-nr-circle { background: #fde6e3 !important; color: #a01810 !important; border-color: #a01810 !important; }
-          .pm-neben .pm-nr-circle { background: #fff4d6 !important; color: #a06800 !important; border-color: #a06800 !important; }
-          .pm-trim { background: #fffbe6 !important; border-left: 3px solid #c87800 !important; }
-          .pm-badge-trim { display: inline-block !important; background: #ffb400 !important; color: #1a0e00 !important; font-size: 8pt !important; font-weight: 800 !important; padding: 0.5mm 2mm !important; border-radius: 1mm !important; margin-left: 1mm !important; letter-spacing: 0.04em !important; }
-          .pm-badge-uebergang { display: inline-block !important; background: #fff4d6 !important; color: #a06800 !important; font-size: 8pt !important; font-weight: 800 !important; padding: 0.5mm 2mm !important; border-radius: 1mm !important; margin-left: 1mm !important; }
-          .pm-badge-trennung, .pm-badge-neben { display: inline-block !important; color: #888 !important; font-size: 8pt !important; margin-left: 1mm !important; font-weight: 600 !important; }
-          .pm-tag-default, .pm-tag-fixiert { display: inline-block !important; background: #f0fff5 !important; color: #007a3d !important; font-size: 7.5pt !important; font-weight: 800 !important; padding: 0.5mm 1.5mm !important; border-radius: 0.8mm !important; margin-left: 1mm !important; letter-spacing: 0.04em !important; }
-          .pm-warn { margin-top: 1mm !important; padding: 1mm 2mm !important; background: #fffbe6 !important; border-left: 2px solid #c87800 !important; font-size: 7.5pt !important; color: #c87800 !important; font-weight: 600 !important; }
+          #printMaster { position: static !important; left: auto !important; top: auto !important; display: block !important; }
         `;
         document.head.appendChild(inlineCss);
       };
