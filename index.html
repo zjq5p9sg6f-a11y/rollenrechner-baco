@@ -5141,7 +5141,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.88 · BETA · Page-Break vor Sequenz + Anti-Split TR/TD · offline-fähig</div>
+    <div>v1.89 · BETA · Version im Print sichtbar · SVG-Fill catch-all · offline-fähig</div>
   </footer>
 </div>
 
@@ -10809,11 +10809,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
     root.id = "printMaster";
 
     // === Header ===
+    // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
+    // Browser-Cache die neueste Version liefert.
+    const PRINT_VERSION = "v1.89";
+    const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
     const headerHtml = `
       <div class="pm-header">
         <div class="pm-brand-row">
           <div class="pm-brand"><span class="pm-brand-strong">Ballerstaedt</span>&nbsp;·&nbsp;Bestückungs-Anweisung</div>
-          <div class="pm-doc-id">Auftrag <strong>${auftragNr}</strong> · ${datum}</div>
+          <div class="pm-doc-id">Auftrag <strong>${auftragNr}</strong> · ${datum} · <span style="color:#888;font-weight:600">${PRINT_VERSION} · ${genTime}</span></div>
         </div>
         <div class="pm-machine">${machineLine} · Trim-Strategie: ${trimLbl}</div>
         <table class="pm-meta">
@@ -10882,25 +10886,35 @@ audio.team-player-audio::-webkit-media-controls-panel {
         "var(--text-secondary)": "#444",
         "currentColor": "#000",
       };
+      // v1.89: Whitespace + commas normalisieren damit "rgba(6, 43, 20, 0.85)"
+      // (Browser-normalisiert) genauso matcht wie "rgba(6,43,20,0.85)".
+      const normFill = (s) => (s || "").toLowerCase().replace(/\s+/g, "");
       svgClone.querySelectorAll("rect, path, circle, polygon").forEach(el => {
-        const fill = (el.getAttribute("fill") || "").toLowerCase();
+        const fillRaw = el.getAttribute("fill") || "";
+        const fill = normFill(fillRaw);
         if (fillMap[fill]) {
           el.setAttribute("fill", fillMap[fill]);
         } else if (fill.startsWith("rgba(0,0,0,") || fill === "#000" || fill === "#000000" || fill === "black") {
           // Dunkle Semi-Transparent-Layer → fast transparent
           el.setAttribute("fill", "rgba(0,0,0,0.04)");
-        } else if (fill.startsWith("rgba(6,43,20") || fill.startsWith("rgba(6, 43, 20")) {
-          // Bemaßungs-BG → weiß mit schwarzem Border (kein gruener Akzent)
+        } else if (fill.startsWith("rgba(6,43,20") || fill.startsWith("rgb(6,43,20")) {
+          // Dunkel-gruene Annotation-Box (CARLON-BG) → weiss mit schwarzem Border
           el.setAttribute("fill", "#ffffff");
           el.setAttribute("stroke", "#000");
           el.setAttribute("stroke-width", "0.6");
-        } else if (fill === "#1a1a1a" || fill === "#0a0a0a" || fill === "#2a2a2a" || fill === "#1f1f1f" || fill === "#202020") {
-          // Dunkle direkte fills → weiss mit Border statt schwarz
+        } else if (fill === "#1a1a1a" || fill === "#0a0a0a" || fill === "#2a2a2a" || fill === "#1f1f1f" || fill === "#202020" || fill === "#111111" || fill === "#111") {
+          // Dunkle direkte fills (Welle-Container, Bemaßungs-BG-direct) → weiss
           el.setAttribute("fill", "#ffffff");
           el.setAttribute("stroke", "#666");
           el.setAttribute("stroke-width", "0.4");
-        } else if (fill.startsWith("var(--")) {
-          el.setAttribute("fill", "#cccccc");
+        } else if (fill.startsWith("var(")) {
+          // v1.89 Catch-all: jedes andere var(--*) das nicht in fillMap ist
+          // (z.B. var(--border), var(--text-secondary)) → wird zu hellgrau
+          // statt black-fallback. Print-Engines die var() nicht aufloesen
+          // crashen sonst auf schwarz.
+          el.setAttribute("fill", "#ffffff");
+          el.setAttribute("stroke", "#999");
+          el.setAttribute("stroke-width", "0.4");
         } else if (fill.match(/^#[0-9a-f]{3,8}$/i)) {
           // Alle uebrigen Farben (orange Schmalrollen-Stripes, blaue Park-
           // Ringe etc.) auf Grauwert mappen via luminance fallback.
