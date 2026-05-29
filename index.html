@@ -5095,7 +5095,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="info-row"><span>Schnittkante v. links</span><strong id="mcSchnitt">13 mm</strong></div>
           <div class="info-row"><span>Distanzringe</span><strong id="mcDistRings">0,3 / 0,5 / 1 / 2 / 5 / 10 / 20 / 30 / 50 / 100 / 200 / 300 mm</strong></div>
           <div class="info-row" id="mcMrCenterRow" style="display:none"><span>MR-Center-Versatz</span><strong id="mcMrCenter">±20 mm Standard · ±50 mm Trick</strong></div>
-          <div class="info-row" id="mcKlemmRow" style="display:none"><span>Klemm-Distanzring</span><strong id="mcKlemm">5 mm links auf Gewinde</strong></div>
+          <div class="info-row" id="mcKlemmRow" style="display:none"><span>Klemm-Distanzring</span><strong id="mcKlemm">≥5 mm links auf Gewinde · Werker-Wahl</strong></div>
           <div class="info-row" id="mcAsymmRow" style="display:none"><span>Asymmetrie-Ring</span><strong id="mcAsymm">20 mm rechts (Default an)</strong></div>
           <div class="info-row" id="mcBahnOffsetRow" style="display:none"><span>Bahn-Versatz Einbau</span><strong id="mcBahnOffset">+15 mm Welle-Mitte zur Bahn-Mitte</strong></div>
         </div>
@@ -5152,7 +5152,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.90 · BETA · Komplett SW-Print · Header kompakt · Gradient-Mapping · offline-fähig</div>
+    <div>v1.91 · BETA · Klemm-Distanzring Werker-Wahl · offline-fähig</div>
   </footer>
 </div>
 
@@ -7069,8 +7069,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
       row.innerHTML = `
         <div class="stueck-nr distanz">${nr++}</div>
         <div>
-          <div class="stueck-name"><span class="icon" style="background:linear-gradient(180deg,#00e676,#00b85e)"></span>Klemm-Distanzring <span style="color:var(--accent-primary);font-size:10px;font-weight:700;letter-spacing:0.06em">FIXIERT</span></div>
-          <div class="stueck-detail">${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — verspannt Bestueckung gegen Schraubenende</div>
+          <div class="stueck-name"><span class="icon" style="background:linear-gradient(180deg,#00e676,#00b85e)"></span>Klemm-Distanzring <span style="color:var(--text-secondary);font-size:10px;font-weight:600;letter-spacing:0.04em">Werker-Wahl</span></div>
+          <div class="stueck-detail">${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — Groesse nach Werker-Wahl (≥${r} mm), Hauptsache ueber Gewinde damit Untermesser klemmen</div>
         </div>
         <div class="stueck-mass">${r} mm</div>
         <div class="stueck-pos">@ ${Math.round(kumPos)} mm</div>
@@ -10822,7 +10822,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.90";
+    const PRINT_VERSION = "v1.91";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
     const headerHtml = `
       <div class="pm-header">
@@ -11121,8 +11121,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
       seqHtml += `<tr class="pm-distanz" style="page-break-inside:avoid;break-inside:avoid;">
         <td class="check"></td>
         <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
-        <td class="bauteil"><strong>Klemm-Distanzring</strong> <span class="pm-tag-fixiert">FIXIERT</span><br><small>${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — verspannt Bestückung</small></td>
-        <td class="mass">${r} mm</td>
+        <td class="bauteil"><strong>Klemm-Distanzring</strong> <span class="pm-tag-fixiert">Werker-Wahl</span><br><small>${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — Groesse nach Werker-Wahl (≥${r} mm), Hauptsache ueber Gewinde damit Untermesser klemmen</small></td>
+        <td class="mass">≥${r} mm</td>
         <td class="pos">@ ${Math.round(kumPos)} mm</td>
       </tr>`;
     }
