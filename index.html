@@ -11208,21 +11208,47 @@ ${printHtml}
       window.print();
     }, 200);
   });
-  window.addEventListener("afterprint", function() {
-    setTimeout(function() { window.close(); }, 100);
-  });
 <\/script>
 </body>
 </html>`;
 
-    const win = window.open("", "_blank", "width=900,height=1100");
-    if (!win) {
-      if (typeof toast === "function") toast("Bitte Popups erlauben für den Druck");
-      return;
-    }
-    win.document.open();
-    win.document.write(fullHtml);
-    win.document.close();
+    // v1.83: iframe statt window.open — Firefox-Windows Pop-up-Blocker hat
+    // window.open zuverlaessig blockiert ausser bei Browser-eigenem Ctrl+P.
+    // Hidden iframe wird nicht als Popup blockiert + funktioniert in allen
+    // Browsern. srcdoc liefert das komplette Print-HTML, iframe.print() druckt
+    // nur den iframe-Inhalt (CSS-isoliert).
+    const existingFrame = document.getElementById("printFrame");
+    if (existingFrame) existingFrame.remove();
+    const iframe = document.createElement("iframe");
+    iframe.id = "printFrame";
+    iframe.style.cssText = "position:fixed;left:-10000px;top:-10000px;width:1px;height:1px;border:0;opacity:0";
+    iframe.srcdoc = fullHtml;
+    iframe.onload = function() {
+      try {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      } catch (e) {
+        // Fallback: wenn iframe.print() versagt, alte window.open-Methode
+        if (typeof toast === "function") toast("Print-Iframe fehlgeschlagen, oeffne neues Fenster");
+        const win = window.open("", "_blank");
+        if (win) {
+          win.document.open();
+          win.document.write(fullHtml);
+          win.document.close();
+        }
+      }
+      // Iframe nach Print entfernen (Cleanup)
+      try {
+        iframe.contentWindow.onafterprint = function() {
+          setTimeout(function() { iframe.remove(); }, 200);
+        };
+      } catch (_) {}
+      // Safety-Cleanup falls afterprint nicht feuert (manche Browser)
+      setTimeout(function() {
+        if (document.getElementById("printFrame")) iframe.remove();
+      }, 60000);
+    };
+    document.body.appendChild(iframe);
   }
 
   const printBtnEl = document.getElementById("printWelleBtn");
