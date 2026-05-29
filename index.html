@@ -5141,7 +5141,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.87 · BETA · Print sync im Click-Handler · Diagnostik · offline-fähig</div>
+    <div>v1.88 · BETA · Page-Break vor Sequenz + Anti-Split TR/TD · offline-fähig</div>
   </footer>
 </div>
 
@@ -10986,7 +10986,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const sequenz = [...welleData.layoutLR].reverse();
     const MITTE = M.WELLE_MITTE || 0;
     let seqHtml = `
-      <div class="pm-section pm-sequenz">
+      <div class="pm-section pm-sequenz" style="page-break-before: always !important; break-before: page !important;">
         <h3 class="pm-section-title">Bestückungs-Sequenz <span class="pm-dir">RECHTS → LINKS auf Rüstdorn</span></h3>
         <table class="pm-seq-table">
           <colgroup>
@@ -11180,12 +11180,19 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-section { margin: 0 0 6mm 0; }
       .pm-section-title { font-size: 10.5pt; font-weight: 800; color: #000; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 3mm 0; padding: 0 0 2mm 0; border-bottom: 1.5px solid #000; page-break-after: avoid; break-after: avoid; }
       .pm-dir { display: inline-block; margin-left: 4mm; padding: 0.8mm 2.5mm; font-size: 7.5pt; background: #fff; border: 1.2px solid #000; border-radius: 1.5mm; color: #000; text-transform: none; letter-spacing: 0.04em; vertical-align: middle; font-weight: 700; }
+      /* v1.88: Sequenz IMMER auf neuer Seite — Werker hat Stueckliste in einer
+         Hand, Sequenz in der anderen. Kein Mix der beiden Listen pro Blatt. */
+      .pm-sequenz { page-break-before: always !important; break-before: page !important; }
+      /* Section-Wrap: nicht zwischen Titel und erstem Row brechen */
+      .pm-section { page-break-inside: auto; }
+      .pm-section-title + table { page-break-before: avoid; break-before: avoid; }
       /* === Stückliste === */
-      .pm-holliste-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; }
+      .pm-holliste-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; page-break-inside: auto; }
       .pm-holliste-table thead th { text-align: left; font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #333; padding: 1.5mm 2mm; border-bottom: 1px solid #999; background: #f0f0f0; }
       .pm-holliste-table thead th:nth-child(3) { text-align: right; }
-      .pm-holliste-table tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; }
-      .pm-holliste-table tbody td { padding: 2mm 2mm; border-bottom: 1px dashed #bbb; vertical-align: top; word-wrap: break-word; }
+      .pm-holliste-table tbody { page-break-inside: auto; }
+      .pm-holliste-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+      .pm-holliste-table tbody td { padding: 2mm 2mm; border-bottom: 1px dashed #bbb; vertical-align: top; word-wrap: break-word; page-break-inside: avoid !important; break-inside: avoid !important; }
       .pm-holliste-table tbody tr:last-child td { border-bottom: none; }
       .pm-holliste-table td.check::before { content: ""; display: inline-block; width: 3.8mm; height: 3.8mm; border: 1.2px solid #333; border-radius: 0.8mm; }
       .pm-holliste-table td.bauteil { font-weight: 700; color: #000; }
@@ -11196,13 +11203,16 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-holliste-table tr.pm-row-trim td.bauteil { color: #000; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; }
       .pm-holliste-table tr.pm-row-trim td.check::before { border: 1.5px solid #000; border-radius: 0.8mm; }
       /* === Sequenz === */
-      .pm-seq-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; }
+      .pm-seq-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; page-break-inside: auto; }
       .pm-seq-table thead th { text-align: left; font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #333; padding: 1.8mm 2mm; border-bottom: 1.5px solid #000; background: #f0f0f0; page-break-after: avoid; }
       .pm-seq-table thead th:nth-child(4), .pm-seq-table thead th:nth-child(5) { text-align: right; }
-      .pm-seq-table tbody tr { page-break-inside: avoid !important; break-inside: avoid !important; border-bottom: 1px solid #ccc; }
+      /* v1.88: Anti-Split — page-break-inside auf TR UND TD UND tbody-children.
+         Chrome ignoriert tr-only page-break-inside wenn die Row mehrzeilig ist. */
+      .pm-seq-table tbody { page-break-inside: auto; }
+      .pm-seq-table tr { page-break-inside: avoid !important; break-inside: avoid !important; page-break-after: auto; border-bottom: 1px solid #ccc; }
       .pm-seq-table tbody tr:nth-child(even) { background: #f6f6f6; }
       .pm-seq-table tbody tr:last-child { border-bottom: none; }
-      .pm-seq-table tbody td { padding: 1.2mm 2mm; vertical-align: top; word-wrap: break-word; }
+      .pm-seq-table tbody td { padding: 1.2mm 2mm; vertical-align: top; word-wrap: break-word; page-break-inside: avoid !important; break-inside: avoid !important; }
       .pm-seq-table td.check::before { content: ""; display: inline-block; width: 3.5mm; height: 3.5mm; border: 1.2px solid #333; border-radius: 0.8mm; }
       .pm-seq-table td.nr { text-align: center; padding: 1.2mm 0.5mm; vertical-align: top; }
       .pm-nr-circle { display: inline-block; min-width: 6mm; padding: 0.5mm 1.2mm; font-weight: 800; font-size: 8.5pt; text-align: center; color: #000; border-radius: 1.2mm; border: 1px solid #333; background: #fff; }
