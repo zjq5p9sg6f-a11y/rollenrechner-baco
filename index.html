@@ -2635,7 +2635,7 @@ header.bar {
   #printMaster .pm-header {
     margin: 0 0 5mm 0;
     padding-bottom: 3mm;
-    border-bottom: 2px solid #007a3d;
+    border-bottom: 2px solid #000;
     page-break-inside: avoid;
   }
   #printMaster .pm-brand-row {
@@ -2644,17 +2644,23 @@ header.bar {
     justify-content: space-between;
     gap: 4mm;
     margin-bottom: 1.5mm;
+    flex-wrap: nowrap;
   }
   #printMaster .pm-brand {
-    font-size: 16pt;
+    font-size: 15pt;
     font-weight: 800;
     color: #000;
+    white-space: nowrap;
+    flex: 0 1 auto;
   }
-  #printMaster .pm-brand-strong { color: #007a3d; }
+  #printMaster .pm-brand-strong { color: #000; }
   #printMaster .pm-doc-id {
-    font-size: 9pt;
+    font-size: 8.5pt;
     color: #555;
     font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+    flex: 0 0 auto;
   }
   #printMaster .pm-doc-id strong { color: #000; font-weight: 800; }
   #printMaster .pm-machine {
@@ -2710,12 +2716,12 @@ header.bar {
   #printMaster .pm-section-title {
     font-size: 10pt;
     font-weight: 800;
-    color: #007a3d;
+    color: #000;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     margin: 0 0 2mm 0;
     padding-bottom: 1.5mm;
-    border-bottom: 1px solid #007a3d;
+    border-bottom: 1px solid #000;
     page-break-after: avoid;
     break-after: avoid;
   }
@@ -2724,10 +2730,10 @@ header.bar {
     margin-left: 4mm;
     padding: 0.5mm 2mm;
     font-size: 7.5pt;
-    background: #f0fff5;
-    border: 1px solid #007a3d;
+    background: #fff;
+    border: 1px solid #000;
     border-radius: 1.5mm;
-    color: #007a3d;
+    color: #000;
     text-transform: none;
     letter-spacing: 0.04em;
   }
@@ -2770,13 +2776,13 @@ header.bar {
     text-align: right;
     font-weight: 800;
     font-size: 11pt;
-    color: #007a3d;
+    color: #000;
   }
   #printMaster .pm-holliste-table td.spec {
     font-size: 8.5pt;
     color: #555;
   }
-  #printMaster .pm-holliste-table tr.pm-row-trim td.bauteil { color: #c87800; }
+  #printMaster .pm-holliste-table tr.pm-row-trim td.bauteil { color: #000; }
 
   /* === printMaster · Sequenz-Tabelle === */
   #printMaster .pm-seq-table {
@@ -2848,7 +2854,7 @@ header.bar {
   #printMaster .pm-seq-table td.mass {
     font-weight: 800;
     font-size: 10pt;
-    color: #007a3d;
+    color: #000;
     text-align: right;
     white-space: nowrap;
   }
@@ -2859,7 +2865,7 @@ header.bar {
   }
   #printMaster .pm-seq-table td.pos strong {
     display: block;
-    color: #c01818;
+    color: #000;
     font-weight: 800;
     font-size: 10.5pt;
   }
@@ -2869,20 +2875,25 @@ header.bar {
     font-size: 7pt;
     margin-top: 0.3mm;
   }
-  /* Row-Klassen: nur der Nr-Kreis bekommt Farbe, nicht die ganze Zelle */
-  #printMaster .pm-distanz .pm-nr-circle { background: #e6f7e6; color: #007a3d; border-color: #007a3d; }
-  #printMaster .pm-schneid .pm-nr-circle { background: #fde6e3; color: #a01810; border-color: #a01810; }
-  #printMaster .pm-neben .pm-nr-circle { background: #fff4d6; color: #a06800; border-color: #a06800; }
+  /* v1.90 SW-Differenzierung: Border-Stil + invertierte BG damit Werker
+     auf SW-Druck unterscheiden kann was Schritt fuer Schritt zu tun ist */
+  #printMaster .pm-distanz .pm-nr-circle { background: #fff !important; color: #000 !important; border: 1px solid #999 !important; }
+  #printMaster .pm-schneid .pm-nr-circle { background: #000 !important; color: #fff !important; border: 1.5px solid #000 !important; }
+  #printMaster .pm-neben .pm-nr-circle { background: #fff !important; color: #000 !important; border: 1.5px dashed #000 !important; }
   #printMaster .pm-trim {
-    background: #fffbe6 !important;
-    border-left: 3px solid #c87800 !important;
+    background: #fff !important;
+    border-left: 4px solid #000 !important;
   }
-  #printMaster .pm-trim .pm-nr-circle { background: #fde6e3; color: #a01810; border-color: #a01810; }
+  #printMaster .pm-trim .pm-nr-circle { background: #000 !important; color: #fff !important; border: 1.5px solid #000 !important; }
+  /* Schnitt-Pos: unterstrichen statt rot (SW-Drucker = kein Farb-Hervorhebung) */
+  #printMaster .pm-seq-table td.pos strong { text-decoration: underline !important; }
+  /* pos kompakter damit Wrap nicht passiert */
+  #printMaster .pm-seq-table td.pos { padding: 1.5mm 2mm 1.5mm 0.5mm !important; }
   /* Inline-Badges */
   #printMaster .pm-badge-trim {
     display: inline-block;
-    background: #ffb400;
-    color: #1a0e00;
+    background: #000;
+    color: #fff;
     font-size: 8pt;
     font-weight: 800;
     padding: 0.5mm 2mm;
@@ -2892,8 +2903,8 @@ header.bar {
   }
   #printMaster .pm-badge-uebergang {
     display: inline-block;
-    background: #fff4d6;
-    color: #a06800;
+    background: #fff;
+    color: #000;
     font-size: 8pt;
     font-weight: 800;
     padding: 0.5mm 2mm;
@@ -2911,8 +2922,8 @@ header.bar {
   #printMaster .pm-tag-default,
   #printMaster .pm-tag-fixiert {
     display: inline-block;
-    background: #f0fff5;
-    color: #007a3d;
+    background: #fff;
+    color: #000;
     font-size: 7.5pt;
     font-weight: 800;
     padding: 0.5mm 1.5mm;
@@ -2923,10 +2934,10 @@ header.bar {
   #printMaster .pm-warn {
     margin-top: 1mm;
     padding: 1mm 2mm;
-    background: #fffbe6;
-    border-left: 2px solid #c87800;
+    background: #fff;
+    border-left: 2px solid #000;
     font-size: 7.5pt;
-    color: #c87800;
+    color: #000;
     font-weight: 600;
   }
 
@@ -3008,13 +3019,13 @@ header.bar {
     animation: none !important;
   }
   #welleSection .cluster-job-primary {
-    border: 2px solid #007a3d !important;
+    border: 2px solid #000 !important;
     background: #f7fff5 !important;
   }
   #welleSection .cluster-job-num {
-    background: #007a3d !important;
+    background: #000 !important;
     color: white !important;
-    border-color: #007a3d !important;
+    border-color: #000 !important;
     font-size: 9pt !important;
   }
   #welleSection .cluster-job-pair {
@@ -3032,7 +3043,7 @@ header.bar {
     font-size: 11pt !important;
     font-weight: 700 !important;
   }
-  #welleSection .cluster-job-pair .unit { color: #007a3d !important; }
+  #welleSection .cluster-job-pair .unit { color: #000 !important; }
   #welleSection .cluster-job[data-cluster-status="conflict"] {
     border-color: #c00 !important;
     background: #fff0f0 !important;
@@ -3046,14 +3057,14 @@ header.bar {
     display: flex !important;
     flex-direction: column !important;
     background: white !important;
-    border: 2px solid #c87800 !important;
+    border: 2px solid #000 !important;
     color: black !important;
     page-break-inside: avoid;
     margin-top: 5mm;
     padding: 4mm !important;
   }
   #welleSection .ca-label,
-  #welleSection .ca-incomplete { color: #c87800 !important; }
+  #welleSection .ca-incomplete { color: #000 !important; }
   #welleSection .ca-grid {
     display: grid !important;
     grid-template-columns: repeat(5, 1fr) !important;
@@ -3061,7 +3072,7 @@ header.bar {
   }
   #welleSection .ca-item {
     background: white !important;
-    border: 1px solid #c87800 !important;
+    border: 1px solid #000 !important;
     color: black !important;
     padding: 3mm !important;
   }
@@ -3076,14 +3087,14 @@ header.bar {
   #welleSection .ca-lbl { color: #666 !important; }
   /* Hülsen-Bestell-Liste prominent für Brodbeck-Maschinenführer */
   #welleSection .ca-bestell {
-    border-top: 2px dashed #c87800 !important;
+    border-top: 2px dashed #000 !important;
     margin-top: 4mm !important;
     padding-top: 4mm !important;
   }
-  #welleSection .ca-bestell-label { color: #c87800 !important; font-size: 10pt !important; }
+  #welleSection .ca-bestell-label { color: #000 !important; font-size: 10pt !important; }
   #welleSection .ca-bestell-row {
     background: white !important;
-    border: 1px solid #c87800 !important;
+    border: 1px solid #000 !important;
     color: black !important;
     page-break-inside: avoid;
   }
@@ -3097,7 +3108,7 @@ header.bar {
     display: block !important;
     margin: 0 0 6mm 0 !important;
     padding-bottom: 4mm !important;
-    border-bottom: 2px solid #007a3d !important;
+    border-bottom: 2px solid #000 !important;
     page-break-inside: avoid;
   }
   #welleSection .ph-brand {
@@ -3106,7 +3117,7 @@ header.bar {
     margin-bottom: 1.5mm;
     line-height: 1.15;
   }
-  #welleSection .ph-brand strong { color: #007a3d !important; }
+  #welleSection .ph-brand strong { color: #000 !important; }
   #welleSection .ph-machine {
     font-size: 9pt; font-weight: 600;
     color: #555 !important;
@@ -3163,7 +3174,7 @@ header.bar {
     padding: 3mm 4mm !important;
   }
   #welleSection .welle-holliste h4 {
-    color: #007a3d !important;
+    color: #000 !important;
     font-size: 10pt !important;
     font-weight: 800 !important;
     letter-spacing: 0.06em !important;
@@ -3184,7 +3195,7 @@ header.bar {
     word-break: break-word !important;
   }
   #welleSection .welle-holliste .hl-name { color: black !important; font-weight: 700 !important; }
-  #welleSection .welle-holliste .hl-anz { color: #007a3d !important; font-weight: 800 !important; font-size: 12pt !important; text-align: right !important; }
+  #welleSection .welle-holliste .hl-anz { color: #000 !important; font-weight: 800 !important; font-size: 12pt !important; text-align: right !important; }
   #welleSection .welle-holliste .hl-unit { color: #555 !important; font-size: 8.5pt !important; line-height: 1.3 !important; }
 
   /* === Sequenz: tabellarisch mit FIXEN Spalten damit Pos garantiert sichtbar === */
@@ -3209,16 +3220,16 @@ header.bar {
     gap: 4mm !important;
   }
   #welleSection .welle-sequenz-wrap h4 {
-    color: #007a3d !important;
+    color: #000 !important;
     font-size: 10pt !important;
     font-weight: 800 !important;
     letter-spacing: 0.06em !important;
     margin: 0 !important;
   }
   #welleSection .seq-arrow {
-    background: #f0fff5 !important;
-    color: #007a3d !important;
-    border: 1px solid #007a3d !important;
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #000 !important;
     font-size: 8pt !important;
     padding: 1px 5px !important;
   }
@@ -3268,9 +3279,9 @@ header.bar {
     text-align: right !important;
   }
   #welleSection .stueck-nr.park { background: #eee !important; color: #333 !important; border-color: #999 !important; }
-  #welleSection .stueck-nr.distanz { background: #e6f7e6 !important; color: #007a3d !important; border-color: #007a3d !important; }
-  #welleSection .stueck-nr.schneid { background: #fde6e3 !important; color: #a01810 !important; border-color: #a01810 !important; }
-  #welleSection .stueck-nr.neben { background: #fff4d6 !important; color: #a06800 !important; border-color: #a06800 !important; }
+  #welleSection .stueck-nr.distanz { background: #fff !important; color: #000 !important; border-color: #000 !important; }
+  #welleSection .stueck-nr.schneid { background: #fff !important; color: #000 !important; border-color: #000 !important; }
+  #welleSection .stueck-nr.neben { background: #fff !important; color: #000 !important; border-color: #000 !important; }
   #welleSection .stueck-name {
     font-weight: 700 !important;
     color: black !important;
@@ -3285,7 +3296,7 @@ header.bar {
     margin-top: 1px !important;
   }
   #welleSection .stueck-mass {
-    color: #007a3d !important;
+    color: #000 !important;
     font-weight: 800 !important;
     font-size: 11pt !important;
     text-align: right !important;
@@ -3300,7 +3311,7 @@ header.bar {
   }
   /* Schnitt-Mitte-Anzeige in SE-Row: prominent rot, MUSS sichtbar bleiben */
   #welleSection .stueck-pos strong {
-    color: #a01810 !important;
+    color: #000 !important;
     font-size: 10pt !important;
     font-weight: 800 !important;
     display: block !important;
@@ -3308,8 +3319,8 @@ header.bar {
 
   /* === Print-Only Annotation auf SE-Besäumung — Werker-Warnung kurz === */
   #welleSection .stueck-row-trim {
-    background: #fffbe6 !important;
-    border-left: 3px solid #c87800 !important;
+    background: #fff !important;
+    border-left: 3px solid #000 !important;
     padding-left: 2mm !important;
   }
 
@@ -5141,7 +5152,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.89 · BETA · Version im Print sichtbar · SVG-Fill catch-all · offline-fähig</div>
+    <div>v1.90 · BETA · Komplett SW-Print · Header kompakt · Gradient-Mapping · offline-fähig</div>
   </footer>
 </div>
 
@@ -10811,7 +10822,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.89";
+    const PRINT_VERSION = "v1.90";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
     const headerHtml = `
       <div class="pm-header">
@@ -10856,6 +10867,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
       };
       lightenGradient("gWelleBody", ["#e8e8e8", "#dcdcdc", "#cfcfcf"]);
       lightenGradient("gPark", ["#d8d8d8", "#c8c8c8", "#b8b8b8"]);
+      // v1.90: SW-Print — alle bunten Gradients (Schneide rot, Neben gelb,
+      // Distanz gruen) auf graue Stufen mappen. Differenzierung via Helligkeit.
+      lightenGradient("gSchneid",  ["#444", "#333", "#222"]);  // dunkelgrau = "Schnitt"
+      lightenGradient("gNeben",    ["#aaa", "#888", "#666"]);  // mittelgrau = "Neben"
+      lightenGradient("gDistanz",  ["#ddd", "#c0c0c0", "#a8a8a8"]);  // hellgrau = "Distanz/Schmalrolle"
       // Highlight-Layer (white opacity) im Print weglassen — addiert nur Rauschen
       const hiGrad = svgClone.querySelector("#gWelleHi");
       if (hiGrad) {
