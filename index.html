@@ -5141,7 +5141,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.86 · BETA · Print-Button-Crash fix · SW-Print optimiert · offline-fähig</div>
+    <div>v1.87 · BETA · Print sync im Click-Handler · Diagnostik · offline-fähig</div>
   </footer>
 </div>
 
@@ -11114,9 +11114,17 @@ audio.team-player-audio::-webkit-media-controls-panel {
   // Cascade-Tricks. Werker drückt im neuen Fenster "Drucken" oder Cmd+P,
   // speichert als PDF, schliesst das Fenster.
   function openPrintWindow() {
+    console.log("[Print] openPrintWindow() called");
+    const hasValid = (typeof lastValid !== "undefined" && lastValid);
+    console.log("[Print] lastValid present:", !!hasValid);
     const root = buildPrintMaster();  // baut printMaster und haengt ihn an document.body
+    console.log("[Print] buildPrintMaster() returned:", !!root, root);
     if (!root) {
-      if (typeof toast === "function") toast("Werte fehlen für Druck");
+      const msg = hasValid
+        ? "Drucken: Welle-Daten ungueltig — Werte oben pruefen (rote Warnung)?"
+        : "Drucken: Keine gueltigen Eingaben — bitte erst Mutterrolle + Schmalrolle eingeben und 'Berechnen' druecken";
+      if (typeof toast === "function") toast(msg);
+      else alert(msg);
       return;
     }
     // v1.86: KEIN teardown vor Print! @media print zeigt #printMaster,
@@ -11244,16 +11252,34 @@ body > *:not(#printMaster) { display: none !important; }
     }
     window.addEventListener("afterprint", cleanupPrint);
     setTimeout(cleanupPrint, 30000);  // Safety
-    // Print im naechsten Tick triggern damit CSS gerendert ist
-    setTimeout(function() { window.print(); }, 150);
+    // v1.87: Force-Reflow damit @media print CSS applied ist, dann SYNC print().
+    // Kein setTimeout — manche Browser (Firefox/Safari) erlauben window.print()
+    // nur im User-Gesture-Stack. setTimeout-Wrap brach das Gesture-Token →
+    // window.print() wurde stillschweigend ignoriert.
+    void document.body.offsetHeight;  // force style/layout flush
+    try {
+      window.print();
+    } catch (e) {
+      console.error("[Print] window.print() failed:", e);
+      if (typeof toast === "function") toast("Drucken nicht moeglich: " + (e.message || e));
+    }
   }
 
   const printBtnEl = document.getElementById("printWelleBtn");
+  console.log("[Print] printWelleBtn found:", !!printBtnEl);
   if (printBtnEl) {
     printBtnEl.addEventListener("click", () => {
-      if (typeof preparePrintHeader === "function") preparePrintHeader();
-      openPrintWindow();
+      console.log("[Print] Button clicked");
+      try {
+        if (typeof preparePrintHeader === "function") preparePrintHeader();
+        openPrintWindow();
+      } catch (e) {
+        console.error("[Print] Handler threw:", e);
+        alert("Drucken fehlgeschlagen: " + (e && e.message ? e.message : e));
+      }
     });
+  } else {
+    console.warn("[Print] printWelleBtn nicht gefunden — Button-Element existiert nicht im DOM");
   }
 
   // === Headless-Test-Mode: ?print=inline rendert Print-HTML direkt in body
