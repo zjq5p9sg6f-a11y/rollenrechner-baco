@@ -5115,6 +5115,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
         </div>
       </div>
 
+      <!-- Reihenfolge: zuerst Stückliste (was zu holen), dann Sequenz (Schritt-für-Schritt) -->
+      <div class="welle-holliste" id="welleHolliste"></div>
       <!-- Bestückungs-Sequenz: Schritt-für-Schritt-Anweisung für den Einrichter (Rechts → Links auf Welle) -->
       <div class="welle-sequenz-wrap" id="welleSequenzWrap">
         <div class="welle-sequenz-head">
@@ -5128,7 +5130,6 @@ audio.team-player-audio::-webkit-media-controls-panel {
         </div>
         <div class="welle-sequenz" id="welleSequenz"></div>
       </div>
-      <div class="welle-holliste" id="welleHolliste"></div>
       <div class="welle-alerts" id="welleAlerts"></div>
     </section>
     <!-- ============== /WELLENBESTÜCKUNG ============== -->
@@ -5140,7 +5141,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.84 · BETA · Print-Iframe via Blob-URL · Welle dunkel-grüne fix · Display-Audit · offline-fähig</div>
+    <div>v1.85 · BETA · Print im Current-Window · Welle ohne Balken · Stückliste oben · offline-fähig</div>
   </footer>
 </div>
 
@@ -10890,13 +10891,17 @@ audio.team-player-audio::-webkit-media-controls-panel {
           // Dunkle Semi-Transparent-Layer → fast transparent
           el.setAttribute("fill", "rgba(0,0,0,0.04)");
         } else if (fill.startsWith("rgba(6,43,20") || fill.startsWith("rgba(6, 43, 20")) {
-          // Dunkel-gruene Annotation-Box-Background (Web: weisser Text auf dunkel
-          // gruen, sieht im Print mit hellem Welle-Body wie schwarz aus)
-          // → CARLON-Akzent (weiß Text bleibt darauf lesbar)
-          el.setAttribute("fill", "#007a3d");
+          // Dunkel-gruene Annotation-Box-Background — Jan-Wunsch: KEINE
+          // Bemaßungs-Boxen mit gefuelltem BG. Fill transparent, dadurch
+          // sieht man nur die Texte ohne Balken.
+          el.setAttribute("fill", "#ffffff");
+          el.setAttribute("stroke", "#007a3d");
+          el.setAttribute("stroke-width", "0.5");
         } else if (fill === "#1a1a1a" || fill === "#0a0a0a" || fill === "#2a2a2a" || fill === "#1f1f1f" || fill === "#202020") {
-          // Dunkle direkte fills (Welle-Body-Highlights, Annotation-BG)
-          el.setAttribute("fill", "#007a3d");
+          // Dunkle direkte fills → weiss mit dezentem Border statt schwarz
+          el.setAttribute("fill", "#ffffff");
+          el.setAttribute("stroke", "#999");
+          el.setAttribute("stroke-width", "0.4");
         } else if (fill.startsWith("var(--")) {
           // Unbekannte CSS-Variable → fallback grau
           el.setAttribute("fill", "#cccccc");
@@ -11220,48 +11225,32 @@ ${printHtml}
 </body>
 </html>`;
 
-    // v1.84: Primaer iframe (kein Pop-up), Fallback auf window.open im
-    // SELBEN Click-Tick (user-trusted) damit Pop-up-Blocker nicht greift.
-    // Vorher: iframe.srcdoc onload triggert print() ueber 200ms script —
-    // funktionierte nicht zuverlaessig auf allen Browsern.
-    // Jetzt: blob-URL Approach. iframe mit blob-URL ist robuster als srcdoc.
-    let printed = false;
-    try {
-      const blob = new Blob([fullHtml], { type: "text/html" });
-      const blobUrl = URL.createObjectURL(blob);
-      const existingFrame = document.getElementById("printFrame");
-      if (existingFrame) existingFrame.remove();
-      const iframe = document.createElement("iframe");
-      iframe.id = "printFrame";
-      iframe.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
-      iframe.src = blobUrl;
-      iframe.onload = function() {
-        setTimeout(function() {
-          try {
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-            printed = true;
-          } catch (e) {
-            console.warn("Iframe print failed:", e);
-          }
-        }, 300);
-        setTimeout(function() {
-          URL.revokeObjectURL(blobUrl);
-          if (document.getElementById("printFrame")) iframe.remove();
-        }, 30000);
-      };
-      document.body.appendChild(iframe);
-    } catch (eOuter) {
-      // Fallback: window.open im Click-Handler-Tick (user-trusted, kein Popup-Block)
-      const win = window.open("", "_blank", "width=900,height=1100");
-      if (win) {
-        win.document.open();
-        win.document.write(fullHtml);
-        win.document.close();
-      } else {
-        if (typeof toast === "function") toast("Bitte Popups erlauben fuer Druck");
-      }
+    // v1.85: Native window.print() im aktuellen Window — kein iframe, kein
+    // Pop-up. printMaster bleibt im DOM (buildPrintMaster hat ihn angehaengt).
+    // @media print regelt: alles ausblenden, nur printMaster sichtbar.
+    // Nach Print: afterprint cleanup + 10s safety-timeout.
+    const inlineCssEl = document.createElement("style");
+    inlineCssEl.id = "printActiveCss";
+    // Komplettes Print-CSS in @media print wrappen damit Web-Sicht nicht
+    // beeinflusst wird. styleSheet enthaelt @page + alle pm-* styles.
+    inlineCssEl.textContent = `@media print {
+${styleSheet}
+body > *:not(#printMaster) { display: none !important; }
+#printMaster { display: block !important; position: static !important; left: auto !important; top: auto !important; width: 173mm !important; max-width: 173mm !important; margin: 0 auto !important; }
+}`;
+    document.head.appendChild(inlineCssEl);
+    function cleanupPrint() {
+      try {
+        const s = document.getElementById("printActiveCss");
+        if (s) s.remove();
+        if (typeof teardownPrintMaster === "function") teardownPrintMaster();
+      } catch(_) {}
+      window.removeEventListener("afterprint", cleanupPrint);
     }
+    window.addEventListener("afterprint", cleanupPrint);
+    setTimeout(cleanupPrint, 30000);  // Safety
+    // Print im naechsten Tick triggern damit CSS gerendert ist
+    setTimeout(function() { window.print(); }, 150);
   }
 
   const printBtnEl = document.getElementById("printWelleBtn");
