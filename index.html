@@ -1236,6 +1236,121 @@ header.bar {
 }
 .welle-head-actions { display: flex; gap: 8px; }
 
+/* ============== v1.95 Werker-Rechenweg · Transparenz-Card ============== */
+.werker-formel {
+  background:
+    linear-gradient(180deg, rgba(255,138,0,0.045), rgba(255,138,0,0) 60%),
+    rgba(18,18,18,0.92);
+  border: 1px solid rgba(255,138,0,0.22);
+  border-radius: 12px;
+  padding: 14px 22px 16px;
+  margin: 14px 0 0;
+  box-shadow: 0 14px 36px -18px rgba(0,0,0,0.6);
+}
+.werker-formel[aria-hidden="true"] {
+  opacity: 0.45;
+  filter: grayscale(0.4);
+}
+.wf-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 12px;
+  gap: 12px; flex-wrap: wrap;
+}
+.wf-eyebrow {
+  font-size: 10.5px; font-weight: 800;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: #ff8a00;
+}
+.wf-result-tag {
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #d8d8d8; opacity: 0.85;
+  padding: 3px 9px;
+  border: 1px solid rgba(255,138,0,0.32);
+  border-radius: 999px;
+  background: rgba(255,138,0,0.05);
+}
+.wf-equation {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 6px 0 4px;
+}
+.wf-term {
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 130px;
+  padding: 10px 14px 8px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  transition: transform 200ms ease, border-color 200ms ease;
+}
+.wf-term:hover { transform: translateY(-1px); }
+.wf-term-a { border-color: rgba(0,230,118,0.22); }
+.wf-term-b { border-color: rgba(66,165,245,0.22); }
+.wf-term-result {
+  border-color: rgba(255,138,0,0.45);
+  background: rgba(255,138,0,0.06);
+  box-shadow: 0 0 28px -10px rgba(255,138,0,0.35);
+}
+.wf-val {
+  font-size: 32px; font-weight: 900; line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  display: flex; align-items: baseline; gap: 4px;
+  margin-bottom: 4px;
+}
+.wf-term-a .wf-val { color: #00e676; }
+.wf-term-b .wf-val { color: #42a5f5; }
+.wf-term-result .wf-val { color: #ff8a00; }
+.wf-unit {
+  font-size: 13px; font-weight: 700;
+  color: #b0b0b0; opacity: 0.78;
+}
+.wf-lbl {
+  font-size: 11px; font-weight: 800;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  color: #f0f0f0;
+  margin-bottom: 2px;
+}
+.wf-sub {
+  font-size: 10px; font-weight: 500;
+  color: #a8a8a8;
+  letter-spacing: 0.02em;
+  text-align: center;
+  line-height: 1.3;
+}
+.wf-op {
+  font-size: 28px; font-weight: 700;
+  color: #d8d8d8; opacity: 0.55;
+  padding: 0 2px;
+  line-height: 1;
+}
+.wf-foot {
+  display: flex; gap: 8px; align-items: flex-start;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(255,255,255,0.08);
+  font-size: 11px;
+  color: #a8a8a8;
+  line-height: 1.45;
+}
+.wf-foot-icon {
+  flex-shrink: 0;
+  color: #ff8a00;
+  font-weight: 800;
+  font-size: 12px;
+  margin-top: 1px;
+}
+@media (max-width: 720px) {
+  .wf-equation { gap: 8px; }
+  .wf-term { min-width: 0; padding: 8px 10px 6px; flex: 1; }
+  .wf-val { font-size: 22px; }
+  .wf-op { font-size: 20px; }
+}
+@media print { .werker-formel { display: none; } }
+
 /* ============== v1.94 Hero-KPI-Strip · Carlon-Thermal-Dashboard-Style ============== */
 .kpi-hero {
   display: grid;
@@ -4951,6 +5066,41 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <tr><td class="ph-lbl">Nutzen</td><td class="ph-val" id="printNutzen">—</td>
               <td class="ph-lbl">Bemerkung</td><td class="ph-val" id="printBemerkung">—</td></tr>
         </table>
+      </div>
+
+      <!-- v1.95 Werker-Rechenweg · transparente Schritt-für-Schritt-Formel zur 1. Schneidkante -->
+      <div class="werker-formel" id="werkerFormel" aria-hidden="true">
+        <div class="wf-head">
+          <span class="wf-eyebrow">Werker-Rechenweg · So entsteht der Wert</span>
+          <span class="wf-result-tag" id="wfResultTag">1. Schneidkante v. rechts</span>
+        </div>
+        <div class="wf-equation">
+          <div class="wf-term wf-term-a">
+            <div class="wf-val"><span id="wfTermA">—</span><span class="wf-unit">mm</span></div>
+            <div class="wf-lbl">Welle-Mitte</div>
+            <div class="wf-sub" id="wfTermASub">vom rechten Wellenrand</div>
+          </div>
+          <div class="wf-op">−</div>
+          <div class="wf-term wf-term-b">
+            <div class="wf-val"><span id="wfTermB">—</span><span class="wf-unit">mm</span></div>
+            <div class="wf-lbl">½ Stack</div>
+            <div class="wf-sub" id="wfTermBSub">(Nutzen × Schmal) / 2</div>
+          </div>
+          <div class="wf-op">=</div>
+          <div class="wf-term wf-term-result">
+            <div class="wf-val"><span id="wfTermResult">—</span><span class="wf-unit">mm</span></div>
+            <div class="wf-lbl">Abstand</div>
+            <div class="wf-sub">v. rechtem Wellenrand</div>
+          </div>
+        </div>
+        <div class="wf-foot" id="wfFoot">
+          <span class="wf-foot-icon">ℹ</span>
+          <span id="wfFootText">
+            Das Tool rechnet identisch zum Werker — nur dass es mit 0,5-mm-Präzision
+            zwischenwerte beibehält statt zu runden. Bei DCM kommt 3 mm Asymm. dazu
+            (Schneidring 10 + Übergang 3 + Nutmesser 7).
+          </span>
+        </div>
       </div>
 
       <!-- v1.94 Hero-KPI-Strip · 3 Top-Werker-KPIs direkt über der Welle -->
@@ -8979,6 +9129,67 @@ audio.team-player-audio::-webkit-media-controls-panel {
   }
   // Wire-up beim ersten Render (renderWelleSvg ruft das mit auf)
 
+  // v1.95: Werker-Rechenweg-Card — zeigt die Formel transparent damit Werker
+  // sofort sieht ob die Tool-Rechnung mit seiner Kopfrechnung übereinstimmt.
+  function updateWerkerFormel(d, out) {
+    const formelEl = document.getElementById("werkerFormel");
+    if (!formelEl) return;
+    const aEl = document.getElementById("wfTermA");
+    const aSubEl = document.getElementById("wfTermASub");
+    const bEl = document.getElementById("wfTermB");
+    const bSubEl = document.getElementById("wfTermBSub");
+    const rEl = document.getElementById("wfTermResult");
+    const footEl = document.getElementById("wfFootText");
+
+    if (!d || !d.ok || !out) {
+      formelEl.setAttribute("aria-hidden", "true");
+      if (aEl) aEl.textContent = "—";
+      if (bEl) bEl.textContent = "—";
+      if (rEl) rEl.textContent = "—";
+      return;
+    }
+
+    const M = getMachine();
+    const N  = out.nutzen || d.N || 0;
+    const haupt = out.schmal || d.haupt || 0;
+    const stackMm = N * haupt;
+    const halfStack = stackMm / 2;
+    // A: Welle-Mitte vom rechten Wellenrand
+    const aMm = M.WELLE - M.WELLE_MITTE;
+    // Asymm-Korrektur (= Versatz der Cut-Mitte gegen Welle-Mitte bei DCM)
+    // DCM: SCHNITT_OFFSET=13, SE/2=10 → 3 mm rechts der SE-Mitte
+    const asymmMm = M.SCHNITT_OFFSET - M.SCHNEIDEEINHEIT / 2;
+    const resultMm = aMm - halfStack - asymmMm;
+
+    formelEl.setAttribute("aria-hidden", "false");
+    if (aEl) aEl.textContent = fmtW(aMm, 1);
+    if (aSubEl) aSubEl.textContent = M.id === "EUROMAC"
+      ? `vom rechten Wellenrand (asymm. 650/670)`
+      : `vom rechten Wellenrand`;
+    if (bEl) bEl.textContent = fmtW(halfStack, 1);
+    if (bSubEl) bSubEl.textContent = `${N} × ${fmtW(haupt, 1)} mm / 2`;
+    if (rEl) rEl.textContent = fmtW(resultMm, 1);
+
+    // Footer-Erklärung: bei DCM die Asymm-Korrektur erläutern
+    if (footEl) {
+      if (Math.abs(asymmMm) > 0.05) {
+        const asymmSign = asymmMm > 0 ? "−" : "+";
+        const asymmAbs = Math.abs(asymmMm).toFixed(0);
+        footEl.innerHTML =
+          `Bei <strong>${M.label}</strong> kommt eine asymmetrische SE-Korrektur dazu: ` +
+          `Schneidring ${(M.SE_SORTIMENT && M.SE_SORTIMENT[0] && M.SE_SORTIMENT[0].composition) || "Schneidring+Nutmesser"} ` +
+          `→ Cut sitzt ${asymmAbs} mm rechts der SE-Mitte. ` +
+          `<strong style="color:#ff8a00">Daher ${asymmSign} ${asymmAbs} mm im Endergebnis.</strong> ` +
+          `Werker-Vereinfachung (ohne Asymm.): ${fmtW(aMm - halfStack, 1)} mm — Tool zeigt das präzise: ${fmtW(resultMm, 1)} mm.`;
+      } else {
+        footEl.innerHTML =
+          `<strong>${M.label}</strong> hat eine symmetrische SE (Cut = SE-Mitte). ` +
+          `Tool rechnet 1:1 identisch zur Werker-Kopfrechnung — nur mit 0,5-mm-Präzision ` +
+          `bei ungeradem Trim (z.B. 25×25 / MR 630 ergibt exakt 357,5 statt 357 oder 358).`;
+      }
+    }
+  }
+
   // v1.94: KPI-Hero-Strip Update (3 Tiles über der Welle)
   function updateKpiHero(d, out) {
     const massValEl   = document.getElementById("kpiMassVal");
@@ -9088,6 +9299,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (sub) sub.textContent = "Werte oben eingeben um Bestückung zu berechnen";
       renderWelleSvg(null); renderWelleHolliste(null); renderWelleAlerts(null);
       updateKpiHero(null, null);
+      updateWerkerFormel(null, null);
       if (tracksSvg) { tracksSvg.style.display = "none"; tracksSvg.innerHTML = ""; }
       return;
     }
@@ -9145,6 +9357,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         renderWelleSequenz(master);
         renderWelleHolliste(master);
         updateKpiHero(master, out);
+        updateWerkerFormel(master, out);
         const qScore = calcQualityScore(master, out);
         const alerts = master.alerts || [];
         // Ratio-Pattern-Tipp (z.B. "A2 60mm ≈ 2× A1 30mm → jedes 2. Messer nutzen")
@@ -9183,10 +9396,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
         renderWelleSequenz(singleResult);
         renderWelleHolliste(singleResult);
         updateKpiHero(singleResult, out);
+        updateWerkerFormel(singleResult, out);
       } else {
         if (sub) sub.innerHTML = `<span style="color:var(--danger-color)"><strong>✗ Bestückung nicht möglich</strong></span>`;
         renderWelleSvg(null); renderWelleHolliste(null); renderWelleSequenz(null);
         updateKpiHero(null, null);
+        updateWerkerFormel(null, null);
       }
       const alerts = [
         { type: "warn", msg: `<strong>△ Folgeaufträge nicht mit Primär-Welle kombinierbar:</strong> ${excludedListTxt} sind rot markiert oben — entfernen oder Schmalrollen anpassen.` }
@@ -9210,9 +9425,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (sub) sub.innerHTML = `<span style="color:var(--danger-color)">${(result.alerts[0] && result.alerts[0].msg) || 'Bestückung nicht möglich'}</span>`;
       renderWelleSvg(null); renderWelleHolliste(null); renderWelleSequenz(null); renderWelleAlerts(result);
       updateKpiHero(null, null);
+      updateWerkerFormel(null, null);
       return;
     }
     updateKpiHero(result, out);
+    updateWerkerFormel(result, out);
     const slotsTxt = result.slots.length ? ` + ${result.slots.map(s=>`${s.anz}× ${s.breite} mm`).join(" + ")} Neben` : "";
     if (sub) {
       const restTxt = (Math.abs((result.restL || 0) - (result.restR || 0)) < 0.01)
