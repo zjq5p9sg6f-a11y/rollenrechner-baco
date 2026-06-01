@@ -6382,7 +6382,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         svgW(g, "text", { x: cutX, y: knifeY - 2, "text-anchor": "end",
           fill: "rgba(220,220,220,0.85)", "font-size": "8.5", "font-weight": "600",
           "font-family": "ui-monospace, SF Mono, monospace",
-          transform: `rotate(-65 ${cutX} ${knifeY - 2})` }, fmtW0(cutMm));
+          transform: `rotate(-65 ${cutX} ${knifeY - 2})` }, fmtW(cutMm, 1));
         svgW(g, "path", { d: `M${cutX} ${knifeY+10} L${cutX-4} ${knifeY+2} L${cutX+4} ${knifeY+2} Z`,
           fill: seg.kind === "neben" ? "var(--warn-color)" : "var(--accent-primary)", opacity: "0.95" });
         svgW(g, "line", { x1: cutX, y1: knifeY + 10, x2: cutX, y2: barTop,
@@ -6397,7 +6397,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           svgW(g, "text", { x: cutX, y: knifeY - 2, "text-anchor": "end",
             fill: "rgba(0,212,255,0.95)", "font-size": "8.5", "font-weight": "600",
             "font-family": "ui-monospace, SF Mono, monospace",
-            transform: `rotate(-65 ${cutX} ${knifeY - 2})` }, fmtW0(cutMm));
+            transform: `rotate(-65 ${cutX} ${knifeY - 2})` }, fmtW(cutMm, 1));
           svgW(g, "path", { d: `M${cutX} ${knifeY+10} L${cutX-4} ${knifeY+2} L${cutX+4} ${knifeY+2} Z`,
             fill: cyanCol, opacity: "0.95" });
           svgW(g, "line", { x1: cutX, y1: knifeY + 10, x2: cutX, y2: barTop,
@@ -6616,7 +6616,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
           fill: warnCol });
 
         // Banner-Box mit GROSSEM Wert — zentriert auf der Bemassungs-Linie, immer im sichtbaren Bereich
-        const valTxt = `${fmtW0(distMm)} mm`;
+        // 1 Dezimalstelle wenn Halbzahl, sonst Integer (verhindert 1mm-Rundungs-Diskrepanz
+        // gegenueber der Werker-Kopfrechnung wie 625/2=312,5 → 670-312,5=357,5)
+        const valTxt = `${fmtW(distMm, 1)} mm`;
         const subTxt = "↞ 1. Schneidkante v. rechts (inkl. Park-R)";
         const boxW = Math.max(valTxt.length * 13 + 60, subTxt.length * 6.0 + 30);
         const boxH = 38;
@@ -6814,8 +6816,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
       // bedeutet Bauteil ist rechts der Mitte → positiv anzeigen.
       const center = absPos + (breite / 2);
       const delta = MITTE - center;  // Vorzeichen-Flip für Werker-Sicht
-      if (Math.abs(delta) < 1) return "Mitte";
-      return delta > 0 ? `Mitte +${Math.round(delta)}` : `Mitte ${Math.round(delta)}`;
+      if (Math.abs(delta) < 0.4) return "Mitte";
+      return delta > 0 ? `Mitte +${fmtW(delta, 1)}` : `Mitte ${fmtW(delta, 1)}`;
     }
     const sequenz = [...result.layoutLR].reverse();  // Rechts → Links
     let kumPos = 0;
@@ -6833,7 +6835,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="stueck-detail">gleicht Welle-Asymmetrie 650/670 aus · ${fromMitte(kumPos, r)}</div>
         </div>
         <div class="stueck-mass">${r} mm</div>
-        <div class="stueck-pos">@ ${Math.round(kumPos)} mm</div>
+        <div class="stueck-pos">@ ${fmtW(kumPos, 1)} mm</div>
       `;
       seqEl.appendChild(row);
       kumPos += r;
@@ -6853,7 +6855,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
                 <div class="stueck-detail">aus ${size} mm Stack · ${fromMitte(kumPos, size)}</div>
               </div>
               <div class="stueck-mass">${size} mm</div>
-              <div class="stueck-pos">@ ${Math.round(kumPos)} mm</div>
+              <div class="stueck-pos">@ ${fmtW(kumPos, 1)} mm</div>
             `;
             seqEl.appendChild(row);
             kumPos += size;
@@ -6876,12 +6878,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
             ? "linear-gradient(90deg,#ffb74d 0%,#ffb74d 50%,#ffd54f 50%,#ffd54f 100%)"
             : "linear-gradient(90deg,#ff5544 0%,#ff5544 50%,#ffd54f 50%,#ffd54f 100%)";
         const cutPosLocal = getMachine().SCHNITT_OFFSET;
-        const cutAbsPos = Math.round(kumPos + cutPosLocal);
+        const cutAbsPos = kumPos + cutPosLocal;  // float — half-Werte beibehalten
         // Werker-Vorzeichen-Konvention: rechts der Mitte = positiv
         const cutFromMitte = MITTE - cutAbsPos;
-        const cutMitteShort = Math.abs(cutFromMitte) < 1
+        const cutMitteShort = Math.abs(cutFromMitte) < 0.4
           ? "Schnitt @ Mitte"
-          : (cutFromMitte > 0 ? `Schnitt Mitte +${cutFromMitte}` : `Schnitt Mitte ${cutFromMitte}`);
+          : (cutFromMitte > 0 ? `Schnitt Mitte +${fmtW(cutFromMitte, 1)}` : `Schnitt Mitte ${fmtW(cutFromMitte, 1)}`);
         const trimMm = (typeof seg.trim === "number") ? seg.trim : 0;
         const roleBadge = isTrim
           ? `<span style="display:inline-block;background:#ffb400;color:#1a0e00;font-size:9px;font-weight:800;padding:2px 7px;border-radius:3px;margin-left:8px;letter-spacing:0.06em;vertical-align:1px">BESÄUMUNG ${role === "trim-L" ? "L" : "R"}${trimMm ? ` · ${trimMm} mm Trim` : ""}</span>`
@@ -6899,10 +6901,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="stueck-nr ${cls}">${nr++}</div>
           <div>
             <div class="stueck-name"><span class="icon" style="background:${swatch}"></span>Schneideeinheit${roleBadge}</div>
-            <div class="stueck-detail">Schnittkante asymm. @ ${getMachine().SCHNITT_OFFSET} mm v. links der SE · SE-Linke-Kante @ ${Math.round(kumPos)} mm v. rechtem Wellenrand · SE-Mitte ${fromMitte(kumPos, getMachine().SCHNEIDEEINHEIT)}${trimNote}</div>
+            <div class="stueck-detail">Schnittkante @ ${getMachine().SCHNITT_OFFSET} mm v. links der SE (= SE-Mitte) · SE-Linke-Kante @ ${fmtW(kumPos, 1)} mm v. rechtem Wellenrand · SE-Mitte ${fromMitte(kumPos, getMachine().SCHNEIDEEINHEIT)}${trimNote}</div>
           </div>
           <div class="stueck-mass">20 mm</div>
-          <div class="stueck-pos"><strong style="color:#ff8a7a;font-size:13px;font-weight:800">${cutMitteShort} mm</strong><br><span style="font-size:10px;opacity:0.7;font-weight:500">Welle-Pos ${cutAbsPos} mm</span></div>
+          <div class="stueck-pos"><strong style="color:#ff8a7a;font-size:13px;font-weight:800">${cutMitteShort} mm</strong><br><span style="font-size:10px;opacity:0.7;font-weight:500">Welle-Pos ${fmtW(cutAbsPos, 1)} mm</span></div>
         `;
         seqEl.appendChild(r);
         kumPos += getMachine().SCHNEIDEEINHEIT;
@@ -6925,7 +6927,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           ${detail}
         </div>
         <div class="stueck-mass">${seg.breite < 1 ? seg.breite.toFixed(2) : Math.round(seg.breite * 100) / 100} mm</div>
-        <div class="stueck-pos">@ ${Math.round(kumPos)} mm</div>
+        <div class="stueck-pos">@ ${fmtW(kumPos, 1)} mm</div>
       `;
       seqEl.appendChild(row);
       kumPos += seg.breite;
@@ -6943,7 +6945,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="stueck-detail">${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — meist ${r} mm, je nach Gewindelaenge bis ${M.KLEMM_DISTANZRING_MAX_MM || 20} mm. Wichtig: ragt vom Bestueckungsbereich in den Gewindebereich hinaus, damit die Gewindemutter alles fest klemmen kann.</div>
         </div>
         <div class="stueck-mass">${r} mm</div>
-        <div class="stueck-pos">@ ${Math.round(kumPos)} mm</div>
+        <div class="stueck-pos">@ ${fmtW(kumPos, 1)} mm</div>
       `;
       seqEl.appendChild(row);
       kumPos += r;
@@ -10946,9 +10948,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const fromMitte = (absPos, breite) => {
       // Werker-Konvention: rechts der Mitte = positiv (kumPos wächst nach links)
       const center = absPos + breite / 2;
-      const d = Math.round(MITTE - center);
-      if (Math.abs(d) < 1) return "Mitte";
-      return d > 0 ? `Mitte +${d}` : `Mitte ${d}`;
+      const d = MITTE - center;  // float — half-Werte erhalten
+      if (Math.abs(d) < 0.4) return "Mitte";
+      return d > 0 ? `Mitte +${fmtW(d, 1)}` : `Mitte ${fmtW(d, 1)}`;
     };
     // Euromac Pre-Step: Asymmetrie-Ring
     if (isEuro && M.ASYMMETRY_RING_DEFAULT_ON && M.ASYMMETRY_RING_RIGHT_MM > 0) {
@@ -10958,7 +10960,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
         <td class="bauteil"><strong>Asymmetrie-Ring</strong> <span class="pm-tag-default">DEFAULT</span><br><small>gleicht Welle-Asymmetrie 650/670 aus · ${fromMitte(kumPos, r)}</small></td>
         <td class="mass">${r} mm</td>
-        <td class="pos">@ ${Math.round(kumPos)} mm</td>
+        <td class="pos">@ ${fmtW(kumPos, 1)} mm</td>
       </tr>`;
       kumPos += r;
     }
@@ -10972,7 +10974,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
               <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
               <td class="bauteil"><strong>Distanzring (Rest)</strong><br><small>aus ${size} mm Stack · ${fromMitte(kumPos, size)}</small></td>
               <td class="mass">${size} mm</td>
-              <td class="pos">@ ${Math.round(kumPos)} mm</td>
+              <td class="pos">@ ${fmtW(kumPos, 1)} mm</td>
             </tr>`;
             kumPos += size;
           }
@@ -10982,9 +10984,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (seg.kind === "schneid" || seg.kind === "neben") {
         const role = seg.role || "inner";
         const isTrim = (role === "trim-L" || role === "trim-R");
-        const cutPos = Math.round(kumPos + M.SCHNITT_OFFSET);
+        const cutPos = kumPos + M.SCHNITT_OFFSET;  // float — half-Werte erhalten
         const cutDelta = MITTE - cutPos;  // Werker-Vorzeichen: rechts = positiv
-        const schnittTxt = Math.abs(cutDelta) < 1 ? "Mitte" : (cutDelta > 0 ? `+${cutDelta}` : `${cutDelta}`);
+        const schnittTxt = Math.abs(cutDelta) < 0.4 ? "Mitte" : (cutDelta > 0 ? `+${fmtW(cutDelta, 1)}` : `${fmtW(cutDelta, 1)}`);
         const seClass = isTrim ? "pm-trim" : (seg.kind === "neben" ? "pm-neben" : "pm-schneid");
         const badge = isTrim
           ? `<span class="pm-badge-trim">BESÄUMUNG ${role === "trim-L" ? "L" : "R"}${typeof seg.trim === "number" ? " · " + seg.trim + " mm Trim" : ""}</span>`
@@ -10995,9 +10997,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
         seqHtml += `<tr class="${seClass}" style="page-break-inside:avoid;break-inside:avoid;">
           <td class="check"></td>
           <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
-          <td class="bauteil"><strong>Schneideeinheit</strong> ${badge}<br><small>SE-Linke-Kante @ ${Math.round(kumPos)} mm · Schnittkante @ ${M.SCHNITT_OFFSET} mm v. links</small>${warn}</td>
+          <td class="bauteil"><strong>Schneideeinheit</strong> ${badge}<br><small>SE-Linke-Kante @ ${fmtW(kumPos, 1)} mm · Schnittkante @ ${M.SCHNITT_OFFSET} mm v. links</small>${warn}</td>
           <td class="mass">${M.SCHNEIDEEINHEIT} mm</td>
-          <td class="pos"><strong>Schnitt Mitte ${schnittTxt}</strong><br><small>Welle-Pos ${cutPos} mm</small></td>
+          <td class="pos"><strong>Schnitt Mitte ${schnittTxt}</strong><br><small>Welle-Pos ${fmtW(cutPos, 1)} mm</small></td>
         </tr>`;
         kumPos += M.SCHNEIDEEINHEIT;
         continue;
@@ -11009,7 +11011,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
           <td class="bauteil"><strong>${escape(seg.name || "Distanzring")}</strong><br><small>↳ ${fromMitte(kumPos, seg.breite)}</small></td>
           <td class="mass">${seg.breite < 1 ? seg.breite.toFixed(2) : Math.round(seg.breite * 100) / 100} mm</td>
-          <td class="pos">@ ${Math.round(kumPos)} mm</td>
+          <td class="pos">@ ${fmtW(kumPos, 1)} mm</td>
         </tr>`;
         kumPos += seg.breite;
         continue;
@@ -11020,7 +11022,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
           <td class="bauteil"><strong>Parkplatz-Ring</strong></td>
           <td class="mass">${seg.breite} mm</td>
-          <td class="pos">@ ${Math.round(kumPos)} mm</td>
+          <td class="pos">@ ${fmtW(kumPos, 1)} mm</td>
         </tr>`;
         kumPos += seg.breite;
       }
@@ -11033,7 +11035,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
         <td class="bauteil"><strong>Klemm-Distanzring</strong> <span class="pm-tag-fixiert">Werker-Wahl · 5–${M.KLEMM_DISTANZRING_MAX_MM || 20} mm</span><br><small>${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — meist ${r} mm, je nach Gewindelaenge bis ${M.KLEMM_DISTANZRING_MAX_MM || 20} mm. Wichtig: ragt vom Bestueckungsbereich in den Gewindebereich hinaus, damit die Gewindemutter alles fest klemmen kann.</small></td>
         <td class="mass">≥${r} mm</td>
-        <td class="pos">@ ${Math.round(kumPos)} mm</td>
+        <td class="pos">@ ${fmtW(kumPos, 1)} mm</td>
       </tr>`;
     }
     seqHtml += `</tbody></table></div>`;
