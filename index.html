@@ -6260,6 +6260,54 @@ audio.team-player-audio::-webkit-media-controls-panel {
     svgW(g, "rect", { x: padX - 6, y: barTop + barH * 0.15,
       width: innerW + 12, height: barH * 0.18, rx: 6, fill: "url(#gWelleHi)" });
 
+    // ============ EUROMAC: Klemm-Distanzring + Gewinde-Bereich links neben Welle ============
+    // v1.94 Werker-Hinweis: der Klemm-Distanzring sitzt LINKS auf dem Gewinde, ausserhalb
+    // der 1320-mm-Bestueckungswelle. Werker-Wahl 5–20 mm, je nach Gewindelaenge.
+    if (isCenter && M.KLEMM_DISTANZRING_MM > 0) {
+      const klemmMm = M.KLEMM_DISTANZRING_MM;
+      const klemmMax = M.KLEMM_DISTANZRING_MAX_MM || 20;
+      // Mindestens 10px breit damit visuell erkennbar (echte 5mm waeren ~5px)
+      const klemmPx = Math.max(klemmMm * pxPerMM, 10);
+      const gewindeStartX = 4;
+      const gewindeEndX = padX - 10;  // 10 px Abstand zum linken Lager
+      const gewindeY = barTop + barH * 0.30;
+      const gewindeH = barH * 0.40;
+      // Gewinde-Hintergrund
+      svgW(g, "rect", { x: gewindeStartX, y: gewindeY,
+        width: Math.max(0, gewindeEndX - gewindeStartX), height: gewindeH, rx: 2,
+        fill: "rgba(40,40,40,0.7)", stroke: "rgba(180,180,180,0.35)", "stroke-width": "0.7" });
+      // Gewinde-Schraffur (kleine diagonale Striche)
+      for (let lineX = gewindeStartX + 2; lineX < gewindeEndX - 2; lineX += 2.5) {
+        svgW(g, "line", { x1: lineX, y1: gewindeY + 2, x2: lineX + 1.5, y2: gewindeY + gewindeH - 2,
+          stroke: "rgba(140,140,140,0.5)", "stroke-width": "0.55" });
+      }
+      // Gewinde-Label oben
+      svgW(g, "text", { x: (gewindeStartX + gewindeEndX) / 2, y: gewindeY - 4, "text-anchor": "middle",
+        fill: "rgba(180,180,180,0.75)", "font-size": "7.5", "font-weight": "700",
+        "letter-spacing": "0.08em", "font-family": "inherit" }, "GEWINDE");
+      // Klemm-Distanzring am rechten Ende des Gewindes (direkt links vom Lager)
+      const klemmX = Math.max(gewindeStartX, gewindeEndX - klemmPx);
+      const klemmW = gewindeEndX - klemmX;
+      svgW(g, "rect", { x: klemmX, y: barTop + 8, width: klemmW, height: barH - 16, rx: 2,
+        fill: "url(#gDistanz)", stroke: "rgba(0,255,138,0.7)", "stroke-width": "0.8" });
+      if (klemmW > 14) {
+        svgW(g, "text", { x: klemmX + klemmW / 2, y: barTop + barH / 2 + 4, "text-anchor": "middle",
+          fill: "rgba(6,43,20,0.85)", "font-size": "9", "font-weight": "700", "font-family": "inherit" },
+          String(klemmMm));
+      }
+      // Beschriftung über dem Klemm-Ring
+      svgW(g, "text", { x: klemmX + klemmW / 2, y: barTop - 6, "text-anchor": "middle",
+        fill: "var(--accent-primary)", "font-size": "8.5", "font-weight": "800",
+        "letter-spacing": "0.06em", "font-family": "inherit" }, "KLEMM");
+      // Sub-Label unter dem Klemm-Ring: "5–20 mm Werker-Wahl"
+      svgW(g, "text", { x: klemmX + klemmW / 2, y: barBottom + 14, "text-anchor": "middle",
+        fill: "rgba(0,230,118,0.85)", "font-size": "7.5", "font-weight": "700",
+        "letter-spacing": "0.05em", "font-family": "inherit" }, `${klemmMm}–${klemmMax} mm`);
+      // Pfeil/Verbindungslinie zur Stueckliste-Position (subtil) — KLEMM gehoert ans Gewinde-Ende
+      svgW(g, "line", { x1: klemmX + klemmW, y1: barTop + barH / 2, x2: padX - 4, y2: barTop + barH / 2,
+        stroke: "rgba(0,230,118,0.4)", "stroke-width": "0.7", "stroke-dasharray": "2 2" });
+    }
+
     // ============ TOP-Bemaßung 1: Welle 1472 mm ============
     const dimColor = "rgba(240,240,240,0.55)";
     svgW(g, "line", { x1: padX, y1: dimTop1Y, x2: W - padX, y2: dimTop1Y, stroke: dimColor, "stroke-width": "1" });
@@ -6569,7 +6617,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
         // Banner-Box mit GROSSEM Wert — zentriert auf der Bemassungs-Linie, immer im sichtbaren Bereich
         const valTxt = `${fmtW0(distMm)} mm`;
-        const subTxt = "↞ WERKER · 1. Schneidkante v. rechts (inkl. Park-R)";
+        const subTxt = "↞ 1. Schneidkante v. rechts (inkl. Park-R)";
         const boxW = Math.max(valTxt.length * 13 + 60, subTxt.length * 6.0 + 30);
         const boxH = 38;
         let boxCx = (xCut + xRight) / 2;
