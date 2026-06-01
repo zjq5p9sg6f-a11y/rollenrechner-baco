@@ -1260,14 +1260,15 @@ header.bar {
   isolation: isolate;
 }
 .kpi-tile:hover { transform: translateY(-2px); }
-.kpi-tile-glow {
+.kpi-tile::before {
+  content: "";
   position: absolute;
-  inset: -40% -20% auto -20%;
-  height: 110%;
-  z-index: 0;
-  background: radial-gradient(ellipse 60% 60% at 50% 0%, var(--kpi-glow, rgba(0,230,118,0.18)) 0%, transparent 70%);
+  inset: -1px;
+  background: radial-gradient(ellipse 60% 90% at 50% 0%, var(--kpi-glow, rgba(0,230,118,0.16)) 0%, transparent 65%);
   pointer-events: none;
-  opacity: 0.7;
+  opacity: 0.95;
+  border-radius: 12px;
+  z-index: 0;
 }
 .kpi-tile > * { position: relative; z-index: 1; }
 .kpi-tile-head {
@@ -1275,42 +1276,46 @@ header.bar {
   margin-bottom: 10px;
 }
 .kpi-tile-eyebrow {
-  font-size: 10px; font-weight: 800; letter-spacing: 0.12em;
-  text-transform: uppercase; color: var(--text-secondary);
-  opacity: 0.78;
+  display: block;
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #d8d8d8;
+  opacity: 0.9;
 }
 .kpi-tile-icon {
-  width: 18px; height: 18px; opacity: 0.55;
-  color: var(--kpi-accent, var(--accent-primary));
+  width: 18px; height: 18px; opacity: 0.7;
+  color: var(--kpi-accent, #00e676);
+  flex-shrink: 0;
 }
 .kpi-tile-val {
-  font-size: 38px; font-weight: 900; line-height: 1;
+  font-size: 40px; font-weight: 900; line-height: 1;
   letter-spacing: -0.02em;
-  color: var(--kpi-accent, var(--accent-primary));
+  color: var(--kpi-accent, #00e676);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-  text-shadow: 0 0 24px var(--kpi-glow, rgba(0,230,118,0.20));
   display: flex; align-items: baseline; gap: 6px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  min-height: 40px;
 }
+.kpi-tile-val > span:first-child { color: inherit; }
 .kpi-tile-val[data-empty="true"] {
-  color: var(--text-secondary); opacity: 0.4;
-  text-shadow: none;
+  color: rgba(200,200,200,0.55);
 }
 .kpi-tile-unit {
   font-size: 16px; font-weight: 700; letter-spacing: 0;
-  color: var(--text-primary); opacity: 0.55;
-  text-shadow: none;
+  color: #d0d0d0; opacity: 0.78;
 }
 .kpi-tile-lbl {
-  font-size: 13px; font-weight: 700; letter-spacing: 0.02em;
-  color: var(--text-primary); opacity: 0.92;
+  display: block;
+  font-size: 13.5px; font-weight: 700; letter-spacing: 0.02em;
+  color: #f0f0f0;
   line-height: 1.3;
   margin-bottom: 3px;
 }
 .kpi-tile-sub {
+  display: block;
   font-size: 11px; font-weight: 500; letter-spacing: 0.015em;
-  color: var(--text-secondary); opacity: 0.7;
+  color: #b0b0b0;
   line-height: 1.4;
 }
 
@@ -4951,8 +4956,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       <!-- v1.94 Hero-KPI-Strip · 3 Top-Werker-KPIs direkt über der Welle -->
       <div class="kpi-hero" id="kpiHero" aria-live="polite">
         <div class="kpi-tile kpi-tile-mass" data-kpi="mass">
-          <div class="kpi-tile-glow"></div>
-          <div class="kpi-tile-head">
+<div class="kpi-tile-head">
             <span class="kpi-tile-eyebrow">Werker-Mass</span>
             <svg class="kpi-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12H7"/><path d="m11 16-4-4 4-4"/><circle cx="20" cy="12" r="1"/></svg>
           </div>
@@ -4961,8 +4965,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="kpi-tile-sub" id="kpiMassSub">inkl. Park-Ringe rechts</div>
         </div>
         <div class="kpi-tile kpi-tile-yield" data-kpi="yield">
-          <div class="kpi-tile-glow"></div>
-          <div class="kpi-tile-head">
+<div class="kpi-tile-head">
             <span class="kpi-tile-eyebrow">Material-Ausnutzung</span>
             <svg class="kpi-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 4"/></svg>
           </div>
@@ -4971,8 +4974,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="kpi-tile-sub" id="kpiYieldSub">Trim & Rest geringer = besser</div>
         </div>
         <div class="kpi-tile kpi-tile-count" data-kpi="count">
-          <div class="kpi-tile-glow"></div>
-          <div class="kpi-tile-head">
+<div class="kpi-tile-head">
             <span class="kpi-tile-eyebrow">Schmalrollen / MR</span>
             <svg class="kpi-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
           </div>
