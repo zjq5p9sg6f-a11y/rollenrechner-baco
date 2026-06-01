@@ -1611,6 +1611,25 @@ header.bar {
   transition: opacity 200ms ease;
 }
 .welle-seg-outline.is-active { opacity: 0.95; }
+.welle-seg-outline.is-cross { stroke: #ff8a00; opacity: 0.9; }
+
+/* v1.95 Cross-Highlight: Sequenz-Zeile + Stueckliste-Zeile pulsiert */
+.stueck-row.is-cross-active,
+.welle-holliste-row.is-cross-active {
+  background: linear-gradient(90deg, rgba(255,138,0,0.14), rgba(255,138,0,0.02)) !important;
+  box-shadow: inset 3px 0 0 #ff8a00;
+  transition: background 180ms ease, box-shadow 180ms ease;
+}
+.stueck-row.is-cross-active .stueck-mass,
+.stueck-row.is-cross-active .stueck-pos {
+  color: #ff8a00 !important;
+}
+.welle-holliste-row {
+  transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  cursor: pointer;
+}
+.welle-holliste-row:hover { background: rgba(255,255,255,0.025); }
+.stueck-row { cursor: pointer; }
 
 @media (max-width: 720px) {
   .welle-detail-overlay { width: 280px; }
@@ -6731,6 +6750,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     if (!svgEl) return;
     // v1.95: Hover/Touch-Interaktion einmalig wiren
     if (typeof setupWelleSegInteraction === "function") setupWelleSegInteraction();
+    if (typeof setupCrossHighlight === "function") setupCrossHighlight();
     const M = getMachine();
     const isCenter = M.welleRenderMode === "center";
     const hasParkRing = (M.PARK_PRO_SEITE > 0);
@@ -6964,7 +6984,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     // ============ Komponenten-Bar ============
     cur = 0;
-    for (const seg of layoutLR) {
+    for (let segIdx = 0; segIdx < layoutLR.length; segIdx++) {
+      const seg = layoutLR[segIdx];
       const x = xAt(cur);
       const w = seg.breite * pxPerMM;
 
@@ -7098,7 +7119,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
             "letter-spacing": "0.08em" }, `BUCHSE · ${cutsArr.length}/6 aktiv`);
         }
       }
-      // v1.95: Hit-Area mit data-* für Hover/Touch-Detail-Overlay
+      // v1.95: Hit-Area mit data-* für Hover/Touch-Detail-Overlay + Cross-Highlight
       const hitR = svgW(g, "rect", {
         x: x, y: barTop, width: Math.max(w, 1), height: barH,
         fill: "transparent",
@@ -7107,7 +7128,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
         "data-seg-breite": String(seg.breite),
         "data-seg-pos": String(cur),
         "data-seg-role": seg.role || "",
-        "data-seg-short": seg.short || ""
+        "data-seg-short": seg.short || "",
+        "data-seg-idx": String(segIdx)
       });
       hitR.classList.add("welle-seg-hit");
       if (seg.kind === "schneid" || seg.kind === "neben") {
@@ -7419,6 +7441,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       return delta > 0 ? `Mitte +${fmtW(delta, 1)}` : `Mitte ${fmtW(delta, 1)}`;
     }
     const sequenz = [...result.layoutLR].reverse();  // Rechts → Links
+    const layoutLen = result.layoutLR.length;
     let kumPos = 0;
     let nr = 1;
     // EUROMAC PRE-STEP: Asymmetrie-Ring 20 mm Default (ganz rechts auf Welle,
@@ -7439,7 +7462,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
       seqEl.appendChild(row);
       kumPos += r;
     }
-    for (const seg of sequenz) {
+    for (let sIdx = 0; sIdx < sequenz.length; sIdx++) {
+      const seg = sequenz[sIdx];
+      const origIdx = layoutLen - 1 - sIdx;  // Cross-Highlight-Anker zur Welle-SVG
       // Rest-Auffüllung als einzelne Distanzringe pro Stack-Größe
       if (seg.kind === "rest" && seg.fill) {
         const fillEntries = Object.entries(seg.fill).map(([k,v]) => [parseFloat(k), v]).sort((a,b) => b[0] - a[0]);
@@ -7447,6 +7472,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
           for (let i = 0; i < count; i++) {
             const row = document.createElement("div");
             row.className = "stueck-row";
+            row.dataset.segIdx = String(origIdx);
+            row.dataset.segKind = "rest";
             row.innerHTML = `
               <div class="stueck-nr distanz">${nr++}</div>
               <div>
@@ -7501,6 +7528,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
           : "";
         const r = document.createElement("div");
         r.className = "stueck-row" + (isTrim ? " stueck-row-trim" : "");
+        r.dataset.segIdx = String(origIdx);
+        r.dataset.segKind = seg.kind;
+        r.dataset.segRole = role;
         r.innerHTML = `
           <div class="stueck-nr ${cls}">${nr++}</div>
           <div>
@@ -7531,6 +7561,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
         : (seg.kind === "park" ? `<div class="stueck-detail">${fromMitte(kumPos, seg.breite)}</div>` : "");
       const row = document.createElement("div");
       row.className = "stueck-row";
+      row.dataset.segIdx = String(origIdx);
+      row.dataset.segKind = seg.kind;
       row.innerHTML = `
         <div class="stueck-nr ${cls}">${nr++}</div>
         <div>
@@ -7574,7 +7606,31 @@ audio.team-player-audio::-webkit-media-controls-panel {
     let html = `<h4>Bestückungs-Stückliste · ${totalParts} Bauteile total</h4>`;
     html += `<div class="welle-holliste-grid">`;
     for (const h of result.holliste) {
-      html += `<div class="welle-holliste-row">`;
+      // v1.95 Cross-Highlight: jede Holliste-Zeile bekommt einen Match-Schlüssel
+      // damit beim Hover die passenden Welle-Segmente aufleuchten.
+      // Multi-Match möglich (z.B. "Schneideeinheit · Trennung" → alle inner/uebergang/neben SEs)
+      const nameLower = (h.name || "").toLowerCase();
+      let matchKinds = [];   // kinds zum highlighten in der Welle
+      let matchRoles = [];   // optional roles
+      let matchDistMm = null; // für spezifische Distanz-Größen
+      if (nameLower.includes("besäumung") || nameLower.includes("besaeumung")) {
+        matchKinds = ["schneid"]; matchRoles = ["trim-L", "trim-R"];
+      } else if (nameLower.includes("trennung")) {
+        matchKinds = ["schneid", "neben"]; matchRoles = ["inner", "neben"];
+      } else if (nameLower.includes("übergang") || nameLower.includes("uebergang")) {
+        matchKinds = ["schneid"]; matchRoles = ["uebergang"];
+      } else if (nameLower.includes("schneideeinheit") || nameLower.includes("schneidbuchse")) {
+        matchKinds = ["schneid", "neben", "buchse"];
+      } else if (nameLower.includes("parkplatz") || nameLower.includes("park")) {
+        matchKinds = ["park"];
+      } else if (nameLower.includes("distanzring") || nameLower.includes("distanz") || nameLower.includes("klemm") || nameLower.includes("asymmetrie")) {
+        matchKinds = ["distanz", "rest"];
+        // Spezifische Größe aus spec extrahieren (z.B. "100 mm")
+        const sizeMatch = (h.spec || "").match(/(\d+(?:[.,]\d+)?)\s*mm/);
+        if (sizeMatch) matchDistMm = parseFloat(sizeMatch[1].replace(",", "."));
+      }
+      const dataAttrs = `data-match-kinds="${matchKinds.join(',')}" data-match-roles="${matchRoles.join(',')}"${matchDistMm != null ? ` data-match-dist="${matchDistMm}"` : ""}`;
+      html += `<div class="welle-holliste-row" ${dataAttrs}>`;
       html += `<span class="hl-name">${h.name}</span>`;
       html += `<span class="hl-anz">${h.anz}</span>`;
       html += `<span class="hl-unit">× ${h.spec}</span>`;
@@ -9172,6 +9228,226 @@ audio.team-player-audio::-webkit-media-controls-panel {
     });
   }
   // Wire-up beim ersten Render (renderWelleSvg ruft das mit auf)
+
+  // v1.95: Cross-Highlight — Welle ↔ Sequenz ↔ Stückliste bidirektional verbunden.
+  // Werker hovert über ein Welle-Segment → die zugehörige Sequenz-Zeile pulsiert,
+  // die passende Stueckliste-Aggregation pulsiert mit. Umgekehrt von Stueckliste/Sequenz.
+  let __crossHighlightWired = false;
+  function setupCrossHighlight() {
+    if (__crossHighlightWired) return;
+    __crossHighlightWired = true;
+    const svg     = document.getElementById("welleSvg");
+    const seqEl   = document.getElementById("welleSequenz");
+    const hollEl  = document.getElementById("welleHolliste");
+    if (!svg || !seqEl || !hollEl) return;
+
+    let crossOutlines = [];  // SVG-Outline-Rects die ich beim Multi-Match rendere
+    function clearCross() {
+      document.querySelectorAll(".is-cross-active").forEach(el => el.classList.remove("is-cross-active"));
+      crossOutlines.forEach(el => { if (el.parentNode) el.parentNode.removeChild(el); });
+      crossOutlines = [];
+    }
+
+    function findHits(filter) {
+      // filter: { segIdx?: string, kinds?: string[], roles?: string[], distMm?: number }
+      const hits = svg.querySelectorAll("[data-seg-idx]");
+      const result = [];
+      for (const hit of hits) {
+        const idx   = hit.getAttribute("data-seg-idx");
+        const kind  = hit.getAttribute("data-seg-kind");
+        const role  = hit.getAttribute("data-seg-role");
+        const brt   = parseFloat(hit.getAttribute("data-seg-breite"));
+        if (filter.segIdx != null && filter.segIdx === idx) { result.push(hit); continue; }
+        if (filter.kinds && filter.kinds.length > 0 && !filter.kinds.includes(kind)) continue;
+        if (filter.roles && filter.roles.length > 0 && !filter.roles.includes(role)) continue;
+        if (filter.distMm != null && Math.abs(brt - filter.distMm) > 0.5) continue;
+        if (filter.kinds || filter.roles || filter.distMm != null) result.push(hit);
+      }
+      return result;
+    }
+
+    function findSeqRows(filter) {
+      const rows = seqEl.querySelectorAll(".stueck-row[data-seg-idx]");
+      const result = [];
+      for (const row of rows) {
+        const idx  = row.dataset.segIdx;
+        const kind = row.dataset.segKind;
+        const role = row.dataset.segRole;
+        if (filter.segIdx != null && filter.segIdx === idx) { result.push(row); continue; }
+        if (filter.kinds && filter.kinds.length > 0 && !filter.kinds.includes(kind)) continue;
+        if (filter.roles && filter.roles.length > 0 && role && !filter.roles.includes(role)) continue;
+        if (filter.kinds || filter.roles) result.push(row);
+      }
+      return result;
+    }
+
+    function findHollRows(filter) {
+      const rows = hollEl.querySelectorAll(".welle-holliste-row[data-match-kinds]");
+      const result = [];
+      const segKind = filter.segKind;
+      const segRole = filter.segRole;
+      const segBreite = filter.segBreite;
+      for (const row of rows) {
+        const matchKinds = (row.dataset.matchKinds || "").split(",").filter(Boolean);
+        const matchRoles = (row.dataset.matchRoles || "").split(",").filter(Boolean);
+        const matchDist  = row.dataset.matchDist ? parseFloat(row.dataset.matchDist) : null;
+        if (segKind && !matchKinds.includes(segKind)) continue;
+        if (matchRoles.length > 0 && segRole && !matchRoles.includes(segRole)) continue;
+        if (matchDist != null && segBreite != null && Math.abs(matchDist - segBreite) > 0.5) continue;
+        result.push(row);
+      }
+      return result;
+    }
+
+    function drawCrossOutline(hit) {
+      const grp = document.getElementById("welleVizGroup");
+      if (!grp) return;
+      const x = parseFloat(hit.getAttribute("x")) || 0;
+      const y = parseFloat(hit.getAttribute("y")) || 0;
+      const w = parseFloat(hit.getAttribute("width")) || 0;
+      const h = parseFloat(hit.getAttribute("height")) || 0;
+      const o = svgW(grp, "rect", {
+        x: x - 1, y: y - 1, width: w + 2, height: h + 2,
+        class: "welle-seg-outline is-cross is-active",
+        rx: "2"
+      });
+      crossOutlines.push(o);
+    }
+
+    function applyHighlight(originType, dataObj) {
+      clearCross();
+      // 1) Welle-Segmente
+      let welleHits = [];
+      if (originType === "welle") {
+        // Beim Welle-Hover ist das Outline bereits da (von setupWelleSegInteraction)
+      } else if (originType === "seq") {
+        welleHits = findHits({ segIdx: dataObj.segIdx });
+      } else if (originType === "holl") {
+        welleHits = findHits({ kinds: dataObj.kinds, roles: dataObj.roles, distMm: dataObj.distMm });
+      }
+      welleHits.forEach(drawCrossOutline);
+      // 2) Sequenz-Zeilen
+      let seqRows = [];
+      if (originType === "welle") {
+        seqRows = findSeqRows({ segIdx: dataObj.segIdx });
+      } else if (originType === "seq") {
+        // ist eh schon hover-target — wir markieren nur die Cross-Anker
+        seqRows = [];
+      } else if (originType === "holl") {
+        seqRows = findSeqRows({ kinds: dataObj.kinds, roles: dataObj.roles });
+      }
+      seqRows.forEach(r => r.classList.add("is-cross-active"));
+      // 3) Holliste-Zeilen
+      let hollRows = [];
+      if (originType === "welle" || originType === "seq") {
+        hollRows = findHollRows({ segKind: dataObj.kind, segRole: dataObj.role, segBreite: dataObj.breite });
+      } else if (originType === "holl") {
+        hollRows = [];
+      }
+      hollRows.forEach(r => r.classList.add("is-cross-active"));
+      // Origin selbst markieren
+      if (originType === "seq" && dataObj.row) dataObj.row.classList.add("is-cross-active");
+      if (originType === "holl" && dataObj.row) dataObj.row.classList.add("is-cross-active");
+    }
+
+    // Welle: Hover/Pointer-Move auf hit-rects
+    svg.addEventListener("pointermove", (e) => {
+      if ((e.pointerType || "mouse") !== "mouse") return;
+      const hit = e.target.closest("[data-seg-idx]");
+      if (hit) {
+        applyHighlight("welle", {
+          segIdx: hit.getAttribute("data-seg-idx"),
+          kind:   hit.getAttribute("data-seg-kind"),
+          role:   hit.getAttribute("data-seg-role"),
+          breite: parseFloat(hit.getAttribute("data-seg-breite"))
+        });
+      } else {
+        clearCross();
+      }
+    });
+    svg.addEventListener("pointerleave", (e) => {
+      if ((e.pointerType || "mouse") === "mouse") clearCross();
+    });
+    svg.addEventListener("pointerdown", (e) => {
+      const hit = e.target.closest("[data-seg-idx]");
+      if (hit) {
+        applyHighlight("welle", {
+          segIdx: hit.getAttribute("data-seg-idx"),
+          kind:   hit.getAttribute("data-seg-kind"),
+          role:   hit.getAttribute("data-seg-role"),
+          breite: parseFloat(hit.getAttribute("data-seg-breite"))
+        });
+      }
+    });
+
+    // Sequenz-Zeile: Hover/Tap
+    seqEl.addEventListener("pointerenter", (e) => {
+      const row = e.target.closest(".stueck-row[data-seg-idx]");
+      if (row) applyHighlight("seq", { segIdx: row.dataset.segIdx, kind: row.dataset.segKind, role: row.dataset.segRole, row });
+    }, true);
+    seqEl.addEventListener("pointerleave", (e) => {
+      if (e.target === seqEl || (e.relatedTarget && !seqEl.contains(e.relatedTarget))) clearCross();
+    });
+    seqEl.addEventListener("pointermove", (e) => {
+      if ((e.pointerType || "mouse") !== "mouse") return;
+      const row = e.target.closest(".stueck-row[data-seg-idx]");
+      if (row) applyHighlight("seq", { segIdx: row.dataset.segIdx, kind: row.dataset.segKind, role: row.dataset.segRole, row });
+    });
+    seqEl.addEventListener("pointerdown", (e) => {
+      const row = e.target.closest(".stueck-row[data-seg-idx]");
+      if (row) {
+        applyHighlight("seq", { segIdx: row.dataset.segIdx, kind: row.dataset.segKind, role: row.dataset.segRole, row });
+        // Bei Tap: scroll passendes Welle-Segment in den View (smooth)
+        const hits = findHits({ segIdx: row.dataset.segIdx });
+        if (hits.length > 0) {
+          const hit = hits[0];
+          const wrapEl = document.getElementById("welleSvg");
+          if (wrapEl && hit && typeof hit.scrollIntoView === "function") {
+            // SVG-Element direkt zu scrollen ist tricky, deshalb scrollen wir
+            // die SVG selbst in den View damit das aktive Segment sichtbar wird.
+            wrapEl.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+          }
+        }
+      }
+    });
+
+    // Holliste-Zeile: Hover/Tap
+    hollEl.addEventListener("pointermove", (e) => {
+      if ((e.pointerType || "mouse") !== "mouse") return;
+      const row = e.target.closest(".welle-holliste-row[data-match-kinds]");
+      if (row) {
+        applyHighlight("holl", {
+          kinds: (row.dataset.matchKinds || "").split(",").filter(Boolean),
+          roles: (row.dataset.matchRoles || "").split(",").filter(Boolean),
+          distMm: row.dataset.matchDist ? parseFloat(row.dataset.matchDist) : null,
+          row
+        });
+      } else {
+        clearCross();
+      }
+    });
+    hollEl.addEventListener("pointerleave", (e) => {
+      if ((e.pointerType || "mouse") === "mouse") clearCross();
+    });
+    hollEl.addEventListener("pointerdown", (e) => {
+      const row = e.target.closest(".welle-holliste-row[data-match-kinds]");
+      if (row) {
+        applyHighlight("holl", {
+          kinds: (row.dataset.matchKinds || "").split(",").filter(Boolean),
+          roles: (row.dataset.matchRoles || "").split(",").filter(Boolean),
+          distMm: row.dataset.matchDist ? parseFloat(row.dataset.matchDist) : null,
+          row
+        });
+      }
+    });
+
+    // Click outside → clear (für Touch-Devices)
+    document.addEventListener("pointerdown", (e) => {
+      if (!svg.contains(e.target) && !seqEl.contains(e.target) && !hollEl.contains(e.target)) {
+        clearCross();
+      }
+    });
+  }
 
   // v1.95: Werker-Rechenweg-Card — zeigt die Formel transparent damit Werker
   // sofort sieht ob die Tool-Rechnung mit seiner Kopfrechnung übereinstimmt.
