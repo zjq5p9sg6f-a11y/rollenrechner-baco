@@ -1234,6 +1234,111 @@ header.bar {
   line-height: 1.4;
 }
 .welle-head-actions { display: flex; gap: 8px; }
+
+/* ============== v1.94 Hero-KPI-Strip · Carlon-Thermal-Dashboard-Style ============== */
+.kpi-hero {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 1fr;
+  gap: 14px;
+  margin: 14px 0 18px;
+}
+@media (max-width: 900px) {
+  .kpi-hero { grid-template-columns: 1fr; }
+}
+.kpi-tile {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 60%),
+    var(--bg-elevated, #141414);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 18px 22px 16px;
+  overflow: hidden;
+  transition: border-color 220ms ease, transform 220ms ease, box-shadow 220ms ease;
+  isolation: isolate;
+}
+.kpi-tile:hover { transform: translateY(-2px); }
+.kpi-tile-glow {
+  position: absolute;
+  inset: -40% -20% auto -20%;
+  height: 110%;
+  z-index: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 0%, var(--kpi-glow, rgba(0,230,118,0.18)) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0.7;
+}
+.kpi-tile > * { position: relative; z-index: 1; }
+.kpi-tile-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.kpi-tile-eyebrow {
+  font-size: 10px; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--text-secondary);
+  opacity: 0.78;
+}
+.kpi-tile-icon {
+  width: 18px; height: 18px; opacity: 0.55;
+  color: var(--kpi-accent, var(--accent-primary));
+}
+.kpi-tile-val {
+  font-size: 38px; font-weight: 900; line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--kpi-accent, var(--accent-primary));
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  text-shadow: 0 0 24px var(--kpi-glow, rgba(0,230,118,0.20));
+  display: flex; align-items: baseline; gap: 6px;
+  margin-bottom: 6px;
+}
+.kpi-tile-val[data-empty="true"] {
+  color: var(--text-secondary); opacity: 0.4;
+  text-shadow: none;
+}
+.kpi-tile-unit {
+  font-size: 16px; font-weight: 700; letter-spacing: 0;
+  color: var(--text-primary); opacity: 0.55;
+  text-shadow: none;
+}
+.kpi-tile-lbl {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.02em;
+  color: var(--text-primary); opacity: 0.92;
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+.kpi-tile-sub {
+  font-size: 11px; font-weight: 500; letter-spacing: 0.015em;
+  color: var(--text-secondary); opacity: 0.7;
+  line-height: 1.4;
+}
+
+/* Per-Tile Accent-Colors */
+.kpi-tile-mass {
+  --kpi-accent: #ff8a00;
+  --kpi-glow: rgba(255,138,0,0.18);
+}
+.kpi-tile-mass:hover { border-color: rgba(255,138,0,0.28); box-shadow: 0 12px 38px -16px rgba(255,138,0,0.22); }
+.kpi-tile-yield {
+  --kpi-accent: var(--accent-primary, #00e676);
+  --kpi-glow: rgba(0,230,118,0.18);
+}
+.kpi-tile-yield:hover { border-color: rgba(0,230,118,0.28); box-shadow: 0 12px 38px -16px rgba(0,230,118,0.22); }
+.kpi-tile-count {
+  --kpi-accent: #42a5f5;
+  --kpi-glow: rgba(66,165,245,0.18);
+}
+.kpi-tile-count:hover { border-color: rgba(66,165,245,0.28); box-shadow: 0 12px 38px -16px rgba(66,165,245,0.22); }
+
+/* Tone-States für Yield (ähnlich Carlon Thermal-Phase-Atmosphere) */
+.kpi-tile-yield[data-tone="excellent"] { --kpi-accent: #00e676; --kpi-glow: rgba(0,230,118,0.26); }
+.kpi-tile-yield[data-tone="good"]      { --kpi-accent: #66bb6a; --kpi-glow: rgba(102,187,106,0.20); }
+.kpi-tile-yield[data-tone="ok"]        { --kpi-accent: #ffb74d; --kpi-glow: rgba(255,183,77,0.20); }
+.kpi-tile-yield[data-tone="poor"]      { --kpi-accent: #ff5544; --kpi-glow: rgba(255,85,68,0.22); }
+
+@media print {
+  .kpi-hero { display: none; }   /* Print hat eigenen Print-Header */
+}
+
 .btn-print {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 10px 16px;
@@ -4680,6 +4785,41 @@ audio.team-player-audio::-webkit-media-controls-panel {
               <td class="ph-lbl">Bemerkung</td><td class="ph-val" id="printBemerkung">—</td></tr>
         </table>
       </div>
+
+      <!-- v1.94 Hero-KPI-Strip · 3 Top-Werker-KPIs direkt über der Welle -->
+      <div class="kpi-hero" id="kpiHero" aria-live="polite">
+        <div class="kpi-tile kpi-tile-mass" data-kpi="mass">
+          <div class="kpi-tile-glow"></div>
+          <div class="kpi-tile-head">
+            <span class="kpi-tile-eyebrow">Werker-Mass</span>
+            <svg class="kpi-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12H7"/><path d="m11 16-4-4 4-4"/><circle cx="20" cy="12" r="1"/></svg>
+          </div>
+          <div class="kpi-tile-val"><span id="kpiMassVal">—</span><span class="kpi-tile-unit">mm</span></div>
+          <div class="kpi-tile-lbl">1. Schneidkante v. rechts</div>
+          <div class="kpi-tile-sub" id="kpiMassSub">inkl. Park-Ringe rechts</div>
+        </div>
+        <div class="kpi-tile kpi-tile-yield" data-kpi="yield">
+          <div class="kpi-tile-glow"></div>
+          <div class="kpi-tile-head">
+            <span class="kpi-tile-eyebrow">Material-Ausnutzung</span>
+            <svg class="kpi-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v9l6 4"/></svg>
+          </div>
+          <div class="kpi-tile-val"><span id="kpiYieldVal">—</span><span class="kpi-tile-unit">%</span></div>
+          <div class="kpi-tile-lbl">Nutzen / Mutterrolle</div>
+          <div class="kpi-tile-sub" id="kpiYieldSub">Trim & Rest geringer = besser</div>
+        </div>
+        <div class="kpi-tile kpi-tile-count" data-kpi="count">
+          <div class="kpi-tile-glow"></div>
+          <div class="kpi-tile-head">
+            <span class="kpi-tile-eyebrow">Schmalrollen / MR</span>
+            <svg class="kpi-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+          </div>
+          <div class="kpi-tile-val"><span id="kpiCountVal">—</span><span class="kpi-tile-unit" id="kpiCountUnit"></span></div>
+          <div class="kpi-tile-lbl">Stück / Mutterrolle</div>
+          <div class="kpi-tile-sub" id="kpiCountSub">Schnittkanten + Trim</div>
+        </div>
+      </div>
+
       <svg id="welleSvg" viewBox="0 0 1500 460" preserveAspectRatio="xMidYMid meet" aria-label="Bestückte Welle">
         <defs>
           <linearGradient id="gWelleBody" x1="0" y1="0" x2="0" y2="1">
@@ -8346,6 +8486,99 @@ audio.team-player-audio::-webkit-media-controls-panel {
     return Math.max(0, Math.min(100, Math.round(score)));
   }
 
+  // v1.94: KPI-Hero-Strip Update (3 Tiles über der Welle)
+  function updateKpiHero(d, out) {
+    const massValEl   = document.getElementById("kpiMassVal");
+    const massSubEl   = document.getElementById("kpiMassSub");
+    const yieldValEl  = document.getElementById("kpiYieldVal");
+    const yieldSubEl  = document.getElementById("kpiYieldSub");
+    const yieldTile   = document.querySelector(".kpi-tile-yield");
+    const countValEl  = document.getElementById("kpiCountVal");
+    const countUnitEl = document.getElementById("kpiCountUnit");
+    const countSubEl  = document.getElementById("kpiCountSub");
+    if (!massValEl) return;  // KPI-Hero nicht im DOM (z.B. anderer View)
+
+    const setEmpty = (el, empty) => {
+      if (!el) return;
+      const tile = el.closest(".kpi-tile-val");
+      if (tile) tile.dataset.empty = empty ? "true" : "false";
+    };
+
+    if (!d || !d.ok || !out) {
+      massValEl.textContent = "—";  setEmpty(massValEl, true);
+      yieldValEl.textContent = "—"; setEmpty(yieldValEl, true);
+      countValEl.textContent = "—"; setEmpty(countValEl, true);
+      if (countUnitEl) countUnitEl.textContent = "";
+      if (massSubEl)   massSubEl.textContent   = "Werte oben eingeben";
+      if (yieldSubEl)  yieldSubEl.textContent  = "Trim & Rest geringer = besser";
+      if (countSubEl)  countSubEl.textContent  = "Schnittkanten + Trim";
+      if (yieldTile)   yieldTile.removeAttribute("data-tone");
+      return;
+    }
+
+    const M = getMachine();
+
+    // 1) Werker-Mass: rechtester Cut vom welle-rechts (Konvention A: SE_x_left + SCHNITT_OFFSET)
+    let rightmostCut = null;
+    let cur = 0;
+    for (const seg of (d.layoutLR || [])) {
+      if (seg.kind === "schneid" || seg.kind === "neben") {
+        const cutMm = cur + M.SCHNITT_OFFSET;
+        if (rightmostCut == null || cutMm > rightmostCut) rightmostCut = cutMm;
+      } else if (seg.kind === "buchse" && Array.isArray(seg.cuts)) {
+        for (const r of seg.cuts) {
+          const cutMm = cur + r;
+          if (rightmostCut == null || cutMm > rightmostCut) rightmostCut = cutMm;
+        }
+      }
+      cur += seg.breite;
+    }
+    if (rightmostCut != null) {
+      const distMm = M.WELLE - rightmostCut;
+      massValEl.textContent = fmtW(distMm, 1);
+      setEmpty(massValEl, false);
+      massSubEl.textContent = `vom rechten Wellenrand · inkl. ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Park-R`;
+    } else {
+      massValEl.textContent = "—"; setEmpty(massValEl, true);
+      massSubEl.textContent = "keine Schneidkante (Auftrag prüfen)";
+    }
+
+    // 2) Material-Ausnutzung — Nutzen-Material / MR
+    const mr = out.mutter || d.mr || 0;
+    const N  = out.nutzen || d.N || 0;
+    const haupt = out.schmal || d.haupt || 0;
+    const nebenSpace = (out.nebenSlots || d.slots || []).reduce((s, x) => s + x.breite * x.anz, 0);
+    const usedMm = N * haupt + nebenSpace;
+    if (mr > 0) {
+      const yieldPct = (usedMm / mr) * 100;
+      const trimMm   = mr - usedMm;
+      yieldValEl.textContent = fmtW(yieldPct, 1);
+      setEmpty(yieldValEl, false);
+      yieldSubEl.textContent = `${fmtW(trimMm, 1)} mm Trim/Rest · von ${fmtW(mr, 0)} mm MR`;
+      if (yieldTile) {
+        let tone = "poor";
+        if (yieldPct >= 99) tone = "excellent";
+        else if (yieldPct >= 95) tone = "good";
+        else if (yieldPct >= 88) tone = "ok";
+        yieldTile.dataset.tone = tone;
+      }
+    }
+
+    // 3) Schmalrollen-Count + Schneideeinheiten
+    const nebenAnz   = (out.nebenSlots || d.slots || []).reduce((s, x) => s + x.anz, 0);
+    const totalSchmal = N + nebenAnz;
+    countValEl.textContent = String(totalSchmal);
+    setEmpty(countValEl, false);
+    if (countUnitEl) countUnitEl.textContent = "Stk.";
+    const seCount = (d.holliste || [])
+      .filter(h => typeof h.name === "string" && h.name.toLowerCase().includes("schneid"))
+      .reduce((s, h) => s + (h.anz || 0), 0);
+    const hauptTxt = haupt ? `je ${fmtW(haupt, 1)} mm Haupt` : "";
+    countSubEl.textContent = seCount
+      ? `${seCount} Schneideeinheiten${hauptTxt ? ` · ${hauptTxt}` : ""}`
+      : (hauptTxt || "");
+  }
+
   function renderWelle(out) {
     // Cluster-Status (rote Kontur pro Auftrag) IMMER ZUERST setzen — unabhängig von welleSection-State,
     // damit der Operator das visuelle Konflikt-Feedback in der Cluster-Section bekommt
@@ -8361,6 +8594,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     if (!out || !out.mutter) {
       if (sub) sub.textContent = "Werte oben eingeben um Bestückung zu berechnen";
       renderWelleSvg(null); renderWelleHolliste(null); renderWelleAlerts(null);
+      updateKpiHero(null, null);
       if (tracksSvg) { tracksSvg.style.display = "none"; tracksSvg.innerHTML = ""; }
       return;
     }
@@ -8417,6 +8651,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         renderWelleSvg(master);
         renderWelleSequenz(master);
         renderWelleHolliste(master);
+        updateKpiHero(master, out);
         const qScore = calcQualityScore(master, out);
         const alerts = master.alerts || [];
         // Ratio-Pattern-Tipp (z.B. "A2 60mm ≈ 2× A1 30mm → jedes 2. Messer nutzen")
@@ -8454,9 +8689,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
         renderWelleSvg(singleResult);
         renderWelleSequenz(singleResult);
         renderWelleHolliste(singleResult);
+        updateKpiHero(singleResult, out);
       } else {
         if (sub) sub.innerHTML = `<span style="color:var(--danger-color)"><strong>✗ Bestückung nicht möglich</strong></span>`;
         renderWelleSvg(null); renderWelleHolliste(null); renderWelleSequenz(null);
+        updateKpiHero(null, null);
       }
       const alerts = [
         { type: "warn", msg: `<strong>△ Folgeaufträge nicht mit Primär-Welle kombinierbar:</strong> ${excludedListTxt} sind rot markiert oben — entfernen oder Schmalrollen anpassen.` }
@@ -8479,8 +8716,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
     if (!result.ok) {
       if (sub) sub.innerHTML = `<span style="color:var(--danger-color)">${(result.alerts[0] && result.alerts[0].msg) || 'Bestückung nicht möglich'}</span>`;
       renderWelleSvg(null); renderWelleHolliste(null); renderWelleSequenz(null); renderWelleAlerts(result);
+      updateKpiHero(null, null);
       return;
     }
+    updateKpiHero(result, out);
     const slotsTxt = result.slots.length ? ` + ${result.slots.map(s=>`${s.anz}× ${s.breite} mm`).join(" + ")} Neben` : "";
     if (sub) {
       const restTxt = (Math.abs((result.restL || 0) - (result.restR || 0)) < 0.01)
