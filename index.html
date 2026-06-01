@@ -6558,33 +6558,30 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // ============ Werker-Mass: rechter Wellenrand → rechteste Schneidkante ============
     // (v1.94 Werker-Korrektur 2026-06-01) Kritisches Bestueckungs-Mass: Werker schiebt
     // von rechts (Park-R + Distanzen) bis die ERSTE Schneidkante hier sitzt.
-    // Werker-Beispiel Euromac: 182 mm = 670 (WELLE_MITTE vom rechtem Rand) - 488 (halbe Stack)
-    // Cut-Position-Konvention: an die Print-Sequenz angeglichen — fuer die RECHTESTE SE
-    // ist der Cut bei SE_x_rechts - SCHNITT_OFFSET (= SE_x_left + (SE_breite - SCHNITT)),
-    // weil der Werker beim Aufschieben von rechts die Klinge zuerst an der welle-rechts-
-    // Seite der SE trifft.
+    //
+    // Cut-Position-Konvention (v1.94 vereinheitlicht):
+    //   SCHNITT_OFFSET = "Schnittkante v. welle-LINKS der SE" (in welle-coord)
+    //   Cut welle-coord = SE_x_left + SCHNITT_OFFSET
+    //
+    // Euromac: SE 20, SCHNITT 10 (=SE-Mitte, symmetrisch)
+    //   Werker-Beispiel 8×122/MR1000: cut bei SE_x_left+10, ergibt 182 mm v. welle-rechts
+    // DCM: SE 20 (= 10 Schneidring + 3 Übergang + 7 Nutmesser), SCHNITT 13 (echt asymmetrisch)
+    //   Schnittkante sitzt 13 mm v. welle-links = 7 mm v. welle-rechts (Aufschiebe-Sicht)
     {
       let rightmostCutMm = null;
-      let rightmostSeLeft = null;
-      let rightmostSeBreite = null;
       let cur = 0;
       for (const seg of layoutLR) {
         if (seg.kind === "schneid" || seg.kind === "neben") {
-          // Cut-Position aus Aufschiebe-Sicht: SE_rechts (welle-coord) - SCHNITT_OFFSET
-          const seRechts = cur + seg.breite;
-          const cutMm = seRechts - M.SCHNITT_OFFSET;
+          // Cut welle-coord = SE_x_left + SCHNITT_OFFSET (Konvention "v. welle-LINKS")
+          const cutMm = cur + M.SCHNITT_OFFSET;
           if (rightmostCutMm == null || cutMm > rightmostCutMm) {
             rightmostCutMm = cutMm;
-            rightmostSeLeft = cur;
-            rightmostSeBreite = seg.breite;
           }
         } else if (seg.kind === "buchse" && Array.isArray(seg.cuts)) {
           for (const relPos of seg.cuts) {
             const cutMm = cur + relPos;
             if (rightmostCutMm == null || cutMm > rightmostCutMm) {
               rightmostCutMm = cutMm;
-              rightmostSeLeft = cur;
-              rightmostSeBreite = seg.breite;
             }
           }
         }
@@ -6877,8 +6874,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
           : isNeben
             ? "linear-gradient(90deg,#ffb74d 0%,#ffb74d 50%,#ffd54f 50%,#ffd54f 100%)"
             : "linear-gradient(90deg,#ff5544 0%,#ff5544 50%,#ffd54f 50%,#ffd54f 100%)";
-        const cutPosLocal = getMachine().SCHNITT_OFFSET;
-        const cutAbsPos = kumPos + cutPosLocal;  // float — half-Werte beibehalten
+        // Cut welle-coord = SE_x_left + SCHNITT_OFFSET (Konvention "v. welle-LINKS").
+        // Sequenz-pos (= welle-coord-from-RECHTS): WELLE - cut_welle = kumPos + (SE - SCHNITT_OFFSET).
+        // Wichtig fuer DCM, wo SCHNITT_OFFSET=13 asymmetrisch ist (Euromac SCHNITT_OFFSET=10
+        // ist SE-Mitte → beide Konventionen gleich).
+        const _M = getMachine();
+        const cutPosFromSeqLeft = _M.SCHNEIDEEINHEIT - _M.SCHNITT_OFFSET;  // 7 DCM, 10 Euromac
+        const cutAbsPos = kumPos + cutPosFromSeqLeft;  // sequenz-pos (= welle-rechts-Distanz)
         // Werker-Vorzeichen-Konvention: rechts der Mitte = positiv
         const cutFromMitte = MITTE - cutAbsPos;
         const cutMitteShort = Math.abs(cutFromMitte) < 0.4
@@ -6901,7 +6903,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="stueck-nr ${cls}">${nr++}</div>
           <div>
             <div class="stueck-name"><span class="icon" style="background:${swatch}"></span>Schneideeinheit${roleBadge}</div>
-            <div class="stueck-detail">Schnittkante @ ${getMachine().SCHNITT_OFFSET} mm v. links der SE (= SE-Mitte) · SE-Linke-Kante @ ${fmtW(kumPos, 1)} mm v. rechtem Wellenrand · SE-Mitte ${fromMitte(kumPos, getMachine().SCHNEIDEEINHEIT)}${trimNote}</div>
+            <div class="stueck-detail">Schnittkante @ ${getMachine().SCHNITT_OFFSET} mm v. welle-links der SE${getMachine().SCHNITT_OFFSET === getMachine().SCHNEIDEEINHEIT/2 ? " (= SE-Mitte)" : ` (asymm. — ${getMachine().SCHNEIDEEINHEIT - getMachine().SCHNITT_OFFSET} mm v. welle-rechts)`} · SE-Linke-Kante @ ${fmtW(kumPos, 1)} mm v. rechtem Wellenrand · SE-Mitte ${fromMitte(kumPos, getMachine().SCHNEIDEEINHEIT)}${trimNote}</div>
           </div>
           <div class="stueck-mass">20 mm</div>
           <div class="stueck-pos"><strong style="color:#ff8a7a;font-size:13px;font-weight:800">${cutMitteShort} mm</strong><br><span style="font-size:10px;opacity:0.7;font-weight:500">Welle-Pos ${fmtW(cutAbsPos, 1)} mm</span></div>
@@ -10984,7 +10986,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (seg.kind === "schneid" || seg.kind === "neben") {
         const role = seg.role || "inner";
         const isTrim = (role === "trim-L" || role === "trim-R");
-        const cutPos = kumPos + M.SCHNITT_OFFSET;  // float — half-Werte erhalten
+        // Cut sequenz-pos = kumPos + (SE - SCHNITT_OFFSET) — DCM-asymmetrie-tauglich
+        const cutPos = kumPos + (M.SCHNEIDEEINHEIT - M.SCHNITT_OFFSET);
         const cutDelta = MITTE - cutPos;  // Werker-Vorzeichen: rechts = positiv
         const schnittTxt = Math.abs(cutDelta) < 0.4 ? "Mitte" : (cutDelta > 0 ? `+${fmtW(cutDelta, 1)}` : `${fmtW(cutDelta, 1)}`);
         const seClass = isTrim ? "pm-trim" : (seg.kind === "neben" ? "pm-neben" : "pm-schneid");
@@ -10997,7 +11000,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         seqHtml += `<tr class="${seClass}" style="page-break-inside:avoid;break-inside:avoid;">
           <td class="check"></td>
           <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
-          <td class="bauteil"><strong>Schneideeinheit</strong> ${badge}<br><small>SE-Linke-Kante @ ${fmtW(kumPos, 1)} mm · Schnittkante @ ${M.SCHNITT_OFFSET} mm v. links</small>${warn}</td>
+          <td class="bauteil"><strong>Schneideeinheit</strong> ${badge}<br><small>SE-Linke-Kante @ ${fmtW(kumPos, 1)} mm · Schnittkante @ ${M.SCHNITT_OFFSET} mm v. welle-links${M.SCHNITT_OFFSET === M.SCHNEIDEEINHEIT/2 ? "" : ` (asymm. — ${M.SCHNEIDEEINHEIT - M.SCHNITT_OFFSET} mm v. welle-rechts)`}</small>${warn}</td>
           <td class="mass">${M.SCHNEIDEEINHEIT} mm</td>
           <td class="pos"><strong>Schnitt Mitte ${schnittTxt}</strong><br><small>Welle-Pos ${fmtW(cutPos, 1)} mm</small></td>
         </tr>`;
