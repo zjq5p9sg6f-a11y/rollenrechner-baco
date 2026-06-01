@@ -4847,7 +4847,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.93 · BETA · Print-CSS dedupliziert · 700 Zeilen weg · offline-fähig</div>
+    <div>v1.94 · BETA · Werker-Korrekturen 2026-06-01: Besäumung 2.5mm + Welle-Mitte-L/R-Fix + Werker-Mass "Welle-Rechts→1.Cut" + Auto-Park-Reduzierung >1120mm</div>
   </footer>
 </div>
 
@@ -5730,7 +5730,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
       MAX_SPEED_MMIN: 500,
       MR_CENTER_OFFSET_STD: 0,        // DCM hat kein zentriertes MR-Konzept
       MR_CENTER_OFFSET_TRICK: 0,
-      BESAEUMUNG_MIN_SOFT: 5,
+      BESAEUMUNG_MIN_SOFT: 2.5,       // v1.94: gesenkt von 5 auf 2.5 — Werker besaeumt fuer
+                                      // Kundenauftraege bis runter zu 2.5+2.5 mm beidseitig
+                                      // (intern weiter 5+5 mm Risiko-Grenze, aber Tool muss
+                                      // beides darstellen koennen — sonst leitet die Welle
+                                      // bei 2.5 mm Trim keine Besaeumungs-SE ab)
       BESAEUMUNG_MAX: 20
     },
     EUROMAC: {
@@ -5743,13 +5747,19 @@ audio.team-player-audio::-webkit-media-controls-panel {
       // Obermesser, dazwischen wird bestueckt. Werker-Messung: ~1118mm zwischen
       // den 4 Park-Ringen. Stack zentriert auf geo-center (=670 vom rechtem Rand).
       WELLE: 1320,                     // operativ nutzbar = physische Welle
-      WELLE_MITTE: 670,                // geo-center (Werker-Konvention) vom rechtem Wellenrand
+      // v1.94 Werker-Korrektur 2026-06-01: WELLE_MITTE ist 650 mm vom LINKEN Wellenrand
+      // (= 670 mm vom rechten Wellenrand). Vorher 670 von links = falsche L/R-Bemaßung.
+      // Werker-Beispiel 182 = 670 - 488 ist die Distanz vom rechten Wellenrand zur
+      // rechtesten Schneidkante; setzt WELLE_MITTE = 670 vom rechtem Rand voraus.
+      // Im Render-Coord-System (xAt: links=0, rechts=WELLE) ist das WELLE_MITTE = 650.
+      WELLE_MITTE: 650,                // 650 mm vom linkem Rand (= 670 mm vom rechtem Rand)
       BESTUECKUNGS_BREITE: 1120,       // zwischen den 4 Messer-Park-Ringen (1320 - 2×100)
 
       // Welle physisch (Werker-Realität, fuer UI-Anzeige + Sequenz)
       WELLE_PHYSISCH_MM: 1320,         // physische Bestueckungsbreite gesamt
-      WELLE_LEFT_OF_GEO_CENTER: 650,   // links der Wellen-Mitte
-      WELLE_RIGHT_OF_GEO_CENTER: 670,  // rechts der Wellen-Mitte (asymmetrisch)
+      // v1.94: L/R bezogen auf Bestueckungssicht (Gewinde-Ende links, kurze Seite)
+      WELLE_LEFT_OF_GEO_CENTER: 650,   // links der Wellen-Mitte (kurze Seite, Gewinde-Ende)
+      WELLE_RIGHT_OF_GEO_CENTER: 670,  // rechts der Wellen-Mitte (lange Seite)
       // Klemm-Distanzring auf Gewinde (Operator-Praxis)
       KLEMM_DISTANZRING_MM: 5,         // 5 mm Klemm-Reserve auf Gewinde
       KLEMM_SEITE: "left",             // sitzt links auf Gewinde-Ende
@@ -5765,8 +5775,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
       PARK_PRO_SEITE: 2,
       PARK_TOTAL: 100,                 // 2 × 50mm pro Seite
       // Bahn-Mitte-Offset: -10mm wegen asymmetrischer Welle (650/670).
-      // Stack soll auf geo-center sitzen (Werker), aber op-Mitte ist 10mm rechts
-      // davon (= (670-650)/2). Daher Stack 10mm links der op-Mitte → restR größer.
+      // Mit WELLE_MITTE=650 (vom linkem Rand) sitzt das Geo-Center 10mm links vom
+      // op-Center der Bestueckungsbreite (= PARK_TOTAL + BESTUECKUNGS_BREITE/2 = 660).
+      // Stack auf Geo-Center: Stack-Mitte = -10 + 660 = 650 → fluchtet mit Cross-Mark.
       BAHN_MITTE_OFFSET_MM: -10,
       // 10 Stufen — kein 200/300 mm (Lücken muss Operator durch Kombi 100+X lösen)
       DISTANZRINGE: [100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
@@ -5783,7 +5794,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       MAX_SPEED_MMIN: 500,
       MR_CENTER_OFFSET_STD: 20,        // ±20 mm Standard-Versatz
       MR_CENTER_OFFSET_TRICK: 50,      // ±50 mm mit Distanzhülsen-Trick (Warning)
-      BESAEUMUNG_MIN_SOFT: 5,
+      BESAEUMUNG_MIN_SOFT: 2.5,        // v1.94: gesenkt von 5 auf 2.5 (siehe DCM-Kommentar)
       BESAEUMUNG_MAX: 20
     }
   };
@@ -5801,11 +5812,26 @@ audio.team-player-audio::-webkit-media-controls-panel {
       return (stored && MACHINES[stored]) ? stored : "DCM";
     } catch (_) { return "DCM"; }
   })();
+
+  // v1.94 Werker-Korrektur: Euromac auto-reduziert Park-Ringe bei MR > 1120 mm
+  // (Werker-Regel: >112 cm Mutterrolle → nur 1 Parkplatz-Distanzhuelse pro Seite,
+  // damit die MR ueberhaupt zwischen die Ringe passt).
+  // currentMrMm wird vor jeder Berechnung von calcWelleJob gesetzt; bleibt null
+  // wenn kein Auftrag aktiv ist (dann gilt der Default).
+  let currentMrMm = null;
+  function setCurrentMrMmForCalc(mr) {
+    currentMrMm = (typeof mr === "number" && isFinite(mr) && mr > 0) ? mr : null;
+  }
   function getMachine() {
     const base = MACHINES[activeMachineId];
     // Euromac: Park-Reduzierung bei breiter MR (1 oder 0 Ringe statt 2)
     if (base.id === "EUROMAC") {
       let override = base.PARK_PRO_SEITE;
+      // 1) Auto-Reduzierung: MR > 1120 mm → 1 Ring/Seite (Werker-Regel)
+      if (currentMrMm != null && currentMrMm > 1120 + 0.001) {
+        override = 1;
+      }
+      // 2) Manueller Override aus localStorage hat Vorrang ueber Auto
       try {
         const v = localStorage.getItem("rr.parkPerSide.EUROMAC");
         if (v === "0" || v === "1" || v === "2") override = parseInt(v, 10);
@@ -5895,6 +5921,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   function calcWelleJob(out) {
     if (!out || !out.mutter || !out.schmal) return { ok: false, empty: true, alerts: [] };
+    // v1.94: MR-Kontext fuer Auto-Reduzierung Park-Ringe (Euromac > 1120 mm) setzen
+    setCurrentMrMmForCalc(out.mutter);
     const M = getMachine();
     const mr = out.mutter, haupt = out.schmal;
     const slots = out.nebenSlots || [];
@@ -5913,12 +5941,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const innerSegs = [];
 
     // Trim-Logic: SE-L und SE-R sind nur nötig wenn echter Trim-Cut existiert.
-    // Schwelle = BESAEUMUNG_MIN_SOFT (default 5 mm) — bei Trim < 5 mm entfaellt
-    // der Trim-Cut, weil kein Operator wegen 2-3 mm Saeumung eine SE setzt.
-    // INKLUSIV (>=): bei Trim = MIN_SOFT (= 5 mm) wird noch besaeumt.
-    // "Min Soft" = die kleinste Saeumung die noch geschnitten wird, nicht die
-    // Schwelle ab der erst geschnitten wird.
-    const TRIM_TOL = M.BESAEUMUNG_MIN_SOFT || 5;
+    // Schwelle = BESAEUMUNG_MIN_SOFT (default 2.5 mm seit v1.94, vorher 5 mm) —
+    // bei Trim < 2.5 mm entfaellt der Trim-Cut. INKLUSIV (>=): bei Trim = MIN_SOFT
+    // wird noch besaeumt. "Min Soft" = die kleinste Saeumung die noch geschnitten wird,
+    // nicht die Schwelle ab der erst geschnitten wird.
+    // Werker-Korrektur 2026-06-01: 2.5 mm beidseitig sind Realitaet bei Kundenauftraegen
+    // (exakte Nutzen-Mass). Vorher dropte die Welle die Besaeumungs-SE bei 2.5 mm Trim,
+    // obwohl die Mutterrolle das Mass korrekt zeigte → Welle/MR inkonsistent.
+    const TRIM_TOL = M.BESAEUMUNG_MIN_SOFT || 2.5;
     const trimL = (out.restL != null) ? out.restL : (out.restMM || 0) / 2;
     const trimR = (out.restR != null) ? out.restR : (out.restMM || 0) / 2;
     const haveSeL = trimL >= TRIM_TOL;
@@ -6183,7 +6213,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const H = baseH + tracksTotalH;
     svgEl.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
-    // Layout-Zonen (1:1 aus Original)
+    // Layout-Zonen (1:1 aus Original, +Werker-Mass-Zeile zwischen Park/Bestück und L=R-Sym)
     const dimTop1Y = 50;
     const dimTop2Y = 90;
     const knifeY = 130;
@@ -6191,8 +6221,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const barH = 110;
     const barBottom = barTop + barH;
     const dimBotY = barBottom + 36;
-    const dimBot2Y = barBottom + 80;
-    const scaleY = barBottom + 110;
+    const dimWerkerY = barBottom + 65;   // v1.94: neue Werker-Bemassung (rechter Welle → 1. Cut)
+    const dimBot2Y = barBottom + 95;     // v1.94: nach unten verschoben damit Werker-Mass Platz hat
+    const scaleY = barBottom + 125;
 
     // Empty-State
     if (!d || !d.ok) {
@@ -6465,6 +6496,44 @@ audio.team-player-audio::-webkit-media-controls-panel {
     } else {
       // Euromac: Park-Plätze baulich integriert, kein Bemaßungs-Eintrag nötig
       drawDimSection(g, padX, W - padX, dimBotY, `Bestückungs-Bereich ${M.BESTUECKUNGS_BREITE} mm · zentriert um Mitte`, "var(--accent-primary)", true);
+    }
+
+    // ============ Werker-Mass: rechter Wellenrand → rechteste Schneidkante ============
+    // (v1.94 Werker-Korrektur 2026-06-01) Kritisches Bestueckungs-Mass: Werker schiebt
+    // von rechts nach links die Park-Ringe + Distanzhuelsen auf bis die erste (rechteste)
+    // Schneidkante an dieser Position sitzt. Inklusive der 2 Park-Ringe (Euromac) bzw.
+    // 4 Park-Ringe (DCM) auf der rechten Seite.
+    // Werker-Beispiel Euromac: 182 mm = 670 (WELLE_MITTE vom rechtem Rand) - 488 (halbe Stack)
+    {
+      let rightmostCutMm = null;
+      let cur = 0;
+      for (const seg of layoutLR) {
+        if (seg.kind === "schneid" || seg.kind === "neben") {
+          const cutMm = cur + M.SCHNITT_OFFSET;
+          if (rightmostCutMm == null || cutMm > rightmostCutMm) rightmostCutMm = cutMm;
+        } else if (seg.kind === "buchse" && Array.isArray(seg.cuts)) {
+          for (const relPos of seg.cuts) {
+            const cutMm = cur + relPos;
+            if (rightmostCutMm == null || cutMm > rightmostCutMm) rightmostCutMm = cutMm;
+          }
+        }
+        cur += seg.breite;
+      }
+      if (rightmostCutMm != null) {
+        const xCut = xAt(rightmostCutMm);
+        const xRight = W - padX;
+        const distMm = M.WELLE - rightmostCutMm;
+        const warnCol = "var(--warn-color)";
+        // Vertikale Guide vom Cut zur Werker-Bemassungs-Linie
+        svgW(g, "line", { x1: xCut, y1: barBottom + 4, x2: xCut, y2: dimWerkerY - 8,
+          stroke: warnCol, "stroke-width": "0.9", "stroke-dasharray": "3 3", opacity: "0.75" });
+        // Vertikale Guide am rechten Wellenrand
+        svgW(g, "line", { x1: xRight, y1: barBottom + 4, x2: xRight, y2: dimWerkerY - 8,
+          stroke: warnCol, "stroke-width": "0.9", "stroke-dasharray": "3 3", opacity: "0.55" });
+        drawDimSection(g, xCut, xRight, dimWerkerY,
+          `↤ ${fmtW0(distMm)} mm · Welle-Rechts → 1. Schneidkante (inkl. Park-R)`,
+          warnCol, true);
+      }
     }
 
     // ============ Mass-Skala alle 100 mm ============
@@ -10517,7 +10586,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.93";
+    const PRINT_VERSION = "v1.94";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
     const headerHtml = `
       <div class="pm-header">
