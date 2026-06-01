@@ -4847,7 +4847,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.94 · BETA · Werker-Korrekturen 2026-06-01: Besäumung 2.5mm + Welle-Mitte-L/R-Fix + Werker-Mass "Welle-Rechts→1.Cut" + Auto-Park-Reduzierung >1120mm</div>
+    <div>v1.94 · BETA · Werker-Korrekturen 2026-06-01: Besäumung 2.5mm + Welle-Mitte-L/R-Fix + Werker-Mass 12/10 "1. Schneidkante" + Filename-Maschine + Auto-Park >1120mm</div>
   </footer>
 </div>
 
@@ -6206,14 +6206,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const W = 1500;
     const padX = 60;
     const innerW = W - padX * 2;
-    const baseH = 460;
+    const baseH = 480;  // v1.94: erhöht damit Werker-Mass-Banner + Skala unten reinpassen
     const isMaster = d && d.isMaster && d.validJobs && d.validJobs.length >= 2;
     const trackH = 44, trackGap = 6, trackHeader = 28;
     const tracksTotalH = isMaster ? (trackHeader + d.validJobs.length * (trackH + trackGap) + 16) : 0;
     const H = baseH + tracksTotalH;
     svgEl.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
-    // Layout-Zonen (1:1 aus Original, +Werker-Mass-Zeile zwischen Park/Bestück und L=R-Sym)
+    // Layout-Zonen (v1.94: +Werker-Mass-Block mit grossem Wert-Banner zwischen Park/Bestück und L=R-Sym)
     const dimTop1Y = 50;
     const dimTop2Y = 90;
     const knifeY = 130;
@@ -6221,9 +6221,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const barH = 110;
     const barBottom = barTop + barH;
     const dimBotY = barBottom + 36;
-    const dimWerkerY = barBottom + 65;   // v1.94: neue Werker-Bemassung (rechter Welle → 1. Cut)
-    const dimBot2Y = barBottom + 95;     // v1.94: nach unten verschoben damit Werker-Mass Platz hat
-    const scaleY = barBottom + 125;
+    const dimWerkerY = barBottom + 78;   // v1.94: Werker-Bemassung mit 38px-Banner (zentriert auf Y=78)
+    const dimBot2Y = barBottom + 122;    // v1.94: L=R-Sym nach unten damit Werker-Banner Platz hat
+    const scaleY = barBottom + 152;
 
     // Empty-State
     if (!d || !d.ok) {
@@ -6500,21 +6500,35 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     // ============ Werker-Mass: rechter Wellenrand → rechteste Schneidkante ============
     // (v1.94 Werker-Korrektur 2026-06-01) Kritisches Bestueckungs-Mass: Werker schiebt
-    // von rechts nach links die Park-Ringe + Distanzhuelsen auf bis die erste (rechteste)
-    // Schneidkante an dieser Position sitzt. Inklusive der 2 Park-Ringe (Euromac) bzw.
-    // 4 Park-Ringe (DCM) auf der rechten Seite.
+    // von rechts (Park-R + Distanzen) bis die ERSTE Schneidkante hier sitzt.
     // Werker-Beispiel Euromac: 182 mm = 670 (WELLE_MITTE vom rechtem Rand) - 488 (halbe Stack)
+    // Cut-Position-Konvention: an die Print-Sequenz angeglichen — fuer die RECHTESTE SE
+    // ist der Cut bei SE_x_rechts - SCHNITT_OFFSET (= SE_x_left + (SE_breite - SCHNITT)),
+    // weil der Werker beim Aufschieben von rechts die Klinge zuerst an der welle-rechts-
+    // Seite der SE trifft.
     {
       let rightmostCutMm = null;
+      let rightmostSeLeft = null;
+      let rightmostSeBreite = null;
       let cur = 0;
       for (const seg of layoutLR) {
         if (seg.kind === "schneid" || seg.kind === "neben") {
-          const cutMm = cur + M.SCHNITT_OFFSET;
-          if (rightmostCutMm == null || cutMm > rightmostCutMm) rightmostCutMm = cutMm;
+          // Cut-Position aus Aufschiebe-Sicht: SE_rechts (welle-coord) - SCHNITT_OFFSET
+          const seRechts = cur + seg.breite;
+          const cutMm = seRechts - M.SCHNITT_OFFSET;
+          if (rightmostCutMm == null || cutMm > rightmostCutMm) {
+            rightmostCutMm = cutMm;
+            rightmostSeLeft = cur;
+            rightmostSeBreite = seg.breite;
+          }
         } else if (seg.kind === "buchse" && Array.isArray(seg.cuts)) {
           for (const relPos of seg.cuts) {
             const cutMm = cur + relPos;
-            if (rightmostCutMm == null || cutMm > rightmostCutMm) rightmostCutMm = cutMm;
+            if (rightmostCutMm == null || cutMm > rightmostCutMm) {
+              rightmostCutMm = cutMm;
+              rightmostSeLeft = cur;
+              rightmostSeBreite = seg.breite;
+            }
           }
         }
         cur += seg.breite;
@@ -6523,16 +6537,59 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const xCut = xAt(rightmostCutMm);
         const xRight = W - padX;
         const distMm = M.WELLE - rightmostCutMm;
-        const warnCol = "var(--warn-color)";
-        // Vertikale Guide vom Cut zur Werker-Bemassungs-Linie
-        svgW(g, "line", { x1: xCut, y1: barBottom + 4, x2: xCut, y2: dimWerkerY - 8,
-          stroke: warnCol, "stroke-width": "0.9", "stroke-dasharray": "3 3", opacity: "0.75" });
+        const warnCol = "#ff8a00";   // kräftiges Orange (eigene Farbe, nicht Toast-Color)
+        const warnGlow = "rgba(255,138,0,0.35)";
+
+        // Vertikale Guide am Cut (vom Bar-Boden bis Werker-Linie) — kräftig
+        svgW(g, "line", { x1: xCut, y1: barTop, x2: xCut, y2: dimWerkerY - 14,
+          stroke: warnCol, "stroke-width": "1.4", "stroke-dasharray": "4 3", opacity: "0.85" });
+        // Kleines Drei-Eck-Marker an der Cut-Welle-Position
+        svgW(g, "path", { d: `M${xCut} ${barTop - 2} L${xCut - 5} ${barTop - 12} L${xCut + 5} ${barTop - 12} Z`,
+          fill: warnCol });
+        svgW(g, "text", { x: xCut, y: barTop - 16, "text-anchor": "middle",
+          fill: warnCol, "font-size": "10", "font-weight": "800", "letter-spacing": "0.08em",
+          "font-family": "inherit" }, "1. SCHNEIDKANTE");
+
         // Vertikale Guide am rechten Wellenrand
-        svgW(g, "line", { x1: xRight, y1: barBottom + 4, x2: xRight, y2: dimWerkerY - 8,
-          stroke: warnCol, "stroke-width": "0.9", "stroke-dasharray": "3 3", opacity: "0.55" });
-        drawDimSection(g, xCut, xRight, dimWerkerY,
-          `↤ ${fmtW0(distMm)} mm · Welle-Rechts → 1. Schneidkante (inkl. Park-R)`,
-          warnCol, true);
+        svgW(g, "line", { x1: xRight, y1: barTop, x2: xRight, y2: dimWerkerY - 14,
+          stroke: warnCol, "stroke-width": "1.4", "stroke-dasharray": "4 3", opacity: "0.85" });
+        // Welle-Rechts-Label
+        svgW(g, "text", { x: xRight - 4, y: barTop - 4, "text-anchor": "end",
+          fill: warnCol, "font-size": "9.5", "font-weight": "700", "letter-spacing": "0.06em",
+          "font-family": "inherit" }, "WELLE-RECHTS");
+
+        // Bemassungs-Linie mit Pfeilkoepfen — dicker und prominenter
+        svgW(g, "line", { x1: xCut, y1: dimWerkerY, x2: xRight, y2: dimWerkerY,
+          stroke: warnCol, "stroke-width": "2", opacity: "0.95" });
+        svgW(g, "path", { d: `M${xCut} ${dimWerkerY} L${xCut + 10} ${dimWerkerY - 6} L${xCut + 10} ${dimWerkerY + 6} Z`,
+          fill: warnCol });
+        svgW(g, "path", { d: `M${xRight} ${dimWerkerY} L${xRight - 10} ${dimWerkerY - 6} L${xRight - 10} ${dimWerkerY + 6} Z`,
+          fill: warnCol });
+
+        // Banner-Box mit GROSSEM Wert — zentriert auf der Bemassungs-Linie, immer im sichtbaren Bereich
+        const valTxt = `${fmtW0(distMm)} mm`;
+        const subTxt = "↞ WERKER · 1. Schneidkante v. rechts (inkl. Park-R)";
+        const boxW = Math.max(valTxt.length * 13 + 60, subTxt.length * 6.0 + 30);
+        const boxH = 38;
+        let boxCx = (xCut + xRight) / 2;
+        // Clamp so dass die Box nicht aus dem SVG ragt
+        boxCx = Math.max(padX + boxW / 2 + 4, Math.min(W - padX - boxW / 2 - 4, boxCx));
+        const boxX = boxCx - boxW / 2;
+        const boxY = dimWerkerY - boxH / 2;
+        // Glow / Schatten unter der Box
+        svgW(g, "rect", { x: boxX - 2, y: boxY - 2, width: boxW + 4, height: boxH + 4, rx: 8,
+          fill: warnGlow, opacity: "0.45" });
+        // Haupt-Box
+        svgW(g, "rect", { x: boxX, y: boxY, width: boxW, height: boxH, rx: 6,
+          fill: "var(--bg-base)", stroke: warnCol, "stroke-width": "1.8" });
+        // Großer Wert
+        svgW(g, "text", { x: boxCx, y: boxY + 18, "text-anchor": "middle",
+          fill: warnCol, "font-size": "18", "font-weight": "900", "letter-spacing": "0.02em",
+          "font-family": "inherit" }, valTxt);
+        // Sub-Text
+        svgW(g, "text", { x: boxCx, y: boxY + 32, "text-anchor": "middle",
+          fill: "rgba(255,255,255,0.85)", "font-size": "9.5", "font-weight": "600",
+          "letter-spacing": "0.05em", "font-family": "inherit" }, subTxt);
       }
     }
 
@@ -10494,10 +10551,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
     } else {
       txt("printMR", "—"); txt("printSchmal", "—"); txt("printNutzen", "—");
     }
-    // Datei-Name dynamisch via document.title
+    // Datei-Name dynamisch via document.title — Maschinen-spezifisch (v1.94)
     const safe = s => String(s).replace(/[^a-zA-Z0-9_\-äöüÄÖÜß]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
     const dateShort = datum.replace(/-/g, "");
-    const fileName = `Bestueckung_DCM_${safe(auftragNr)}_${dateShort}`;
+    const machineSlug = (typeof activeMachineId === "string" && activeMachineId)
+      ? activeMachineId.replace(/[^a-zA-Z0-9]/g, "")
+      : "Maschine";
+    const fileName = `Bestueckung_${machineSlug}_${safe(auftragNr)}_${dateShort}`;
     document.title = fileName;
     return fileName;
   }
