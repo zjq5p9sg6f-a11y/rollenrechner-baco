@@ -4559,14 +4559,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <span id="bahnOffsetHint" class="bahn-eich-hint">+ = Bahn-Mitte rechts der Welle-Mitte</span>
         <button type="button" id="bahnOffsetReset" class="bahn-eich-reset" title="Zurueck auf 0 (Welle-Mitte)">↺</button>
       </div>
-      <div class="trim-strategy-bar" title="Trim-Strategie: Wie wird die Gesamt-Besaeumung auf links/rechts verteilt?\n· Sym = 5+5 mm beidseitig (2 Besaeumungs-SE, Stack mittig)\n· Asym L = ganzer Trim links (1 Besaeumungs-SE, Stack rechts versetzt)\n· Asym R = ganzer Trim rechts (1 Besaeumungs-SE, Stack links versetzt)\nPro Maschine gespeichert.">
+      <div class="trim-strategy-bar" title="Trim-Strategie: Wie wird die Gesamt-Besaeumung auf links/rechts verteilt?\n· Sym (L=R) = beidseitig gleich, 2 Besaeumungs-SE, Stack mittig — der konkrete Trim-Wert (z.B. 2.5, 5, 12 mm) ergibt sich aus MR − Nutzen\n· Asym L = ganzer Trim links (1 Besaeumungs-SE, Stack rechts versetzt)\n· Asym R = ganzer Trim rechts (1 Besaeumungs-SE, Stack links versetzt)\nPro Maschine gespeichert.">
         <label class="trim-strategy-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
           <span>Trim-Strategie</span>
         </label>
         <div class="trim-strategy-segments" role="radiogroup" aria-label="Trim-Strategie">
           <button type="button" class="ts-seg" data-trim-mode="asym-l" role="radio" aria-checked="false" title="Asymmetrisch links: gesamter Trim auf der linken Seite, 1 Besaeumungs-SE gespart">← Asym L</button>
-          <button type="button" class="ts-seg ts-seg-sym" data-trim-mode="sym" role="radio" aria-checked="true" title="Symmetrisch: Trim 50/50 auf beide Seiten, 2 Besaeumungs-SE">Sym 5+5</button>
+          <button type="button" class="ts-seg ts-seg-sym" data-trim-mode="sym" role="radio" aria-checked="true" title="Symmetrisch: Trim 50/50 auf beide Seiten, 2 Besaeumungs-SE. Konkreter mm-Wert ergibt sich aus MR − Nutzen.">↔ Sym (L=R)</button>
           <button type="button" class="ts-seg" data-trim-mode="asym-r" role="radio" aria-checked="false" title="Asymmetrisch rechts: gesamter Trim auf der rechten Seite, 1 Besaeumungs-SE gespart">Asym R →</button>
         </div>
       </div>
@@ -5782,9 +5782,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
       // 10 Stufen — kein 200/300 mm (Lücken muss Operator durch Kombi 100+X lösen)
       DISTANZRINGE: [100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
       SCHNEIDEEINHEIT: 20,             // Standard-SE: Distanzhülse 10 + Messer 1 + Gegenstück 9
-      SCHNITT_OFFSET: 11,              // Schnittkante 11 mm v.l. (asymmetrisch)
+      // v1.94 Werker-Korrektur 2026-06-01: SCHNITT_OFFSET 11 → 10. Werker zaehlt die
+      // "Schneidkante" als LINKE Kante der Klinge (= Uebergang Distanzhuelse→Messer bei
+      // 10 mm), nicht die rechte Kante. Sein Beispiel 670-488=182 mm setzt cut bei
+      // SE-Mitte voraus. Mit 11 lieferte Tool 183, mit 10 jetzt 182 ✓
+      SCHNITT_OFFSET: 10,              // Schnittkante 10 mm v.l. (= linke Klingen-Edge / SE-Mitte)
       SE_SORTIMENT: [
-        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 11, cuts: 1,
+        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 10, cuts: 1,
           composition: "Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9 mm" },
         { id: "schneidebuchse", label: "Schneidebuchse (Multi-Cut)", length: 30, cuts: 6,
           cutSpacing: 5, cutPositions: [2.5, 7.5, 12.5, 17.5, 22.5, 27.5],
@@ -9594,7 +9598,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       writeTrimMode(M.id, mode);
       syncTrimModeUI();
       if (typeof calc === "function") calc();
-      const label = mode === "sym" ? "Symmetrisch 5+5" : (mode === "asym-l" ? "Asymmetrisch links" : "Asymmetrisch rechts");
+      const label = mode === "sym" ? "Symmetrisch (L=R)" : (mode === "asym-l" ? "Asymmetrisch links" : "Asymmetrisch rechts");
       toast(`Trim-Strategie ${M.label}: ${label}`);
     });
   });
@@ -10628,7 +10632,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const bemerkung = inp("welleBemerkung") || "—";
 
     // Trim-Mode-Label
-    let trimLbl = "Symmetrisch 5+5";
+    let trimLbl = "Symmetrisch (L=R)";
     try {
       const v = localStorage.getItem("rr.trimMode." + M.id);
       if (v === "asym-l") trimLbl = "Asymmetrisch links";
