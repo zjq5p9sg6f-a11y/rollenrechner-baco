@@ -4790,7 +4790,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="info-row"><span>Schnittkante v. links</span><strong id="mcSchnitt">13 mm</strong></div>
           <div class="info-row"><span>Distanzringe</span><strong id="mcDistRings">0,3 / 0,5 / 1 / 2 / 5 / 10 / 20 / 30 / 50 / 100 / 200 / 300 mm</strong></div>
           <div class="info-row" id="mcMrCenterRow" style="display:none"><span>MR-Center-Versatz</span><strong id="mcMrCenter">±20 mm Standard · ±50 mm Trick</strong></div>
-          <div class="info-row" id="mcKlemmRow" style="display:none"><span>Klemm-Distanzring</span><strong id="mcKlemm">≥5 mm links auf Gewinde · Werker-Wahl</strong></div>
+          <div class="info-row" id="mcKlemmRow" style="display:none"><span>Klemm-Distanzring</span><strong id="mcKlemm">5–20 mm links auf Gewinde · Werker-Wahl</strong></div>
           <div class="info-row" id="mcAsymmRow" style="display:none"><span>Asymmetrie-Ring</span><strong id="mcAsymm">20 mm rechts (Default an)</strong></div>
           <div class="info-row" id="mcBahnOffsetRow" style="display:none"><span>Bahn-Versatz Einbau</span><strong id="mcBahnOffset">+15 mm Welle-Mitte zur Bahn-Mitte</strong></div>
         </div>
@@ -5761,7 +5761,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
       WELLE_LEFT_OF_GEO_CENTER: 650,   // links der Wellen-Mitte (kurze Seite, Gewinde-Ende)
       WELLE_RIGHT_OF_GEO_CENTER: 670,  // rechts der Wellen-Mitte (lange Seite)
       // Klemm-Distanzring auf Gewinde (Operator-Praxis)
-      KLEMM_DISTANZRING_MM: 5,         // 5 mm Klemm-Reserve auf Gewinde
+      // v1.94 Werker-Korrektur: 5–20 mm Werker-Wahl. Hauptsache der Ring ragt vom
+      // Bestueckungsbereich hinaus in den Gewindebereich, damit die Gewindemutter
+      // alles fest klemmen kann. Default 5 mm fuer die Stueckliste, der Werker
+      // waehlt vor Ort die passende Groesse (Gewindelaenge → 5/10/15/20 mm).
+      KLEMM_DISTANZRING_MM: 5,         // Default 5 mm; physikalisch 5–20 mm zulaessig
+      KLEMM_DISTANZRING_MAX_MM: 20,    // obere Grenze (Gewindelaenge-bedingt)
       KLEMM_SEITE: "left",             // sitzt links auf Gewinde-Ende
       // Asymmetrie-Ring (DEFAULT OFF in v1.81 — Werker nutzt nicht, war Tool-Annahme)
       ASYMMETRY_RING_RIGHT_MM: 20,     // bleibt für optionalen Toggle
@@ -6886,8 +6891,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
       row.innerHTML = `
         <div class="stueck-nr distanz">${nr++}</div>
         <div>
-          <div class="stueck-name"><span class="icon" style="background:linear-gradient(180deg,#00e676,#00b85e)"></span>Klemm-Distanzring <span style="color:var(--text-secondary);font-size:10px;font-weight:600;letter-spacing:0.04em">Werker-Wahl</span></div>
-          <div class="stueck-detail">${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — Groesse nach Werker-Wahl (≥${r} mm), Hauptsache ueber Gewinde damit Untermesser klemmen</div>
+          <div class="stueck-name"><span class="icon" style="background:linear-gradient(180deg,#00e676,#00b85e)"></span>Klemm-Distanzring <span style="color:var(--text-secondary);font-size:10px;font-weight:600;letter-spacing:0.04em">Werker-Wahl · 5–${M.KLEMM_DISTANZRING_MAX_MM || 20} mm</span></div>
+          <div class="stueck-detail">${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — meist ${r} mm, je nach Gewindelaenge bis ${M.KLEMM_DISTANZRING_MAX_MM || 20} mm. Wichtig: ragt vom Bestueckungsbereich in den Gewindebereich hinaus, damit die Gewindemutter alles fest klemmen kann.</div>
         </div>
         <div class="stueck-mass">${r} mm</div>
         <div class="stueck-pos">@ ${Math.round(kumPos)} mm</div>
@@ -9441,7 +9446,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     setShow("mcAsymmRow",      isEuro);
     setShow("mcBahnOffsetRow", isEuro);
     if (isEuro) {
-      setTxt("mcKlemm",       `${M.KLEMM_DISTANZRING_MM} mm ${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde (Klemm-Reserve)`);
+      setTxt("mcKlemm",       `${M.KLEMM_DISTANZRING_MM}–${M.KLEMM_DISTANZRING_MAX_MM || 20} mm ${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde (Werker-Wahl · ragt in Gewindebereich)`);
       setTxt("mcAsymm",       `${M.ASYMMETRY_RING_RIGHT_MM} mm rechts ${M.ASYMMETRY_RING_DEFAULT_ON ? "(Default an — gleicht Welle-Asymmetrie aus)" : "(Default aus)"}`);
       setTxt("mcBahnOffset",  `+${M.MASCHINEN_BAHN_OFFSET_MM} mm Welle-Mitte zur Bahn-Mitte (Welle gespiegelt eingebaut)`);
     }
@@ -10978,7 +10983,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       seqHtml += `<tr class="pm-distanz" style="page-break-inside:avoid;break-inside:avoid;">
         <td class="check"></td>
         <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
-        <td class="bauteil"><strong>Klemm-Distanzring</strong> <span class="pm-tag-fixiert">Werker-Wahl</span><br><small>${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — Groesse nach Werker-Wahl (≥${r} mm), Hauptsache ueber Gewinde damit Untermesser klemmen</small></td>
+        <td class="bauteil"><strong>Klemm-Distanzring</strong> <span class="pm-tag-fixiert">Werker-Wahl · 5–${M.KLEMM_DISTANZRING_MAX_MM || 20} mm</span><br><small>${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — meist ${r} mm, je nach Gewindelaenge bis ${M.KLEMM_DISTANZRING_MAX_MM || 20} mm. Wichtig: ragt vom Bestueckungsbereich in den Gewindebereich hinaus, damit die Gewindemutter alles fest klemmen kann.</small></td>
         <td class="mass">≥${r} mm</td>
         <td class="pos">@ ${Math.round(kumPos)} mm</td>
       </tr>`;
