@@ -6544,23 +6544,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const warnCol = "#ff8a00";   // kräftiges Orange (eigene Farbe, nicht Toast-Color)
         const warnGlow = "rgba(255,138,0,0.35)";
 
-        // Vertikale Guide am Cut (vom Bar-Boden bis Werker-Linie) — kräftig
-        svgW(g, "line", { x1: xCut, y1: barTop, x2: xCut, y2: dimWerkerY - 14,
-          stroke: warnCol, "stroke-width": "1.4", "stroke-dasharray": "4 3", opacity: "0.85" });
-        // Kleines Drei-Eck-Marker an der Cut-Welle-Position
-        svgW(g, "path", { d: `M${xCut} ${barTop - 2} L${xCut - 5} ${barTop - 12} L${xCut + 5} ${barTop - 12} Z`,
-          fill: warnCol });
-        svgW(g, "text", { x: xCut, y: barTop - 16, "text-anchor": "middle",
-          fill: warnCol, "font-size": "10", "font-weight": "800", "letter-spacing": "0.08em",
-          "font-family": "inherit" }, "1. SCHNEIDKANTE");
+        // Vertikale Guide am Cut (vom Bar-Boden bis Werker-Linie) — kräftig orange
+        // Kein Top-Label hier, weil das Cut-mm-Label (rotiert) bereits da steht;
+        // der grosse Banner unten kommuniziert "1. Schneidkante" ohnehin eindeutig.
+        svgW(g, "line", { x1: xCut, y1: barBottom + 4, x2: xCut, y2: dimWerkerY - 14,
+          stroke: warnCol, "stroke-width": "1.6", "stroke-dasharray": "4 3", opacity: "0.95" });
 
         // Vertikale Guide am rechten Wellenrand
-        svgW(g, "line", { x1: xRight, y1: barTop, x2: xRight, y2: dimWerkerY - 14,
-          stroke: warnCol, "stroke-width": "1.4", "stroke-dasharray": "4 3", opacity: "0.85" });
-        // Welle-Rechts-Label
-        svgW(g, "text", { x: xRight - 4, y: barTop - 4, "text-anchor": "end",
-          fill: warnCol, "font-size": "9.5", "font-weight": "700", "letter-spacing": "0.06em",
-          "font-family": "inherit" }, "WELLE-RECHTS");
+        svgW(g, "line", { x1: xRight, y1: barBottom + 4, x2: xRight, y2: dimWerkerY - 14,
+          stroke: warnCol, "stroke-width": "1.6", "stroke-dasharray": "4 3", opacity: "0.95" });
 
         // Bemassungs-Linie mit Pfeilkoepfen — dicker und prominenter
         svgW(g, "line", { x1: xCut, y1: dimWerkerY, x2: xRight, y2: dimWerkerY,
