@@ -1184,6 +1184,7 @@ header.bar {
 }
 
 .welle-section {
+  position: relative;  /* Anchor für Detail-Overlay (Hover/Touch) */
   max-height: 0;
   overflow: hidden;
   opacity: 0;
@@ -1248,11 +1249,12 @@ header.bar {
 .kpi-tile {
   position: relative;
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0) 60%),
-    var(--bg-elevated, #141414);
-  border: 1px solid rgba(255,255,255,0.06);
+    linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0) 55%),
+    var(--bg-card-strong, #181818);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 12px;
   padding: 18px 22px 16px;
+  min-height: 116px;
   overflow: hidden;
   transition: border-color 220ms ease, transform 220ms ease, box-shadow 220ms ease;
   isolation: isolate;
@@ -1337,6 +1339,166 @@ header.bar {
 
 @media print {
   .kpi-hero { display: none; }   /* Print hat eigenen Print-Header */
+}
+
+/* ============== v1.95 Welle-Detail-Overlay · Hover/Touch Slide-Over ============== */
+.welle-detail-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 360px;
+  max-width: calc(100vw - 80px);
+  pointer-events: none;
+  z-index: 30;
+  transform: translate3d(0, 0, 0);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 200ms ease;
+  opacity: 0;
+}
+.welle-detail-overlay[aria-hidden="false"] { opacity: 1; }
+
+.welle-detail-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 60%),
+    rgba(12,12,12,0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--wdo-accent, var(--accent-primary));
+  border-radius: 10px;
+  padding: 14px 18px 16px;
+  box-shadow:
+    0 18px 48px -16px rgba(0,0,0,0.7),
+    0 0 0 1px rgba(255,255,255,0.04),
+    0 0 28px -8px var(--wdo-glow, rgba(0,230,118,0.30));
+  color: var(--text-primary);
+  transform: translateY(-6px);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 220ms ease, box-shadow 220ms ease;
+}
+.welle-detail-overlay[aria-hidden="false"] .welle-detail-card { transform: translateY(0); }
+
+.welle-detail-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 6px;
+}
+.welle-detail-eyebrow {
+  font-size: 9.5px; font-weight: 800;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--wdo-accent, var(--accent-primary));
+}
+.welle-detail-pos {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary); opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+.welle-detail-title {
+  font-size: 22px; font-weight: 900; line-height: 1.1;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.welle-detail-title .wdo-unit {
+  font-size: 14px; font-weight: 700; opacity: 0.7;
+  margin-left: 4px;
+}
+.welle-detail-meta {
+  font-size: 12px; font-weight: 600;
+  color: var(--text-secondary); opacity: 0.85;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+.welle-detail-extras {
+  display: grid; grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  font-size: 11.5px; font-weight: 500;
+  color: var(--text-secondary);
+  border-top: 1px dashed rgba(255,255,255,0.10);
+  padding-top: 10px;
+}
+.welle-detail-extras dt {
+  font-weight: 700; opacity: 0.7;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  font-size: 10px;
+}
+.welle-detail-extras dd {
+  margin: 0; color: var(--text-primary); opacity: 0.92;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+.welle-detail-extras dd em {
+  font-style: normal; color: var(--wdo-accent, var(--accent-primary));
+  font-weight: 700;
+}
+
+/* Hint-Strip am unteren Welle-Rand für Touch-Geräte */
+.welle-touch-hint {
+  text-align: center;
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--text-secondary); opacity: 0.5;
+  padding: 6px 0 2px;
+  pointer-events: none;
+}
+.welle-touch-hint::before {
+  content: "↕"; margin-right: 6px; opacity: 0.6;
+}
+
+/* Per-Kind Accent-Colors für Detail-Card */
+.welle-detail-overlay[data-kind="park"] {
+  --wdo-accent: #b0b0b0;
+  --wdo-glow: rgba(176,176,176,0.20);
+}
+.welle-detail-overlay[data-kind="distanz"] {
+  --wdo-accent: #00e676;
+  --wdo-glow: rgba(0,230,118,0.30);
+}
+.welle-detail-overlay[data-kind="schneid"] {
+  --wdo-accent: #ff5544;
+  --wdo-glow: rgba(255,85,68,0.32);
+}
+.welle-detail-overlay[data-kind="neben"] {
+  --wdo-accent: #ffb74d;
+  --wdo-glow: rgba(255,180,77,0.30);
+}
+.welle-detail-overlay[data-kind="rest"] {
+  --wdo-accent: rgba(0,230,118,0.7);
+  --wdo-glow: rgba(0,230,118,0.20);
+}
+.welle-detail-overlay[data-kind="buchse"] {
+  --wdo-accent: #00d4ff;
+  --wdo-glow: rgba(0,212,255,0.30);
+}
+
+/* Hover-States für interaktive SVG-Segments */
+#welleSvg .welle-seg-hit {
+  cursor: pointer;
+  transition: opacity 160ms ease;
+}
+#welleSvg .welle-seg-active rect:first-of-type,
+#welleSvg .welle-seg-hit:hover {
+  opacity: 1;
+}
+
+/* Highlight-Outline für aktives Segment */
+.welle-seg-outline {
+  pointer-events: none;
+  fill: none;
+  stroke: var(--accent-primary);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+.welle-seg-outline.is-active { opacity: 0.95; }
+
+@media (max-width: 720px) {
+  .welle-detail-overlay { width: 280px; }
+  .welle-detail-title { font-size: 18px; }
+}
+
+@media print {
+  .welle-detail-overlay, .welle-touch-hint { display: none; }
 }
 
 .btn-print {
@@ -4874,8 +5036,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
             <stop offset="0%"  stop-color="rgba(255,255,255,0.32)"/>
             <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
           </linearGradient>
-          <pattern id="pRest" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
-            <rect width="3" height="6" fill="rgba(0,230,118,0.30)"/>
+          <pattern id="pRest" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
+            <rect width="1.5" height="8" fill="rgba(0,230,118,0.18)"/>
           </pattern>
           <filter id="glowGreen" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="1.6" result="blur"/>
@@ -4904,6 +5066,22 @@ audio.team-player-audio::-webkit-media-controls-panel {
         </defs>
         <g id="welleVizGroup"></g>
       </svg>
+
+      <!-- v1.95 Welle-Detail-Overlay · Slide-Over Bauteil-Info bei Hover/Touch -->
+      <div class="welle-detail-overlay" id="welleDetailOverlay" aria-hidden="true" data-kind="">
+        <div class="welle-detail-card">
+          <div class="welle-detail-header">
+            <span class="welle-detail-eyebrow" id="wdoEyebrow">Bauteil</span>
+            <span class="welle-detail-pos" id="wdoPos">@ — mm</span>
+          </div>
+          <div class="welle-detail-title" id="wdoTitle">—</div>
+          <div class="welle-detail-meta" id="wdoMeta"></div>
+          <dl class="welle-detail-extras" id="wdoExtras"></dl>
+        </div>
+      </div>
+      <div class="welle-touch-hint" id="welleTouchHint" aria-hidden="true">
+        Hover oder antippen für Bauteil-Details
+      </div>
 
 
       <!-- Folgeauftrags-Cluster (Beta) — Multi-Order Master-Welle -->
@@ -6381,6 +6559,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
   function renderWelleSvg(d) {
     const svgEl = document.getElementById("welleSvg");
     if (!svgEl) return;
+    // v1.95: Hover/Touch-Interaktion einmalig wiren
+    if (typeof setupWelleSegInteraction === "function") setupWelleSegInteraction();
     const M = getMachine();
     const isCenter = M.welleRenderMode === "center";
     const hasParkRing = (M.PARK_PRO_SEITE > 0);
@@ -6619,11 +6799,16 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const w = seg.breite * pxPerMM;
 
       if (seg.kind === "rest") {
-        svgW(g, "rect", { x: x, y: barTop, width: w, height: barH, rx: 0,
-          fill: "url(#pRest)", opacity: "0.7" });
+        // v1.95 Polish: Rest-Bereich dezent (nicht mehr knall-grüne Diagonal-Streifen)
+        svgW(g, "rect", { x: x, y: barTop + 8, width: w, height: barH - 16, rx: 2,
+          fill: "rgba(255,255,255,0.025)", stroke: "rgba(0,230,118,0.18)",
+          "stroke-width": "0.6", "stroke-dasharray": "4 3" });
+        svgW(g, "rect", { x: x, y: barTop + 8, width: w, height: barH - 16, rx: 2,
+          fill: "url(#pRest)", opacity: "0.55" });
         if (w > 30) {
           svgW(g, "text", { x: x + w/2, y: barTop + barH/2 + 4, "text-anchor": "middle",
-            fill: "rgba(180,180,180,0.85)", "font-size": "10", "font-weight": "600", "font-family": "inherit" },
+            fill: "rgba(0,230,118,0.55)", "font-size": "10", "font-weight": "700",
+            "letter-spacing": "0.04em", "font-family": "inherit" },
             `Rest ${fmtW2(seg.breite)}`);
         }
       } else if (seg.kind === "park") {
@@ -6716,6 +6901,30 @@ audio.team-player-audio::-webkit-media-controls-panel {
             "font-family": "ui-monospace, SF Mono, monospace",
             "letter-spacing": "0.08em" }, `BUCHSE · ${cutsArr.length}/6 aktiv`);
         }
+      }
+      // v1.95: Hit-Area mit data-* für Hover/Touch-Detail-Overlay
+      const hitR = svgW(g, "rect", {
+        x: x, y: barTop, width: Math.max(w, 1), height: barH,
+        fill: "transparent",
+        "data-seg-kind": seg.kind || "",
+        "data-seg-name": seg.name || "",
+        "data-seg-breite": String(seg.breite),
+        "data-seg-pos": String(cur),
+        "data-seg-role": seg.role || "",
+        "data-seg-short": seg.short || ""
+      });
+      hitR.classList.add("welle-seg-hit");
+      if (seg.kind === "schneid" || seg.kind === "neben") {
+        hitR.setAttribute("data-seg-cut", String(cur + M.SCHNITT_OFFSET));
+      }
+      if (seg.kind === "buchse" && Array.isArray(seg.cuts)) {
+        hitR.setAttribute("data-seg-cuts", JSON.stringify(seg.cuts.map(c => cur + c)));
+      }
+      if (seg.kind === "rest" && seg.fill) {
+        hitR.setAttribute("data-seg-fill", JSON.stringify(seg.fill));
+      }
+      if (typeof seg.trim === "number") {
+        hitR.setAttribute("data-seg-trim", String(seg.trim));
       }
       cur += seg.breite;
     }
@@ -8542,6 +8751,231 @@ audio.team-player-audio::-webkit-media-controls-panel {
     score += 15;
     return Math.max(0, Math.min(100, Math.round(score)));
   }
+
+  // v1.95: Welle-Detail-Slide-Over (Hover am Desktop, Tap am Touch)
+  // Beim Hover/Tap eines Segments zeigt eine floating Card alle Bauteil-Infos:
+  // Breite, Welle-Position, Lage v. Welle-Mitte, Schnittkante-Geometrie, Stack-Auflösung.
+  let __welleSegInteractionWired = false;
+  function setupWelleSegInteraction() {
+    if (__welleSegInteractionWired) return;
+    const svg = document.getElementById("welleSvg");
+    const overlay = document.getElementById("welleDetailOverlay");
+    if (!svg || !overlay) return;
+    __welleSegInteractionWired = true;
+
+    const wdoEyebrow = document.getElementById("wdoEyebrow");
+    const wdoPos     = document.getElementById("wdoPos");
+    const wdoTitle   = document.getElementById("wdoTitle");
+    const wdoMeta    = document.getElementById("wdoMeta");
+    const wdoExtras  = document.getElementById("wdoExtras");
+
+    let activeHit = null;
+    let outline   = null;
+    let lastPointerType = "mouse";
+
+    function svgPxToSection(seg, e) {
+      const section = svg.closest(".welle-section");
+      if (!section) return { left: 0, top: 0, sw: 600 };
+      const secRect = section.getBoundingClientRect();
+      return {
+        left: e.clientX - secRect.left,
+        top:  e.clientY - secRect.top,
+        sw:   secRect.width,
+      };
+    }
+
+    function positionOverlay(seg, e) {
+      const { left, top, sw } = svgPxToSection(seg, e);
+      const ovW = overlay.offsetWidth || 360;
+      const ovH = overlay.offsetHeight || 180;
+      // Default: oberhalb des Cursors, x-zentriert; bei nicht genug Platz nach unten flippen.
+      let x = left - ovW / 2;
+      let y = top - ovH - 16;
+      if (y < 8) y = top + 24;
+      x = Math.max(8, Math.min(sw - ovW - 8, x));
+      overlay.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+    }
+
+    function clearOutline() {
+      if (outline && outline.parentNode) outline.parentNode.removeChild(outline);
+      outline = null;
+    }
+
+    function renderSegDetail(segEl) {
+      const kind   = segEl.getAttribute("data-seg-kind") || "";
+      const breite = parseFloat(segEl.getAttribute("data-seg-breite")) || 0;
+      const pos    = parseFloat(segEl.getAttribute("data-seg-pos")) || 0;
+      const role   = segEl.getAttribute("data-seg-role") || "";
+      const name   = segEl.getAttribute("data-seg-name") || "";
+      const trim   = parseFloat(segEl.getAttribute("data-seg-trim"));
+      const cut    = parseFloat(segEl.getAttribute("data-seg-cut"));
+      overlay.setAttribute("data-kind", kind);
+
+      const M = getMachine();
+      const center = pos + breite / 2;
+      const fromMitteVal = M.WELLE_MITTE - center;
+      const fromMitteTxt = Math.abs(fromMitteVal) < 0.4
+        ? "auf Welle-Mitte"
+        : (fromMitteVal > 0 ? `<em>+${fmtW(fromMitteVal, 1)} mm</em> v. Welle-Mitte` : `<em>${fmtW(fromMitteVal, 1)} mm</em> v. Welle-Mitte`);
+      const posTxt = `@ ${fmtW(pos, 1)} – ${fmtW(pos + breite, 1)} mm`;
+
+      let eyebrow = "Bauteil";
+      let titleNum = fmtW(breite, breite < 10 ? 1 : 0);
+      let unit = "mm";
+      let meta = "";
+      let extras = "";
+
+      if (kind === "park") {
+        eyebrow = "Parkplatz-Ring";
+        meta = "Hält das Obermesser ausserhalb der Bestueckungs-Breite. Stahl-Ring mit Knurl-Reibschluss.";
+        extras = `
+          <dt>Position</dt><dd>${posTxt}</dd>
+          <dt>Lage</dt><dd>${fromMitteTxt}</dd>
+          <dt>Anzahl/Seite</dt><dd>${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm</dd>
+        `;
+      } else if (kind === "distanz") {
+        const n = name.toLowerCase();
+        eyebrow = "Distanzring";
+        meta = n.includes("haupt")
+          ? "Zwischen-Distanz für die Haupt-Schmalrolle. Aluminium-Hülse, präzisionsgefertigt."
+          : (n.includes("neben")
+            ? "Zwischen-Distanz für eine Nebenrolle (heterogene Einteilung)."
+            : "Distanzring zwischen zwei Bauteilen.");
+        extras = `
+          <dt>Position</dt><dd>${posTxt}</dd>
+          <dt>Lage</dt><dd>${fromMitteTxt}</dd>
+          <dt>Funktion</dt><dd>${name || "Distanz"}</dd>
+        `;
+      } else if (kind === "schneid" || kind === "neben") {
+        const isTrim  = (role === "trim-L" || role === "trim-R");
+        const isUeber = (role === "uebergang");
+        eyebrow = isTrim
+          ? `Besäumungs-SE ${role === "trim-L" ? "links" : "rechts"}`
+          : (isUeber ? "Übergangs-SE" : (kind === "neben" ? "Neben-Schneideeinheit" : "Schneideeinheit"));
+        titleNum = "20"; unit = "mm";
+        const sym = M.SCHNITT_OFFSET === M.SCHNEIDEEINHEIT / 2;
+        const cutFromR = M.SCHNEIDEEINHEIT - M.SCHNITT_OFFSET;
+        const cutGeomTxt = sym
+          ? `Schneidkante bei <em>${M.SCHNITT_OFFSET} mm</em> = SE-Mitte (symmetrisch)`
+          : `Schneidkante <em>${M.SCHNITT_OFFSET} mm</em> v. SE-l · <em>${cutFromR} mm</em> v. SE-r (asymm.)`;
+        const trimTxt = isFinite(trim) && trim > 0
+          ? ` <strong style="color:#ffd28a">${fmtW(trim, 1)} mm Trim weg</strong> — Aussen-Schmalrolle-Kante.`
+          : "";
+        meta = (isTrim
+          ? `<strong style="color:#ffd28a">Essentiell:</strong> ohne diesen Schnitt wird die Aussen-Schmalrolle zu breit.${trimTxt} ${cutGeomTxt}.`
+          : (isUeber
+            ? `Übergangs-Schnitt zwischen Haupt- und Nebenrolle. ${cutGeomTxt}.`
+            : `Trennungs-Schnitt zwischen zwei Schmalrollen. ${cutGeomTxt}.`));
+        const composition = (M.SE_SORTIMENT && M.SE_SORTIMENT[0] && M.SE_SORTIMENT[0].composition) || "Schneidring + Nutmesser";
+        extras = `
+          <dt>Position</dt><dd>${posTxt}</dd>
+          <dt>Schneidkante</dt><dd>@ <em>${fmtW(cut, 1)} mm</em> Welle · ${fromMitteTxt}</dd>
+          <dt>Aufbau</dt><dd>${composition}</dd>
+        `;
+      } else if (kind === "rest") {
+        eyebrow = "Distanzring-Auffüllung";
+        meta = "Aussen-Auffüllung zwischen Park-Ring und der ersten Schneideeinheit. Vom Werker aus passenden Distanzring-Größen aufgeschoben.";
+        let fillTxt = "—";
+        try {
+          const fill = JSON.parse(segEl.getAttribute("data-seg-fill") || "null");
+          if (fill) {
+            fillTxt = Object.entries(fill)
+              .map(([k, v]) => `${v}× ${k} mm`)
+              .join(" + ");
+          }
+        } catch (_) {}
+        extras = `
+          <dt>Position</dt><dd>${posTxt}</dd>
+          <dt>Lage</dt><dd>${fromMitteTxt}</dd>
+          <dt>Stack-Auflösung</dt><dd>${fillTxt}</dd>
+        `;
+      } else if (kind === "buchse") {
+        eyebrow = "Schneidbuchse · Multi-Cut";
+        let cutsArr = [];
+        try { cutsArr = JSON.parse(segEl.getAttribute("data-seg-cuts") || "[]"); } catch (_) {}
+        meta = `${cutsArr.length} aktive Schneidkanten in einer Block-Buchse — löst Multi-Auftrag-Cuts ohne mehrere SEs.`;
+        const cutsTxt = cutsArr.map(c => `@ ${fmtW(c, 1)}`).join(" · ") || "—";
+        extras = `
+          <dt>Position</dt><dd>${posTxt}</dd>
+          <dt>Schneidkanten</dt><dd>${cutsTxt}</dd>
+        `;
+      } else {
+        eyebrow = "Bauteil";
+        meta = name || "";
+        extras = `<dt>Position</dt><dd>${posTxt}</dd>`;
+      }
+
+      wdoEyebrow.textContent = eyebrow;
+      wdoPos.textContent = `${fmtW(breite, 1)} mm breit`;
+      wdoTitle.innerHTML = `${titleNum}<span class="wdo-unit">${unit}</span>`;
+      wdoMeta.innerHTML = meta;
+      wdoExtras.innerHTML = extras;
+    }
+
+    function showSegDetail(segEl, e) {
+      if (activeHit && activeHit !== segEl) {
+        activeHit.classList.remove("welle-seg-active");
+      }
+      activeHit = segEl;
+      activeHit.classList.add("welle-seg-active");
+      renderSegDetail(segEl);
+      positionOverlay(segEl, e);
+      overlay.setAttribute("aria-hidden", "false");
+      // Highlight-Outline
+      clearOutline();
+      const segX = parseFloat(segEl.getAttribute("x")) || 0;
+      const segY = parseFloat(segEl.getAttribute("y")) || 0;
+      const segW = parseFloat(segEl.getAttribute("width")) || 0;
+      const segH = parseFloat(segEl.getAttribute("height")) || 0;
+      const grp = document.getElementById("welleVizGroup");
+      if (grp) {
+        outline = svgW(grp, "rect", {
+          x: segX - 1, y: segY - 1, width: segW + 2, height: segH + 2,
+          class: "welle-seg-outline is-active",
+          rx: "2"
+        });
+      }
+    }
+
+    function hideSegDetail() {
+      overlay.setAttribute("aria-hidden", "true");
+      if (activeHit) activeHit.classList.remove("welle-seg-active");
+      activeHit = null;
+      clearOutline();
+    }
+
+    // Pointer-Events (mouse + touch via Pointer Events API)
+    svg.addEventListener("pointermove", (e) => {
+      lastPointerType = e.pointerType || "mouse";
+      if (lastPointerType !== "mouse") return;  // Touch: nur via Tap aktivieren
+      const seg = e.target.closest("[data-seg-kind]");
+      if (seg) {
+        if (seg !== activeHit) showSegDetail(seg, e);
+        else positionOverlay(seg, e);
+      } else {
+        hideSegDetail();
+      }
+    });
+    svg.addEventListener("pointerleave", (e) => {
+      if ((e.pointerType || "mouse") === "mouse") hideSegDetail();
+    });
+    svg.addEventListener("pointerdown", (e) => {
+      const seg = e.target.closest("[data-seg-kind]");
+      if (seg) {
+        showSegDetail(seg, e);
+        // Touch: nach 4s auto-hide damit der Werker nicht klemmt
+        if ((e.pointerType || "mouse") !== "mouse") {
+          clearTimeout(setupWelleSegInteraction._t);
+          setupWelleSegInteraction._t = setTimeout(hideSegDetail, 4500);
+        }
+      }
+    });
+    // Click outside → close
+    document.addEventListener("pointerdown", (e) => {
+      if (!svg.contains(e.target) && !overlay.contains(e.target)) hideSegDetail();
+    });
+  }
+  // Wire-up beim ersten Render (renderWelleSvg ruft das mit auf)
 
   // v1.94: KPI-Hero-Strip Update (3 Tiles über der Welle)
   function updateKpiHero(d, out) {
