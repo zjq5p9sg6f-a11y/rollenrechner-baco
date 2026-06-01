@@ -4787,7 +4787,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="info-row"><span>Bestückungsbereich</span><strong id="mcBestueckung">1000 mm</strong></div>
           <div class="info-row" id="mcParkRow"><span>Park-Ring</span><strong id="mcParkRing">59 mm · 4/Seite</strong></div>
           <div class="info-row"><span>Schneideeinheit</span><strong id="mcSeLen">20 mm</strong></div>
-          <div class="info-row"><span>Schnittkante v. links</span><strong id="mcSchnitt">13 mm</strong></div>
+          <div class="info-row"><span>Schneidkante in SE</span><strong id="mcSchnitt">13 mm v. SE-l</strong></div>
           <div class="info-row"><span>Distanzringe</span><strong id="mcDistRings">0,3 / 0,5 / 1 / 2 / 5 / 10 / 20 / 30 / 50 / 100 / 200 / 300 mm</strong></div>
           <div class="info-row" id="mcMrCenterRow" style="display:none"><span>MR-Center-Versatz</span><strong id="mcMrCenter">±20 mm Standard · ±50 mm Trick</strong></div>
           <div class="info-row" id="mcKlemmRow" style="display:none"><span>Klemm-Distanzring</span><strong id="mcKlemm">5–20 mm links auf Gewinde · Werker-Wahl</strong></div>
@@ -4797,7 +4797,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <div class="welle-info-box">
           <h4 id="seSortimentHead">Schneideeinheit</h4>
           <div class="info-row"><span>Gesamt-Länge</span><strong id="seGesamtLen">20 mm</strong></div>
-          <div class="info-row"><span>Schnittkante</span><strong id="seSchnitt">13 mm v. l. (asymmetrisch)</strong></div>
+          <div class="info-row"><span>Schneidkante</span><strong id="seSchnitt">13 mm v. SE-l · 7 mm v. SE-r · asymm.</strong></div>
           <div class="info-row" id="seCompositionRow" style="display:none"><span>Aufbau</span><strong id="seComposition">—</strong></div>
           <div class="info-row"><span>Anzahl je Welle</span><strong>N + 1 (für N Nutzen)</strong></div>
           <div class="info-row" id="seBuchseRow" style="display:none"><span>Schneidebuchse</span><strong id="seBuchse">30 mm · 6 Schnitte alle 5 mm (Multi-Cut)</strong></div>
@@ -6903,7 +6903,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="stueck-nr ${cls}">${nr++}</div>
           <div>
             <div class="stueck-name"><span class="icon" style="background:${swatch}"></span>Schneideeinheit${roleBadge}</div>
-            <div class="stueck-detail">Schnittkante @ ${getMachine().SCHNITT_OFFSET} mm v. welle-links der SE${getMachine().SCHNITT_OFFSET === getMachine().SCHNEIDEEINHEIT/2 ? " (= SE-Mitte)" : ` (asymm. — ${getMachine().SCHNEIDEEINHEIT - getMachine().SCHNITT_OFFSET} mm v. welle-rechts)`} · SE-Linke-Kante @ ${fmtW(kumPos, 1)} mm v. rechtem Wellenrand · SE-Mitte ${fromMitte(kumPos, getMachine().SCHNEIDEEINHEIT)}${trimNote}</div>
+            <div class="stueck-detail">${(() => {
+              const _M = getMachine();
+              const sym = _M.SCHNITT_OFFSET === _M.SCHNEIDEEINHEIT / 2;
+              const sFromR = _M.SCHNEIDEEINHEIT - _M.SCHNITT_OFFSET;
+              return sym
+                ? `Schneidkante = SE-Mitte (${_M.SCHNITT_OFFSET} mm v. SE-l · symmetrisch)`
+                : `Schneidkante: ${_M.SCHNITT_OFFSET} mm v. SE-links · ${sFromR} mm v. SE-rechts <span style="color:#ffd28a;font-weight:600">· asymm. SE</span>`;
+            })()} · SE-Linke-Kante @ ${fmtW(kumPos, 1)} mm v. rechtem Wellenrand · SE-Mitte ${fromMitte(kumPos, getMachine().SCHNEIDEEINHEIT)}${trimNote}</div>
           </div>
           <div class="stueck-mass">20 mm</div>
           <div class="stueck-pos"><strong style="color:#ff8a7a;font-size:13px;font-weight:800">${cutMitteShort} mm</strong><br><span style="font-size:10px;opacity:0.7;font-weight:500">Welle-Pos ${fmtW(cutAbsPos, 1)} mm</span></div>
@@ -9489,7 +9496,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
       : `${M.BESTUECKUNGS_BREITE} mm`);
     setTxt("mcParkRing",       `${M.PARK_RING} mm · ${M.PARK_PRO_SEITE}/Seite${isEuro ? " (Messer-Park)" : ""}`);
     setTxt("mcSeLen",          `${M.SCHNEIDEEINHEIT} mm`);
-    setTxt("mcSchnitt",        `${M.SCHNITT_OFFSET} mm`);
+    setTxt("mcSchnitt",        (() => {
+      const sym = M.SCHNITT_OFFSET === M.SCHNEIDEEINHEIT / 2;
+      const sFromR = M.SCHNEIDEEINHEIT - M.SCHNITT_OFFSET;
+      return sym
+        ? `${M.SCHNITT_OFFSET} mm v. SE-l (= SE-Mitte · symm.)`
+        : `${M.SCHNITT_OFFSET} mm v. SE-l · ${sFromR} mm v. SE-r · asymm.`;
+    })());
     setTxt("mcDistRings",      M.DISTANZRINGE.slice().sort((a,b)=>a-b).map(r => String(r).replace(".", ",")).join(" / ") + " mm");
     setShow("mcMrCenterRow",   isEuro);
     setTxt("mcMrCenter",       `±${M.MR_CENTER_OFFSET_STD} mm Standard · ±${M.MR_CENTER_OFFSET_TRICK} mm mit Distanzhülsen-Trick`);
@@ -9508,7 +9521,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const buchse = (M.SE_SORTIMENT && M.SE_SORTIMENT.find(s => s.id === "schneidebuchse"));
     setTxt("seSortimentHead",  `Schneideeinheit${isEuro ? "-Sortiment" : ""}`);
     setTxt("seGesamtLen",      `${std.length || M.SCHNEIDEEINHEIT} mm`);
-    setTxt("seSchnitt",        `${std.cutEdgeFromLeft || M.SCHNITT_OFFSET} mm v. l. (asymmetrisch)`);
+    setTxt("seSchnitt",        (() => {
+      const ce = std.cutEdgeFromLeft || M.SCHNITT_OFFSET;
+      const sym = ce === M.SCHNEIDEEINHEIT / 2;
+      const ceR = M.SCHNEIDEEINHEIT - ce;
+      return sym ? `${ce} mm v. SE-l (= SE-Mitte · symm.)` : `${ce} mm v. SE-l · ${ceR} mm v. SE-r · asymm.`;
+    })());
     setShow("seCompositionRow", !!std.composition);
     setTxt("seComposition",    std.composition || "");
     setShow("seBuchseRow",     !!buchse);
@@ -11000,7 +11018,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
         seqHtml += `<tr class="${seClass}" style="page-break-inside:avoid;break-inside:avoid;">
           <td class="check"></td>
           <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
-          <td class="bauteil"><strong>Schneideeinheit</strong> ${badge}<br><small>SE-Linke-Kante @ ${fmtW(kumPos, 1)} mm · Schnittkante @ ${M.SCHNITT_OFFSET} mm v. welle-links${M.SCHNITT_OFFSET === M.SCHNEIDEEINHEIT/2 ? "" : ` (asymm. — ${M.SCHNEIDEEINHEIT - M.SCHNITT_OFFSET} mm v. welle-rechts)`}</small>${warn}</td>
+          <td class="bauteil"><strong>Schneideeinheit</strong> ${badge}<br><small>SE-Linke-Kante @ ${fmtW(kumPos, 1)} mm · ${(() => {
+            const sym = M.SCHNITT_OFFSET === M.SCHNEIDEEINHEIT / 2;
+            const sFromR = M.SCHNEIDEEINHEIT - M.SCHNITT_OFFSET;
+            return sym
+              ? `Schneidkante = SE-Mitte (${M.SCHNITT_OFFSET} mm v. SE-l · symmetrisch)`
+              : `Schneidkante: ${M.SCHNITT_OFFSET} mm v. SE-l · ${sFromR} mm v. SE-r · asymm. SE`;
+          })()}</small>${warn}</td>
           <td class="mass">${M.SCHNEIDEEINHEIT} mm</td>
           <td class="pos"><strong>Schnitt Mitte ${schnittTxt}</strong><br><small>Welle-Pos ${fmtW(cutPos, 1)} mm</small></td>
         </tr>`;
