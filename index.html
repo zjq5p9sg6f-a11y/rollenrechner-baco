@@ -578,7 +578,7 @@ header.bar {
   flex: 1;
 }
 .machine-btn {
-  padding: 14px 22px;
+  padding: 18px 26px;
   border-radius: calc(var(--r-2) - 5px);
   border: 0;
   background: transparent;
@@ -587,12 +587,13 @@ header.bar {
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1.18;
+  line-height: 1.1;
   transition: all var(--t-fast) var(--ease-out-expo);
   font-family: inherit;
   flex: 1;
+  min-height: 56px;
 }
-.machine-btn-label { font-size: 17px; font-weight: 800; letter-spacing: 0.02em; }
+.machine-btn-label { font-size: 20px; font-weight: 800; letter-spacing: 0.02em; }
 .machine-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
 .machine-btn[aria-selected="true"] {
   background: linear-gradient(135deg, var(--machine-accent) 0%, var(--machine-accent-dark) 100%);
@@ -607,8 +608,8 @@ header.bar {
   .machine-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
   .machine-bar-label { font-size: 11px; }
   .machine-bar-label svg { width: 17px; height: 17px; }
-  .machine-btn { padding: 10px 14px; }
-  .machine-btn-label { font-size: 15px; }
+  .machine-btn { padding: 14px 16px; min-height: 50px; }
+  .machine-btn-label { font-size: 17px; }
 }
 
 /* ------- card panels ------- */
