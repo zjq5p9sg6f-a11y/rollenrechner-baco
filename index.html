@@ -5098,7 +5098,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <span class="machine-btn-sub">1320 mm asymm. · 1120 mm Bestückung</span>
         </button>
       </div>
-      <div class="bahn-eich-bar" title="Bahn-Mitte-Offset (mm): Verschiebung der Stack-Mitte gegenueber der operativen Welle-Mitte. Positiv = Stack nach rechts. Pro Maschine separat einstellbar und gespeichert.">
+      <div class="bahn-eich-bar" title="Bahn-Mitte-Offset (mm): Verschiebung der Stack-Mitte gegenüber der operativen Welle-Mitte. Positiv = Stack nach rechts. Pro Maschine separat einstellbar und gespeichert.">
         <label for="bahnOffsetInput" class="bahn-eich-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0"><path d="M12 2v20M5 12h14M3 8l2-2M19 8l2-2M3 16l2 2M19 16l2 2"/></svg>
           <span>Eichung Bahn-Mitte</span>
@@ -5106,17 +5106,17 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <input id="bahnOffsetInput" type="number" step="0.5" placeholder="0" inputmode="decimal" aria-describedby="bahnOffsetHint">
         <span class="bahn-eich-unit">mm</span>
         <span id="bahnOffsetHint" class="bahn-eich-hint">+ = Bahn-Mitte rechts der Welle-Mitte</span>
-        <button type="button" id="bahnOffsetReset" class="bahn-eich-reset" title="Zurueck auf 0 (Welle-Mitte)">↺</button>
+        <button type="button" id="bahnOffsetReset" class="bahn-eich-reset" title="Zurück auf 0 (Welle-Mitte)">↺</button>
       </div>
-      <div class="trim-strategy-bar" title="Trim-Strategie: Wie wird die Gesamt-Besaeumung auf links/rechts verteilt?\n· Sym (L=R) = beidseitig gleich, 2 Besaeumungs-SE, Stack mittig — der konkrete Trim-Wert (z.B. 2.5, 5, 12 mm) ergibt sich aus MR − Nutzen\n· Asym L = ganzer Trim links (1 Besaeumungs-SE, Stack rechts versetzt)\n· Asym R = ganzer Trim rechts (1 Besaeumungs-SE, Stack links versetzt)\nPro Maschine gespeichert.">
+      <div class="trim-strategy-bar" title="Trim-Strategie: Wie wird die Gesamt-Besäumung auf links/rechts verteilt?\n· Sym (L=R) = beidseitig gleich, 2 Besäumungs-SE, Stack mittig — der konkrete Trim-Wert (z.B. 2.5, 5, 12 mm) ergibt sich aus MR − Nutzen\n· Asym L = ganzer Trim links (1 Besäumungs-SE, Stack rechts versetzt)\n· Asym R = ganzer Trim rechts (1 Besäumungs-SE, Stack links versetzt)\nPro Maschine gespeichert.">
         <label class="trim-strategy-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
           <span>Trim-Strategie</span>
         </label>
         <div class="trim-strategy-segments" role="radiogroup" aria-label="Trim-Strategie">
-          <button type="button" class="ts-seg" data-trim-mode="asym-l" role="radio" aria-checked="false" title="Asymmetrisch links: gesamter Trim auf der linken Seite, 1 Besaeumungs-SE gespart">← Asym L</button>
-          <button type="button" class="ts-seg ts-seg-sym" data-trim-mode="sym" role="radio" aria-checked="true" title="Symmetrisch: Trim 50/50 auf beide Seiten, 2 Besaeumungs-SE. Konkreter mm-Wert ergibt sich aus MR − Nutzen.">↔ Sym (L=R)</button>
-          <button type="button" class="ts-seg" data-trim-mode="asym-r" role="radio" aria-checked="false" title="Asymmetrisch rechts: gesamter Trim auf der rechten Seite, 1 Besaeumungs-SE gespart">Asym R →</button>
+          <button type="button" class="ts-seg" data-trim-mode="asym-l" role="radio" aria-checked="false" title="Asymmetrisch links: gesamter Trim auf der linken Seite, 1 Besäumungs-SE gespart">← Asym L</button>
+          <button type="button" class="ts-seg ts-seg-sym" data-trim-mode="sym" role="radio" aria-checked="true" title="Symmetrisch: Trim 50/50 auf beide Seiten, 2 Besäumungs-SE. Konkreter mm-Wert ergibt sich aus MR − Nutzen.">↔ Sym (L=R)</button>
+          <button type="button" class="ts-seg" data-trim-mode="asym-r" role="radio" aria-checked="false" title="Asymmetrisch rechts: gesamter Trim auf der rechten Seite, 1 Besäumungs-SE gespart">Asym R →</button>
         </div>
       </div>
     </section>
@@ -5494,7 +5494,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <summary><h4 id="machineConstHead">Maschinen-Konstanten · DCM</h4></summary>
           <div class="welle-info-box-body">
             <div class="info-row"><span>Welle-Länge</span><strong id="mcWelleLen">1472 mm</strong></div>
-            <div class="info-row"><span>Bestückungsbereich</span><strong id="mcBestueckung">1000 mm</strong></div>
+            <div class="info-row"><span>Bestückungsbereich</span><strong id="mcBestückung">1000 mm</strong></div>
             <div class="info-row" id="mcParkRow"><span>Park-Ring</span><strong id="mcParkRing">59 mm · 4/Seite</strong></div>
             <div class="info-row"><span>Schneideeinheit</span><strong id="mcSeLen">20 mm</strong></div>
             <div class="info-row"><span>Schneidkante in SE</span><strong id="mcSchnitt">13 mm v. SE-l</strong></div>
@@ -5543,9 +5543,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <span class="welle-sequenz-sub">auf Rüstdorn vorbereiten</span>
         </div>
         <div class="welle-sequenz-disclaimer">
-          <strong>Vorschlag · eine moegliche Realisierung.</strong>
+          <strong>Vorschlag · eine mögliche Realisierung.</strong>
           Verbindlich sind ausschliesslich die <em>Schnittkanten-Positionen</em> (Mitte&nbsp;±X&nbsp;mm).
-          Die Distanzring-Kombination kann der Werker mit anderen Stueck-Groessen erreichen — solange die Schnittkanten an der gleichen Stelle landen.
+          Die Distanzring-Kombination kann der Werker mit anderen Stück-Größen erreichen — solange die Schnittkanten an der gleichen Stelle landen.
         </div>
         <div class="welle-sequenz" id="welleSequenz"></div>
       </div>
@@ -6447,7 +6447,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
                                       // Kundenauftraege bis runter zu 2.5+2.5 mm beidseitig
                                       // (intern weiter 5+5 mm Risiko-Grenze, aber Tool muss
                                       // beides darstellen koennen — sonst leitet die Welle
-                                      // bei 2.5 mm Trim keine Besaeumungs-SE ab)
+                                      // bei 2.5 mm Trim keine Besäumungs-SE ab)
       BESAEUMUNG_MAX: 20
     },
     EUROMAC: {
@@ -6469,14 +6469,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
       BESTUECKUNGS_BREITE: 1120,       // zwischen den 4 Messer-Park-Ringen (1320 - 2×100)
 
       // Welle physisch (Werker-Realität, fuer UI-Anzeige + Sequenz)
-      WELLE_PHYSISCH_MM: 1320,         // physische Bestueckungsbreite gesamt
-      // v1.94: L/R bezogen auf Bestueckungssicht (Gewinde-Ende links, kurze Seite)
+      WELLE_PHYSISCH_MM: 1320,         // physische Bestückungsbreite gesamt
+      // v1.94: L/R bezogen auf Bestückungssicht (Gewinde-Ende links, kurze Seite)
       WELLE_LEFT_OF_GEO_CENTER: 650,   // links der Wellen-Mitte (kurze Seite, Gewinde-Ende)
       WELLE_RIGHT_OF_GEO_CENTER: 670,  // rechts der Wellen-Mitte (lange Seite)
       // Klemm-Distanzring auf Gewinde (Operator-Praxis)
       // v1.94 Werker-Korrektur: 5–20 mm Werker-Wahl. Hauptsache der Ring ragt vom
-      // Bestueckungsbereich hinaus in den Gewindebereich, damit die Gewindemutter
-      // alles fest klemmen kann. Default 5 mm fuer die Stueckliste, der Werker
+      // Bestückungsbereich hinaus in den Gewindebereich, damit die Gewindemutter
+      // alles fest klemmen kann. Default 5 mm fuer die Stückliste, der Werker
       // waehlt vor Ort die passende Groesse (Gewindelaenge → 5/10/15/20 mm).
       KLEMM_DISTANZRING_MM: 5,         // Default 5 mm; physikalisch 5–20 mm zulaessig
       KLEMM_DISTANZRING_MAX_MM: 20,    // obere Grenze (Gewindelaenge-bedingt)
@@ -6494,7 +6494,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       PARK_TOTAL: 100,                 // 2 × 50mm pro Seite
       // Bahn-Mitte-Offset: -10mm wegen asymmetrischer Welle (650/670).
       // Mit WELLE_MITTE=650 (vom linkem Rand) sitzt das Geo-Center 10mm links vom
-      // op-Center der Bestueckungsbreite (= PARK_TOTAL + BESTUECKUNGS_BREITE/2 = 660).
+      // op-Center der Bestückungsbreite (= PARK_TOTAL + BESTUECKUNGS_BREITE/2 = 660).
       // Stack auf Geo-Center: Stack-Mitte = -10 + 660 = 650 → fluchtet mit Cross-Mark.
       BAHN_MITTE_OFFSET_MM: -10,
       // 10 Stufen — kein 200/300 mm (Lücken muss Operator durch Kombi 100+X lösen)
@@ -6512,7 +6512,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           cutSpacing: 5, cutPositions: [2.5, 7.5, 12.5, 17.5, 22.5, 27.5],
           note: "30 mm Block · 6 Schnittkanten symmetrisch alle 5 mm" }
       ],
-      MAX_MR_MM: 1120,                 // = Bestueckungs-Breite (zwischen Park-Ringen)
+      MAX_MR_MM: 1120,                 // = Bestückungs-Breite (zwischen Park-Ringen)
       MAX_SPEED_MMIN: 500,
       MR_CENTER_OFFSET_STD: 20,        // ±20 mm Standard-Versatz
       MR_CENTER_OFFSET_TRICK: 50,      // ±50 mm mit Distanzhülsen-Trick (Warning)
@@ -6668,7 +6668,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // wird noch besaeumt. "Min Soft" = die kleinste Saeumung die noch geschnitten wird,
     // nicht die Schwelle ab der erst geschnitten wird.
     // Werker-Korrektur 2026-06-01: 2.5 mm beidseitig sind Realitaet bei Kundenauftraegen
-    // (exakte Nutzen-Mass). Vorher dropte die Welle die Besaeumungs-SE bei 2.5 mm Trim,
+    // (exakte Nutzen-Mass). Vorher dropte die Welle die Besäumungs-SE bei 2.5 mm Trim,
     // obwohl die Mutterrolle das Mass korrekt zeigte → Welle/MR inkonsistent.
     const TRIM_TOL = M.BESAEUMUNG_MIN_SOFT || 2.5;
     const trimL = (out.restL != null) ? out.restL : (out.restMM || 0) / 2;
@@ -6747,7 +6747,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         }
       }
       const alt = (activeMachineId === "DCM") ? " Reduziere Anzahl oder wechsle auf Euromac." : (suggestion || " Reduziere Anzahl.");
-      const alertObj = {type:"danger", msg:`Bestueckung ${innerLen.toFixed(1)} mm ueberschreitet ${M.label}-Bereich ${M.BESTUECKUNGS_BREITE} mm.${alt}`};
+      const alertObj = {type:"danger", msg:`Bestückung ${innerLen.toFixed(1)} mm überschreitet ${M.label}-Bereich ${M.BESTUECKUNGS_BREITE} mm.${alt}`};
       if (actionPark !== null) {
         alertObj.action = { label: `Auf ${actionPark}× Park-Ring reduzieren`, parkPerSide: actionPark };
       }
@@ -6800,7 +6800,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const mrEnd = mrStart + mr;
 
     // Hol-Liste — SE nach Rolle aufgliedern damit Werker erkennt was
-    // Besäumung (essentiell für korrekte Aussen-Schmalrolle) vs Trennung
+    // Besäumung (essentiell für korrekte Außen-Schmalrolle) vs Trennung
     // (zwischen den Schmalrollen) vs Übergang (Haupt↔Neben) ist.
     const innerSEs = innerSegs.filter(s => s.kind === "schneid" || s.kind === "neben");
     const roleCounts = { trimL: 0, trimR: 0, inner: 0, uebergang: 0, neben: 0 };
@@ -6817,7 +6817,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       : "20 mm (10 Schneidring + 10 Nutmesser)";
     const holliste = [];
     // Besäumungs-SE zuerst (Werker muss diese explizit als Trim-Schnitte erkennen,
-    // sonst werden Aussen-Schmalrollen mit dem Trim-Anteil zu breit).
+    // sonst werden Außen-Schmalrollen mit dem Trim-Anteil zu breit).
     const trimTotal = roleCounts.trimL + roleCounts.trimR;
     if (trimTotal > 0) {
       const fmt = (n) => (typeof nf1 !== "undefined" && nf1.format) ? nf1.format(n).replace(",0", "") : String(n);
@@ -6862,7 +6862,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     }
     for (const [k,v] of Object.entries(restFillL.rings)) distMap[k] = (distMap[k] || 0) + v;
     for (const [k,v] of Object.entries(restFillR.rings)) distMap[k] = (distMap[k] || 0) + v;
-    // Euromac: Asymmetrie-Ring 20 mm (Default) + Klemm-Ring 5 mm zur Stueckliste hinzufuegen
+    // Euromac: Asymmetrie-Ring 20 mm (Default) + Klemm-Ring 5 mm zur Stückliste hinzufuegen
     if (activeMachineId === "EUROMAC") {
       if (M.ASYMMETRY_RING_DEFAULT_ON && M.ASYMMETRY_RING_RIGHT_MM > 0) {
         distMap[M.ASYMMETRY_RING_RIGHT_MM] = (distMap[M.ASYMMETRY_RING_RIGHT_MM] || 0) + 1;
@@ -7020,7 +7020,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     // ============ EUROMAC: Klemm-Distanzring + Gewinde-Bereich links neben Welle ============
     // v1.94 Werker-Hinweis: der Klemm-Distanzring sitzt LINKS auf dem Gewinde, ausserhalb
-    // der 1320-mm-Bestueckungswelle. Werker-Wahl 5–20 mm, je nach Gewindelaenge.
+    // der 1320-mm-Bestückungswelle. Werker-Wahl 5–20 mm, je nach Gewindelänge.
     if (isCenter && M.KLEMM_DISTANZRING_MM > 0) {
       const klemmMm = M.KLEMM_DISTANZRING_MM;
       const klemmMax = M.KLEMM_DISTANZRING_MAX_MM || 20;
@@ -7061,7 +7061,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       svgW(g, "text", { x: klemmX + klemmW / 2, y: barBottom + 14, "text-anchor": "middle",
         fill: "rgba(0,230,118,0.85)", "font-size": "7.5", "font-weight": "700",
         "letter-spacing": "0.05em", "font-family": "inherit" }, `${klemmMm}–${klemmMax} mm`);
-      // Pfeil/Verbindungslinie zur Stueckliste-Position (subtil) — KLEMM gehoert ans Gewinde-Ende
+      // Pfeil/Verbindungslinie zur Stückliste-Position (subtil) — KLEMM gehoert ans Gewinde-Ende
       svgW(g, "line", { x1: klemmX + klemmW, y1: barTop + barH / 2, x2: padX - 4, y2: barTop + barH / 2,
         stroke: "rgba(0,230,118,0.4)", "stroke-width": "0.7", "stroke-dasharray": "2 2" });
     }
@@ -7074,7 +7074,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     svgW(g, "line", { x1: padX, y1: dimTop1Y - 6, x2: padX, y2: barTop + barH + 6, stroke: dimColor, "stroke-width": "0.8", "stroke-dasharray": "3 4" });
     svgW(g, "line", { x1: W - padX, y1: dimTop1Y - 6, x2: W - padX, y2: barTop + barH + 6, stroke: dimColor, "stroke-width": "0.8", "stroke-dasharray": "3 4" });
     const lblTxt1 = isCenter
-      ? `Bestueckungsbreite ${M.BESTUECKUNGS_BREITE} mm${M.WELLE_PHYSISCH_MM ? ` · ${M.WELLE_PHYSISCH_MM} mm physisch` : ""}`
+      ? `Bestückungsbreite ${M.BESTUECKUNGS_BREITE} mm${M.WELLE_PHYSISCH_MM ? ` · ${M.WELLE_PHYSISCH_MM} mm physisch` : ""}`
       : `Welle ${M.WELLE} mm`;
     const lblW1 = lblTxt1.length * 7.5 + 24;
     svgW(g, "rect", { x: W/2 - lblW1/2, y: dimTop1Y - 12, width: lblW1, height: 24, rx: 6,
@@ -7386,7 +7386,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     }
 
     // ============ Werker-Mass: rechter Wellenrand → rechteste Schneidkante ============
-    // (v1.94 Werker-Korrektur 2026-06-01) Kritisches Bestueckungs-Mass: Werker schiebt
+    // (v1.94 Werker-Korrektur 2026-06-01) Kritisches Bestückungs-Mass: Werker schiebt
     // von rechts (Park-R + Distanzen) bis die ERSTE Schneidkante hier sitzt.
     //
     // Cut-Position-Konvention (v1.94 vereinheitlicht):
@@ -7629,7 +7629,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     let kumPos = 0;
     let nr = 1;
     // EUROMAC PRE-STEP: Asymmetrie-Ring 20 mm Default (ganz rechts auf Welle,
-    // erstes Bestueckungs-Element). Gleicht Welle-Asymmetrie 650/670 → 650/650 aus.
+    // erstes Bestückungs-Element). Gleicht Welle-Asymmetrie 650/670 → 650/650 aus.
     if (isEuro && M.ASYMMETRY_RING_DEFAULT_ON && M.ASYMMETRY_RING_RIGHT_MM > 0) {
       const r = M.ASYMMETRY_RING_RIGHT_MM;
       const row = document.createElement("div");
@@ -7681,7 +7681,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const isUeber = (role === "uebergang");
         const cls = isNeben ? "neben" : "schneid";
         // Besäumungs-SE auffaellig markieren — Werker muss erkennen dass diese
-        // Schnitte essentiell sind, sonst werden Aussen-Schmalrollen falsch breit.
+        // Schnitte essentiell sind, sonst werden Außen-Schmalrollen falsch breit.
         const swatch = isTrim
           ? "linear-gradient(90deg,#ffb400 0%,#ffb400 35%,#ff5544 35%,#ff5544 65%,#ffd54f 65%,#ffd54f 100%)"
           : isNeben
@@ -7708,7 +7708,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
               ? ' <span style="color:#ffb400">(Neben)</span>'
               : '<span style="color:var(--text-secondary);font-size:10px;margin-left:8px;letter-spacing:0.03em;opacity:0.75;font-weight:500">· Trennung</span>';
         const trimNote = isTrim
-          ? `<br><span style="color:#ffd28a;font-weight:600">⚠ Essentiell — ohne diesen Schnitt wird die Aussen-Schmalrolle ${trimMm} mm zu breit.</span>`
+          ? `<br><span style="color:#ffd28a;font-weight:600">⚠ Essentiell — ohne diesen Schnitt wird die Außen-Schmalrolle ${trimMm} mm zu breit.</span>`
           : "";
         const r = document.createElement("div");
         r.className = "stueck-row" + (isTrim ? " stueck-row-trim" : "");
@@ -7760,7 +7760,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       kumPos += seg.breite;
     }
     // EUROMAC POST-STEP: Klemm-Distanzring 5 mm (links auf Gewinde,
-    // letztes Element der Bestueckungs-Sequenz, fixiert die Bestueckung).
+    // letztes Element der Bestückungs-Sequenz, fixiert die Bestückung).
     if (isEuro && M.KLEMM_DISTANZRING_MM > 0) {
       const r = M.KLEMM_DISTANZRING_MM;
       const row = document.createElement("div");
@@ -7769,7 +7769,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <div class="stueck-nr distanz">${nr++}</div>
         <div>
           <div class="stueck-name"><span class="icon" style="background:linear-gradient(180deg,#00e676,#00b85e)"></span>Klemm-Distanzring <span style="color:var(--text-secondary);font-size:10px;font-weight:600;letter-spacing:0.04em">Werker-Wahl · 5–${M.KLEMM_DISTANZRING_MAX_MM || 20} mm</span></div>
-          <div class="stueck-detail">${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — meist ${r} mm, je nach Gewindelaenge bis ${M.KLEMM_DISTANZRING_MAX_MM || 20} mm. Wichtig: ragt vom Bestueckungsbereich in den Gewindebereich hinaus, damit die Gewindemutter alles fest klemmen kann.</div>
+          <div class="stueck-detail">${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — meist ${r} mm, je nach Gewindelänge bis ${M.KLEMM_DISTANZRING_MAX_MM || 20} mm. Wichtig: ragt vom Bestückungsbereich in den Gewindebereich hinaus, damit die Gewindemutter alles fest klemmen kann.</div>
         </div>
         <div class="stueck-mass">${r} mm</div>
         <div class="stueck-pos">@ ${fmtW(kumPos, 1)} mm</div>
@@ -7870,7 +7870,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         info.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Park-Ringe aktuell auf <strong>${cur}× pro Seite</strong> reduziert (Default: ${def}×).</span>`;
         const resetBtn = document.createElement("button");
         resetBtn.type = "button";
-        resetBtn.textContent = "Zurueck auf Default";
+        resetBtn.textContent = "Zurück auf Default";
         resetBtn.style.cssText = "margin-left:auto;padding:5px 10px;background:transparent;color:#007a3d;border:1px solid #007a3d;border-radius:5px;font-weight:700;font-size:10px;cursor:pointer;letter-spacing:0.04em;text-transform:uppercase;flex-shrink:0";
         resetBtn.addEventListener("click", () => {
           if (typeof setEuroParkPerSide === "function") setEuroParkPerSide(def);
@@ -8677,7 +8677,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       return {
         ok: false,
         error: `${unresolvedConflicts.length} Cut-Position${unresolvedConflicts.length > 1 ? "en" : ""} nicht deckungsgleich — beide SEs würden physisch überlappen` +
-               (buchseSpec ? " (auch Schneidbuchse-Resolver konnte sie nicht aufloesen — kein 5 mm-Raster oder >30 mm Spannweite)." : "."),
+               (buchseSpec ? " (auch Schneidbuchse-Resolver konnte sie nicht auflösen — kein 5 mm-Raster oder >30 mm Spannweite)." : "."),
         conflictDetails: conflictTxt,
         conflicts: unresolvedConflicts,
         validJobs
@@ -9265,7 +9265,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         eyebrow = "Parkplatz-Ring";
         // v1.95 fix: Material Werker-bestätigt (Stahl). "Knurl-Reibschluss" war
         // erfunden — raus. Funktion bleibt.
-        meta = "Hält das Obermesser ausserhalb der Bestueckungs-Breite. Stahl-Ring.";
+        meta = "Hält das Obermesser außerhalb der Bestückungs-Breite. Stahl-Ring.";
         extras = `
           <dt>Position</dt><dd>${posTxt}</dd>
           <dt>Lage</dt><dd>${fromMitteTxt}</dd>
@@ -9299,10 +9299,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
           ? `Schneidkante bei <em>${M.SCHNITT_OFFSET} mm</em> = SE-Mitte (symmetrisch)`
           : `Schneidkante <em>${M.SCHNITT_OFFSET} mm</em> v. SE-l · <em>${cutFromR} mm</em> v. SE-r (asymm.)`;
         const trimTxt = isFinite(trim) && trim > 0
-          ? ` <strong style="color:#ffd28a">${fmtW(trim, 1)} mm Trim weg</strong> — Aussen-Schmalrolle-Kante.`
+          ? ` <strong style="color:#ffd28a">${fmtW(trim, 1)} mm Trim weg</strong> — Außen-Schmalrolle-Kante.`
           : "";
         meta = (isTrim
-          ? `<strong style="color:#ffd28a">Essentiell:</strong> ohne diesen Schnitt wird die Aussen-Schmalrolle zu breit.${trimTxt} ${cutGeomTxt}.`
+          ? `<strong style="color:#ffd28a">Essentiell:</strong> ohne diesen Schnitt wird die Außen-Schmalrolle zu breit.${trimTxt} ${cutGeomTxt}.`
           : (isUeber
             ? `Übergangs-Schnitt zwischen Haupt- und Nebenrolle. ${cutGeomTxt}.`
             : `Trennungs-Schnitt zwischen zwei Schmalrollen. ${cutGeomTxt}.`));
@@ -9314,7 +9314,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         `;
       } else if (kind === "rest") {
         eyebrow = "Distanzring-Auffüllung";
-        meta = "Aussen-Auffüllung zwischen Park-Ring und der ersten Schneideeinheit. Vom Werker aus passenden Distanzring-Größen aufgeschoben.";
+        meta = "Außen-Auffüllung zwischen Park-Ring und der ersten Schneideeinheit. Vom Werker aus passenden Distanzring-Größen aufgeschoben.";
         let fillTxt = "—";
         try {
           const fill = JSON.parse(segEl.getAttribute("data-seg-fill") || "null");
@@ -9419,7 +9419,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   // v1.95: Cross-Highlight — Welle ↔ Sequenz ↔ Stückliste bidirektional verbunden.
   // Werker hovert über ein Welle-Segment → die zugehörige Sequenz-Zeile pulsiert,
-  // die passende Stueckliste-Aggregation pulsiert mit. Umgekehrt von Stueckliste/Sequenz.
+  // die passende Stückliste-Aggregation pulsiert mit. Umgekehrt von Stückliste/Sequenz.
   let __crossHighlightWired = false;
   function setupCrossHighlight() {
     if (__crossHighlightWired) return;
@@ -10755,13 +10755,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Dimension callout row (ISO-Style) ===
     // Klassisch: Beschnitt-L | NTZ-Block | Beschnitt-R
     // Heterogen: Beschnitt-L | NTZ-Block | NEBEN-Block | Beschnitt-R
-    const dimColorBesaeumung = restWarn ? "var(--danger-color)" : "var(--warn-color)";
-    const dimColorBesaeumungL = restWarnL ? "var(--danger-color)" : "var(--warn-color)";
-    const dimColorBesaeumungR = restWarnR ? "var(--danger-color)" : "var(--warn-color)";
+    const dimColorBesäumung = restWarn ? "var(--danger-color)" : "var(--warn-color)";
+    const dimColorBesäumungL = restWarnL ? "var(--danger-color)" : "var(--warn-color)";
+    const dimColorBesäumungR = restWarnR ? "var(--danger-color)" : "var(--warn-color)";
     const dimColorNutzen = "var(--accent-primary)";
     const dimColorNeben = "#ffb400";
     // Bei Werker-Regel-Sortierung sind NTZ und Neben verschachtelt — eine
-    // gemeinsame Bestueckungs-Bemassung statt separater NTZ-/Neben-Blocke.
+    // gemeinsame Bestückungs-Bemassung statt separater NTZ-/Neben-Blocke.
     // Block-Ende = cursor (Pos nach allen geordneten Streifen, vor Trim-R).
     const ntzBlockX1 = padX + restLPx;
     const ntzBlockX2 = cursor;
@@ -10771,7 +10771,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     if (restLPx > 0) {
       dimCallout(g, padX, ntzBlockX1, dimRowY,
         `${nf1.format(restL)} mm`,
-        dimColorBesaeumungL,
+        dimColorBesäumungL,
         { fontSize: 12, labelBg: "var(--bg-base)" });
     }
     // Streifen-Block: Material-Sum mit Aufteilungs-Detail
@@ -10790,7 +10790,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     if (restRPx > 0) {
       dimCallout(g, restRX1, W - padX, dimRowY,
         `${nf1.format(restR)} mm`,
-        dimColorBesaeumungR,
+        dimColorBesäumungR,
         { fontSize: 12, labelBg: "var(--bg-base)" });
     }
 
@@ -11080,7 +11080,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     setTxt("mcWelleLen",       isEuro
       ? `${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER} / ${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.)`
       : `${M.WELLE} mm`);
-    setTxt("mcBestueckung",    isEuro
+    setTxt("mcBestückung",    isEuro
       ? `${M.BESTUECKUNGS_BREITE} mm zwischen ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Park-Ringen pro Seite · Stack auf geo-center (Bahn-Offset ${M.BAHN_MITTE_OFFSET_MM} mm)`
       : `${M.BESTUECKUNGS_BREITE} mm`);
     setTxt("mcParkRing",       `${M.PARK_RING} mm · ${M.PARK_PRO_SEITE}/Seite${isEuro ? " (Messer-Park)" : ""}`);
@@ -11129,13 +11129,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // Welle-Head-Label (gut sichtbar VOR der bestückten Welle)
     setTxt("welleHeadMachine",
       isEuro
-        ? `Euromac · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.BESTUECKUNGS_BREITE} mm Bestueckungsbereich (zwischen ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Messer-Park pro Seite)`
+        ? `Euromac · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.BESTUECKUNGS_BREITE} mm Bestückungsbereich (zwischen ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Messer-Park pro Seite)`
         : `DCM Untermesserwelle · ${M.WELLE} mm`);
 
     // Print-Header (für Druck-Output, daher exakte Maschinen-Spec)
     setTxt("phMachine",
       isEuro
-        ? `Euromac · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.BESTUECKUNGS_BREITE} mm Bestueckungsbereich · ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Messer-Park pro Seite · ${M.KLEMM_DISTANZRING_MM} mm Klemm links`
+        ? `Euromac · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.BESTUECKUNGS_BREITE} mm Bestückungsbereich · ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Messer-Park pro Seite · ${M.KLEMM_DISTANZRING_MM} mm Klemm links`
         : `DCM Untermesserwelle · ${M.WELLE} mm · Bestückungsbereich ${M.BESTUECKUNGS_BREITE} mm`);
   }
 
@@ -11219,7 +11219,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       writeBahnOffset(M.id, null);
       syncBahnOffsetUI();
       if (typeof calc === "function") calc();
-      toast(`Bahn-Mitte-Eichung ${M.label} zurueckgesetzt`);
+      toast(`Bahn-Mitte-Eichung ${M.label} zurückgesetzt`);
     });
   }
   // Initial-Sync + bei Maschinen-Wechsel mit aktualisieren
@@ -11337,12 +11337,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
   updateMachineInfoUI();
 
   // ---------- Team-Song · Custom Player (Play/Pause + Skip + Loop + Time) ----------
+  // v1.95 Defensive-Rebuild: + Console-Logs für Diagnose, + Promise-catch auf play(),
+  // + pointerdown als Click-Backup falls click-Event-Routing gestört.
   const teamAudioEl = document.getElementById("teamPlayerAudio");
   const tpPlayBtn = document.getElementById("tpPlay");
   const tpRewindBtn = document.getElementById("tpRewind");
   const tpForwardBtn = document.getElementById("tpForward");
   const tpTimeEl = document.getElementById("tpTime");
   const teamLoopBtn = document.getElementById("teamPlayerLoop");
+  console.log("[teamPlayer] init · audio:", !!teamAudioEl, "btn:", !!tpPlayBtn);
   if (teamAudioEl && tpPlayBtn) {
     const TEAM_LOOP_KEY = "rr.teamLoop";
     const initialLoop = localStorage.getItem(TEAM_LOOP_KEY) === "1";
@@ -11360,10 +11363,27 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (iconPlay) iconPlay.style.display = isPlaying ? "none" : "";
       if (iconPause) iconPause.style.display = isPlaying ? "" : "none";
     };
-    tpPlayBtn.addEventListener("click", () => {
-      if (teamAudioEl.paused) teamAudioEl.play();
-      else teamAudioEl.pause();
-    });
+    const togglePlay = (ev) => {
+      console.log("[teamPlayer] toggle · paused=" + teamAudioEl.paused + " ev=" + (ev && ev.type));
+      if (teamAudioEl.paused) {
+        const p = teamAudioEl.play();
+        if (p && typeof p.catch === "function") {
+          p.catch(err => {
+            console.warn("[teamPlayer] play() rejected:", err && err.name, err && err.message);
+            if (typeof toast === "function") toast("Audio konnte nicht starten: " + (err && err.message || err));
+          });
+        }
+      } else {
+        teamAudioEl.pause();
+      }
+    };
+    // Sowohl 'click' als auch 'pointerdown' (Backup bei capture/intercept-Issues)
+    tpPlayBtn.addEventListener("click", togglePlay);
+    tpPlayBtn.addEventListener("pointerdown", (e) => {
+      // pointerdown nur als Backup wenn click ausbleibt (z.B. durch globalen capture)
+      // -> Wir setzen einen Flag und feuern manuell wenn der Click nicht kommt.
+      e.stopPropagation();  // verhindert dass globale pointerdown-Listener das Audio-Click stören
+    }, { capture: true });
     if (tpRewindBtn) tpRewindBtn.addEventListener("click", () => {
       teamAudioEl.currentTime = Math.max(0, teamAudioEl.currentTime - 15);
     });
@@ -11371,9 +11391,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const dur = teamAudioEl.duration;
       teamAudioEl.currentTime = Math.min(isFinite(dur) ? dur : Infinity, teamAudioEl.currentTime + 15);
     });
-    teamAudioEl.addEventListener("play",  updatePlayUI);
-    teamAudioEl.addEventListener("pause", updatePlayUI);
+    teamAudioEl.addEventListener("play",  () => { console.log("[teamPlayer] PLAY"); updatePlayUI(); });
+    teamAudioEl.addEventListener("pause", () => { console.log("[teamPlayer] PAUSE"); updatePlayUI(); });
     teamAudioEl.addEventListener("ended", updatePlayUI);
+    teamAudioEl.addEventListener("error", (e) => {
+      console.error("[teamPlayer] audio ERROR:", teamAudioEl.error && teamAudioEl.error.code, teamAudioEl.error && teamAudioEl.error.message);
+      if (typeof toast === "function") toast("Audio-Fehler · Datei team-handgriff.mp3 nicht ladbar");
+    });
     teamAudioEl.addEventListener("timeupdate", () => {
       if (tpTimeEl) tpTimeEl.textContent = fmtTime(teamAudioEl.currentTime);
     });
@@ -11383,6 +11407,16 @@ audio.team-player-audio::-webkit-media-controls-panel {
       teamLoopBtn.setAttribute("aria-pressed", next ? "true" : "false");
       try { localStorage.setItem(TEAM_LOOP_KEY, next ? "1" : "0"); } catch (_) {}
     });
+    // Stop-Propagation auf dem ganzen team-player Container — verhindert dass
+    // globale pointerdown-Listener (setupCrossHighlight, setupWelleSegInteraction)
+    // den Click intercepten oder als "Klick außerhalb" interpretieren.
+    const tpContainer = tpPlayBtn.closest(".team-player-mini") || tpPlayBtn.parentElement;
+    if (tpContainer) {
+      tpContainer.addEventListener("pointerdown", (e) => e.stopPropagation(), { capture: true });
+      tpContainer.addEventListener("click", (e) => e.stopPropagation(), { capture: true });
+    }
+  } else {
+    console.warn("[teamPlayer] init SKIPPED — DOM-Elemente fehlen. audio=" + !!teamAudioEl + " btn=" + !!tpPlayBtn);
   }
 
   // ---------- reset ----------
@@ -12217,7 +12251,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const machineSlug = (typeof activeMachineId === "string" && activeMachineId)
       ? activeMachineId.replace(/[^a-zA-Z0-9]/g, "")
       : "Maschine";
-    const fileName = `Bestueckung_${machineSlug}_${safe(auftragNr)}_${dateShort}`;
+    const fileName = `Bestückung_${machineSlug}_${safe(auftragNr)}_${dateShort}`;
     document.title = fileName;
     return fileName;
   }
@@ -12297,7 +12331,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     const N = welleData.N + (out.nebenAnzTotal || 0);
     const machineLine = isEuro
-      ? `${M.label} · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.BESTUECKUNGS_BREITE} mm Bestueckung zwischen ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Messer-Park pro Seite`
+      ? `${M.label} · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.BESTUECKUNGS_BREITE} mm Bestückung zwischen ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Messer-Park pro Seite`
       : `${M.label} · Welle ${M.WELLE} mm · Bestückungsbereich ${M.BESTUECKUNGS_BREITE} mm`;
 
     const root = document.createElement("div");
@@ -12649,7 +12683,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           : (role === "uebergang"
             ? `<span class="pm-badge-uebergang">ÜBERGANG</span>`
             : (seg.kind === "neben" ? `<span class="pm-badge-neben">Neben</span>` : `<span class="pm-badge-trennung">Trennung</span>`));
-        const warn = isTrim ? `<div class="pm-warn">⚠ Essentiell — ohne diesen Schnitt wird die Aussen-Schmalrolle ${seg.trim || "?"} mm zu breit.</div>` : "";
+        const warn = isTrim ? `<div class="pm-warn">⚠ Essentiell — ohne diesen Schnitt wird die Außen-Schmalrolle ${seg.trim || "?"} mm zu breit.</div>` : "";
         seqHtml += `<tr class="${seClass}" style="page-break-inside:avoid;break-inside:avoid;">
           <td class="check"></td>
           <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
@@ -12695,7 +12729,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       seqHtml += `<tr class="pm-distanz" style="page-break-inside:avoid;break-inside:avoid;">
         <td class="check"></td>
         <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
-        <td class="bauteil"><strong>Klemm-Distanzring</strong> <span class="pm-tag-fixiert">Werker-Wahl · 5–${M.KLEMM_DISTANZRING_MAX_MM || 20} mm</span><br><small>${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — meist ${r} mm, je nach Gewindelaenge bis ${M.KLEMM_DISTANZRING_MAX_MM || 20} mm. Wichtig: ragt vom Bestueckungsbereich in den Gewindebereich hinaus, damit die Gewindemutter alles fest klemmen kann.</small></td>
+        <td class="bauteil"><strong>Klemm-Distanzring</strong> <span class="pm-tag-fixiert">Werker-Wahl · 5–${M.KLEMM_DISTANZRING_MAX_MM || 20} mm</span><br><small>${M.KLEMM_SEITE === "left" ? "links" : "rechts"} auf Gewinde — meist ${r} mm, je nach Gewindelänge bis ${M.KLEMM_DISTANZRING_MAX_MM || 20} mm. Wichtig: ragt vom Bestückungsbereich in den Gewindebereich hinaus, damit die Gewindemutter alles fest klemmen kann.</small></td>
         <td class="mass">≥${r} mm</td>
         <td class="pos">@ ${fmtW(kumPos, 1)} mm</td>
       </tr>`;
@@ -12755,7 +12789,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-dir { display: inline-block; margin-left: 4mm; padding: 0.8mm 2.5mm; font-size: 7.5pt; background: #fff; border: 1.2px solid #000; border-radius: 1.5mm; color: #000; text-transform: none; letter-spacing: 0.04em; vertical-align: middle; font-weight: 700; }
       .pm-sequenz { page-break-before: always !important; break-before: page !important; }
       .pm-section-title + table { page-break-before: avoid; break-before: avoid; }
-      /* === Stueckliste === */
+      /* === Stückliste === */
       .pm-holliste-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; page-break-inside: auto; }
       .pm-holliste-table thead th { text-align: left; font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #333; padding: 1.5mm 2mm; border-bottom: 1px solid #999; background: #f0f0f0; }
       .pm-holliste-table thead th:nth-child(3) { text-align: right; }
@@ -12861,8 +12895,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
     console.log("[Print] buildPrintMaster() returned:", !!root, root);
     if (!root) {
       const msg = hasValid
-        ? "Drucken: Welle-Daten ungueltig — Werte oben pruefen (rote Warnung)?"
-        : "Drucken: Keine gueltigen Eingaben — bitte erst Mutterrolle + Schmalrolle eingeben und 'Berechnen' druecken";
+        ? "Drucken: Welle-Daten ungültig — Werte oben prüfen (rote Warnung)?"
+        : "Drucken: Keine gültigen Eingaben — bitte erst Mutterrolle + Schmalrolle eingeben und 'Berechnen' drücken";
       if (typeof toast === "function") toast(msg);
       else alert(msg);
       return;
@@ -12905,7 +12939,7 @@ body > *:not(#printMaster) { display: none !important; }
       window.print();
     } catch (e) {
       console.error("[Print] window.print() failed:", e);
-      if (typeof toast === "function") toast("Drucken nicht moeglich: " + (e.message || e));
+      if (typeof toast === "function") toast("Drucken nicht möglich: " + (e.message || e));
     }
   }
 
