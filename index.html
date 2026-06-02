@@ -9758,12 +9758,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // auch wenn er die Welle-Section eingeklappt hat
     if (typeof syncClusterLiveStatus === "function") syncClusterLiveStatus(out);
     const section = document.getElementById("welleSection");
-    if (!section || section.getAttribute("aria-hidden") === "true") return;
-    // A1-Primary-Zeile-Werte updaten OHNE DOM zu zerstören (sonst verlieren A2/A3/A4 Focus)
-    if (typeof updatePrimaryRow === "function") updatePrimaryRow();
-    if (typeof updateSaveTemplateBtn === "function") updateSaveTemplateBtn();
+    const sectionHidden = !section || section.getAttribute("aria-hidden") === "true";
     const sub = document.getElementById("welleSubtitle");
     const tracksSvg = document.getElementById("tracksSvg");
+    // EMPTY-STATE: IMMER clearten — auch wenn Section eingeklappt. Sonst bleibt
+    // alter Inhalt beim Aufklappen sichtbar (Reset-Bug).
     if (!out || !out.mutter) {
       if (sub) sub.textContent = "Werte oben eingeben um Bestückung zu berechnen";
       renderWelleSvg(null); renderWelleHolliste(null); renderWelleAlerts(null);
@@ -9773,6 +9772,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (tracksSvg) { tracksSvg.style.display = "none"; tracksSvg.innerHTML = ""; }
       return;
     }
+    // Bei eingeklappter Section: weiterer Render-Aufwand entfällt
+    if (sectionHidden) return;
+    // A1-Primary-Zeile-Werte updaten OHNE DOM zu zerstören (sonst verlieren A2/A3/A4 Focus)
+    if (typeof updatePrimaryRow === "function") updatePrimaryRow();
+    if (typeof updateSaveTemplateBtn === "function") updateSaveTemplateBtn();
 
     // Cluster-Mode aktiv? — nur wenn Toggle open UND mind. 1 valider Folgeauftrag
     const clusterToggle = document.getElementById("clusterToggle");
