@@ -6956,17 +6956,17 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const H = baseH + tracksTotalH;
     svgEl.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
-    // Layout-Zonen (v1.95: Werker-Banner verschlankt, KPI-Hero oben übernimmt Haupt-Display)
-    const dimTop1Y = 50;
-    const dimTop2Y = 90;
-    const knifeY = 130;
-    const barTop = 158;
+    // Layout-Zonen (v1.95.1: Werker-Bemaßung über Welle (statt unter) für bessere Übersicht)
+    const dimWerkerY = 28;               // Werker-Mass GANZ OBEN (über allen anderen Top-Bemaßungen)
+    const dimTop1Y = 64;                 // Welle-Total (war 50, nach unten geschoben)
+    const dimTop2Y = 104;                // MR-Bracket (war 90)
+    const knifeY = 140;                  // Cut-Position-Labels (war 130)
+    const barTop = 168;                  // Welle-Bar (war 158)
     const barH = 110;
-    const barBottom = barTop + barH;
-    const dimBotY = barBottom + 32;
-    const dimWerkerY = barBottom + 58;   // schlanke Werker-Bemassung (kompaktes mm-Label)
-    const dimBot2Y = barBottom + 84;     // L=R-Sym
-    const scaleY = barBottom + 114;
+    const barBottom = barTop + barH;     // 278 (war 268)
+    const dimBotY = barBottom + 32;      // Park/Bestück
+    const dimBot2Y = barBottom + 62;     // L=R-Sym (kompakter ohne Werker-Bemaßung dazwischen)
+    const scaleY = barBottom + 92;       // Tick-Ruler
 
     // Empty-State
     if (!d || !d.ok) {
@@ -7423,13 +7423,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const distMm = M.WELLE - rightmostCutMm;
         const warnCol = "#ff8a00";
 
-        // v1.95: Slim Bemassung (Hauptwert ist jetzt im KPI-Hero oben).
-        // Gestrichelte Guides + Pfeil-Linie + kompaktes mm-Label auf der Linie.
-        svgW(g, "line", { x1: xCut, y1: barBottom + 4, x2: xCut, y2: dimWerkerY - 8,
+        // v1.95.1: Werker-Bemaßung OBERHALB der Welle (statt unter).
+        // Vertikale Guides gehen NACH UNTEN von der Bemaßungs-Linie bis zum Bar-Top.
+        svgW(g, "line", { x1: xCut, y1: dimWerkerY + 6, x2: xCut, y2: barTop - 2,
           stroke: warnCol, "stroke-width": "1.2", "stroke-dasharray": "3 3", opacity: "0.7" });
-        svgW(g, "line", { x1: xRight, y1: barBottom + 4, x2: xRight, y2: dimWerkerY - 8,
+        svgW(g, "line", { x1: xRight, y1: dimWerkerY + 6, x2: xRight, y2: barTop - 2,
           stroke: warnCol, "stroke-width": "1.2", "stroke-dasharray": "3 3", opacity: "0.55" });
-        // Bemassungs-Linie + Pfeilkoepfe
+        // Bemaßungs-Linie + Pfeilköpfe (auf dimWerkerY ganz oben)
         svgW(g, "line", { x1: xCut + 1, y1: dimWerkerY, x2: xRight - 1, y2: dimWerkerY,
           stroke: warnCol, "stroke-width": "1.3", opacity: "0.9" });
         svgW(g, "path", { d: `M${xCut} ${dimWerkerY} L${xCut + 8} ${dimWerkerY - 4.5} L${xCut + 8} ${dimWerkerY + 4.5} Z`,
@@ -9658,18 +9658,61 @@ audio.team-player-audio::-webkit-media-controls-panel {
     }
 
     const M = getMachine();
+    const aMm = M.WELLE - M.WELLE_MITTE;  // Welle-Mitte vom rechten Wellenrand
+    const asymmMm = M.SCHNITT_OFFSET - M.SCHNEIDEEINHEIT / 2;
+
+    // v1.95: Master-Welle-Modus erkennen (mehrere Aufträge auf EINER Welle).
+    // Im Master-Mode passt die einfache "Nutzen × Schmal / 2"-Formel nicht mehr —
+    // die rechteste Cut wird durch ALLE Aufträge bestimmt, nicht nur Primary.
+    const isMaster = !!(d && (d.isMaster || (d.validJobs && d.validJobs.length >= 2)));
+
+    // Tatsächliche rechteste Cut aus layoutLR (identisch zu KPI-Hero-Logik)
+    let rightmostCut = null;
+    let cur = 0;
+    for (const seg of (d.layoutLR || [])) {
+      if (seg.kind === "schneid" || seg.kind === "neben") {
+        const cutMm = cur + M.SCHNITT_OFFSET;
+        if (rightmostCut == null || cutMm > rightmostCut) rightmostCut = cutMm;
+      } else if (seg.kind === "buchse" && Array.isArray(seg.cuts)) {
+        for (const r of seg.cuts) {
+          const cutMm = cur + r;
+          if (rightmostCut == null || cutMm > rightmostCut) rightmostCut = cutMm;
+        }
+      }
+      cur += seg.breite;
+    }
+    const realWerkerMass = rightmostCut != null ? (M.WELLE - rightmostCut) : null;
+
+    formelEl.setAttribute("aria-hidden", "false");
+
+    if (isMaster && realWerkerMass != null) {
+      // Master-Modus: B = halbe Master-Stack-Breite (effektiv, aus den ECHTEN Cuts)
+      // halbStackMaster = (rightmost_cut - WELLE_MITTE) = aMm - werkerMass
+      const halfStackMaster = aMm - realWerkerMass;
+      if (aEl) aEl.textContent = fmtW(aMm, 1);
+      if (aSubEl) aSubEl.textContent = M.id === "EUROMAC"
+        ? `vom rechten Wellenrand (asymm. 650/670)`
+        : `vom rechten Wellenrand`;
+      if (bEl) bEl.textContent = fmtW(halfStackMaster, 1);
+      if (bSubEl) bSubEl.textContent = `Master · rechteste Cut v. Welle-Mitte · ${(d.validJobs && d.validJobs.length) || "n"} Aufträge`;
+      if (rEl) rEl.textContent = fmtW(realWerkerMass, 1);
+      if (footEl) {
+        const jobCount = (d.validJobs && d.validJobs.length) || "mehrere";
+        footEl.innerHTML =
+          `<strong>Master-Welle mit ${jobCount} Aufträgen</strong> — die einfache "Nutzen × Schmal / 2"-Formel ` +
+          `gilt nur für 1 Auftrag. Hier bestimmt die <em>weiteste Cut über alle Aufträge</em> die 1. Schneidkante. ` +
+          `Das Tool berechnet die effektive Master-Halb-Stack-Breite aus dem gemeinsamen Cut-Layout.`;
+      }
+      return;
+    }
+
+    // Single-Mode: klassische Werker-Formel
     const N  = out.nutzen || d.N || 0;
     const haupt = out.schmal || d.haupt || 0;
     const stackMm = N * haupt;
     const halfStack = stackMm / 2;
-    // A: Welle-Mitte vom rechten Wellenrand
-    const aMm = M.WELLE - M.WELLE_MITTE;
-    // Asymm-Korrektur (= Versatz der Cut-Mitte gegen Welle-Mitte bei DCM)
-    // DCM: SCHNITT_OFFSET=13, SE/2=10 → 3 mm rechts der SE-Mitte
-    const asymmMm = M.SCHNITT_OFFSET - M.SCHNEIDEEINHEIT / 2;
     const resultMm = aMm - halfStack - asymmMm;
 
-    formelEl.setAttribute("aria-hidden", "false");
     if (aEl) aEl.textContent = fmtW(aMm, 1);
     if (aSubEl) aSubEl.textContent = M.id === "EUROMAC"
       ? `vom rechten Wellenrand (asymm. 650/670)`
@@ -9678,7 +9721,6 @@ audio.team-player-audio::-webkit-media-controls-panel {
     if (bSubEl) bSubEl.textContent = `${N} × ${fmtW(haupt, 1)} mm / 2`;
     if (rEl) rEl.textContent = fmtW(resultMm, 1);
 
-    // Footer-Erklärung: bei DCM die Asymm-Korrektur erläutern
     if (footEl) {
       if (Math.abs(asymmMm) > 0.05) {
         const asymmSign = asymmMm > 0 ? "−" : "+";
