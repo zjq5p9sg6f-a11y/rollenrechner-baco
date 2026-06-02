@@ -9706,36 +9706,56 @@ audio.team-player-audio::-webkit-media-controls-panel {
       return;
     }
 
-    // Single-Mode: klassische Werker-Formel
+    // Single-Mode: Werker-Formel basiert auf ECHTER rechtester Cut (statt vereinfachter
+    // "N × Schmal / 2"-Annahme). Diese stimmt nur MIT Trim — bei Trim=0 sind es nur N−1
+    // innere Cuts, was die Werker-Formel um eine Schmal-Breite überschätzt.
     const N  = out.nutzen || d.N || 0;
     const haupt = out.schmal || d.haupt || 0;
-    const stackMm = N * haupt;
-    const halfStack = stackMm / 2;
-    const resultMm = aMm - halfStack - asymmMm;
+    const restMM = (out.restMM != null) ? out.restMM : (d.restMM != null ? d.restMM : 0);
+    const hasTrim = restMM > 0.5;  // > 0.5 mm Trim insgesamt → Trim-Cuts da
+
+    let halfStack, bSubTxt, resultMm;
+    if (realWerkerMass != null) {
+      // Echter Wert aus dem Cut-Layout
+      halfStack = aMm - realWerkerMass;
+      resultMm = realWerkerMass;
+      if (hasTrim) {
+        // Mit Trim: die Werker-Vereinfachung "N × Schmal / 2" stimmt
+        bSubTxt = `${N} × ${fmtW(haupt, 1)} mm / 2 (mit Trim ${fmtW(restMM, 1)} mm)`;
+      } else {
+        // Kein Trim: (N−1) × Schmal / 2 (es gibt N−1 innere Cuts zwischen N Schmalrollen)
+        bSubTxt = `(${N} − 1) × ${fmtW(haupt, 1)} mm / 2 — kein Trim, nur ${N - 1} innere Cuts`;
+      }
+    } else {
+      // Fallback wenn kein Cut-Layout: klassische Berechnung
+      halfStack = N * haupt / 2;
+      resultMm = aMm - halfStack - asymmMm;
+      bSubTxt = `${N} × ${fmtW(haupt, 1)} mm / 2`;
+    }
 
     if (aEl) aEl.textContent = fmtW(aMm, 1);
     if (aSubEl) aSubEl.textContent = M.id === "EUROMAC"
       ? `vom rechten Wellenrand (asymm. 650/670)`
       : `vom rechten Wellenrand`;
     if (bEl) bEl.textContent = fmtW(halfStack, 1);
-    if (bSubEl) bSubEl.textContent = `${N} × ${fmtW(haupt, 1)} mm / 2`;
+    if (bSubEl) bSubEl.textContent = bSubTxt;
     if (rEl) rEl.textContent = fmtW(resultMm, 1);
 
     if (footEl) {
-      if (Math.abs(asymmMm) > 0.05) {
-        const asymmSign = asymmMm > 0 ? "−" : "+";
-        const asymmAbs = Math.abs(asymmMm).toFixed(0);
-        footEl.innerHTML =
-          `Bei <strong>${M.label}</strong> kommt eine asymmetrische SE-Korrektur dazu: ` +
+      const baseDcmHint = Math.abs(asymmMm) > 0.05
+        ? `Bei <strong>${M.label}</strong> kommt eine asymmetrische SE-Korrektur dazu: ` +
           `Schneidring ${(M.SE_SORTIMENT && M.SE_SORTIMENT[0] && M.SE_SORTIMENT[0].composition) || "Schneidring+Nutmesser"} ` +
-          `→ Cut sitzt ${asymmAbs} mm rechts der SE-Mitte. ` +
-          `<strong style="color:#ff8a00">Daher ${asymmSign} ${asymmAbs} mm im Endergebnis.</strong> ` +
-          `Werker-Vereinfachung (ohne Asymm.): ${fmtW(aMm - halfStack, 1)} mm — Tool zeigt das präzise: ${fmtW(resultMm, 1)} mm.`;
+          `→ Cut sitzt ${Math.abs(asymmMm).toFixed(0)} mm rechts der SE-Mitte. `
+        : `<strong>${M.label}</strong> hat eine symmetrische SE (Cut = SE-Mitte). `;
+      if (hasTrim) {
+        footEl.innerHTML = baseDcmHint +
+          `Werker-Vereinfachung "Nutzen × Schmal / 2" passt hier 1:1 ` +
+          `(Trim ${fmtW(restMM, 1)} mm verteilt sich auf 2 Besäumungs-SE).`;
       } else {
-        footEl.innerHTML =
-          `<strong>${M.label}</strong> hat eine symmetrische SE (Cut = SE-Mitte). ` +
-          `Tool rechnet 1:1 identisch zur Werker-Kopfrechnung — nur mit 0,5-mm-Präzision ` +
-          `bei ungeradem Trim (z.B. 25×25 / MR 630 ergibt exakt 357,5 statt 357 oder 358).`;
+        footEl.innerHTML = baseDcmHint +
+          `<strong style="color:#ff8a00">Bei voller MR-Ausnutzung (kein Trim) entstehen nur N−1 innere Cuts</strong> ` +
+          `zwischen N Schmalrollen — die Werker-Vereinfachung "N × Schmal / 2" überschätzt um 1 Schmal-Breite. ` +
+          `Tool nutzt die tatsächliche rechteste Cut-Position: ${fmtW(resultMm, 1)} mm.`;
       }
     }
   }
