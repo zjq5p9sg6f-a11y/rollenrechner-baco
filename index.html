@@ -4338,14 +4338,25 @@ header.bar {
   color: var(--text-secondary);
 }
 /* Trim-Strategie integriert in viz-head (gehört zur Mutterrollen-Aufteilung).
-   Kompakter als die alte separate Bar — kein extra Border, dezenter Look. */
+   Besäumungs-Orange-Border + Glow → Werker erkennt die Switching-Zone sofort. */
 .trim-strategy-bar-viz {
-  padding: 4px 8px 4px 6px;
-  background: rgba(0,0,0,0.18);
-  border: 1px solid rgba(255,255,255,0.08);
+  padding: 6px 10px 6px 8px;
+  background: linear-gradient(135deg, rgba(255,107,53,0.06) 0%, rgba(255,107,53,0.02) 100%);
+  border: 1.5px solid rgba(255,107,53,0.45);
+  box-shadow: 0 0 14px rgba(255,107,53,0.12), inset 0 0 0 1px rgba(255,107,53,0.04);
+  position: relative;
 }
-.trim-strategy-bar-viz .trim-strategy-label { font-size: 9.5px; }
-.trim-strategy-bar-viz .ts-seg { padding: 4px 8px; font-size: 10.5px; }
+.trim-strategy-bar-viz::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: 12%; right: 12%;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,107,53,0.7) 50%, transparent 100%);
+  border-radius: 1px;
+  pointer-events: none;
+}
+.trim-strategy-bar-viz .trim-strategy-label { font-size: 10px; color: #ff8550; }
+.trim-strategy-bar-viz .ts-seg { padding: 5px 10px; font-size: 11px; }
 .legend-item { display: flex; align-items: center; gap: 8px; font-weight: 500; }
 .legend-swatch {
   width: 16px; height: 16px; border-radius: 4px;
