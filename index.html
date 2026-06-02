@@ -11457,33 +11457,45 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (iconPlay) iconPlay.style.display = isPlaying ? "none" : "";
       if (iconPause) iconPause.style.display = isPlaying ? "" : "none";
     };
-    // AbortError-Retry mit setTimeout statt canplay-Listener (der kann silently
-    // hängen wenn Audio bereits ready ist). Max 3 retries à 150ms.
-    let playAttempt = 0;
+    // FORTRESS MODE: in-flight flag verhindert ALLE Double-Trigger-Szenarien
+    // (touch+click, pointerdown+click, irgendwelche Browser-Quirks).
+    // Debounce-Guard 250ms zusätzlich.
+    let playInFlight = false;
+    let lastToggleAt = 0;
     const tryPlay = () => {
+      if (playInFlight) { console.warn("[teamPlayer] tryPlay skipped — already in flight"); return; }
+      playInFlight = true;
+      const t0 = Date.now();
       const p = teamAudioEl.play();
-      if (p && typeof p.catch === "function") {
-        p.then(() => { setStatus(null); playAttempt = 0; })
-         .catch(err => {
+      if (p && typeof p.then === "function") {
+        p.then(() => {
+          playInFlight = false;
+          console.log("[teamPlayer] play() OK after " + (Date.now()-t0) + "ms");
+          setStatus(null);
+        }).catch(err => {
+          playInFlight = false;
           const n = (err && err.name) || "Error";
           const m = (err && err.message) || String(err);
-          console.warn("[teamPlayer] play() rejected (attempt " + playAttempt + "):", n, m);
-          if (n === "AbortError" && playAttempt < 3) {
-            playAttempt++;
-            setStatus("⏳ retry " + playAttempt + "/3 …", "info");
-            setTimeout(tryPlay, 150);
-          } else {
-            setStatus("⚠ " + n + ": " + m, "err");
-            playAttempt = 0;
-          }
+          console.warn("[teamPlayer] play() rejected:", n, "|", m, "| ready=" + teamAudioEl.readyState + " netw=" + teamAudioEl.networkState);
+          // Diagnose-Dump in Status: name + readyState + duration
+          const dur = isFinite(teamAudioEl.duration) ? teamAudioEl.duration.toFixed(1) + "s" : "?";
+          setStatus("⚠ " + n + " · ready=" + teamAudioEl.readyState + " dur=" + dur, "err");
         });
+      } else {
+        playInFlight = false;
       }
     };
     const togglePlay = (ev) => {
-      console.log("[teamPlayer] toggle · paused=" + teamAudioEl.paused + " ev=" + (ev && ev.type) + " ready=" + teamAudioEl.readyState);
+      const now = Date.now();
+      if (now - lastToggleAt < 250) {
+        console.warn("[teamPlayer] toggle debounced (" + (now-lastToggleAt) + "ms)");
+        return;
+      }
+      lastToggleAt = now;
+      console.log("[teamPlayer] toggle · paused=" + teamAudioEl.paused + " ev=" + (ev && ev.type) + " ready=" + teamAudioEl.readyState + " netw=" + teamAudioEl.networkState);
       if (ev && ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+      if (ev && ev.preventDefault) ev.preventDefault();
       if (teamAudioEl.paused) {
-        playAttempt = 0;  // fresh start, cancel any retry-state
         setStatus(teamAudioEl.readyState >= 3 ? null : "⏳ lädt …", "info");
         tryPlay();
       } else {
