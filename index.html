@@ -328,6 +328,81 @@ header.bar {
 .icon-btn:active { transform: scale(0.95); }
 .icon-btn svg { width: 20px; height: 20px; }
 
+/* Verlauf-Dropdown unter dem Verlauf-Button */
+.history-wrap { position: relative; }
+.history-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  min-width: 280px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-2);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  padding: 6px;
+}
+.history-pop[hidden] { display: none; }
+.history-empty {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 14px 12px;
+  text-align: center;
+}
+.history-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-primary);
+  transition: background 100ms ease;
+}
+.history-item:hover { background: rgba(0,230,118,0.10); }
+.history-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.history-item-title {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.history-item-sub {
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+.history-item-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(0,230,118,0.12);
+  color: var(--accent-primary);
+  flex-shrink: 0;
+}
+.history-clear {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-top: 1px solid var(--border);
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  text-align: center;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+}
+.history-clear:hover { color: var(--danger-color, #ff5252); }
+
 /* Maschinen-Bar (prominent, vor Mutterrollen-Aufteilung) */
 .machine-bar {
   display: flex;
@@ -4565,6 +4640,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
       </div>
     </div>
     <div class="bar-actions">
+      <div class="history-wrap">
+        <button class="icon-btn" id="historyBtn" type="button" title="Letzte 5 Berechnungen" aria-label="Verlauf" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 9 8 9"/><polyline points="12 7 12 12 15 14"/></svg>
+        </button>
+        <div class="history-pop" id="historyPop" role="listbox" aria-label="Letzte Berechnungen" hidden></div>
+      </div>
       <button class="icon-btn" id="resetBtn" title="Werte zurücksetzen" aria-label="Zurücksetzen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
       </button>
@@ -5115,9 +5196,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="welle-sub" id="welleSubtitle">Werte eingeben um Bestückung zu berechnen</div>
         </div>
         <div class="welle-head-actions">
-          <button class="btn-print" id="printWelleBtn" type="button" tabindex="-1" title="Bestückungs-Anweisung + Picking-Liste drucken">
+          <button class="btn-print" id="printWelleBtn" type="button" tabindex="-1" title="Drucken oder als PDF speichern — im Print-Dialog 'Als PDF speichern' wählen">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-            <span>Bestückungs-Anweisung drucken</span>
+            <span>Drucken / PDF</span>
           </button>
         </div>
       </div>
@@ -10130,6 +10211,22 @@ audio.team-player-audio::-webkit-media-controls-panel {
       add("danger", `Schmalrolle (${nf0.format(inp.schmal)} mm) ist breiter oder gleich Mutterrolle (${nf0.format(inp.mutter)} mm). Geometrisch unmöglich.`);
       return;
     }
+
+    // Plausibilitäts-Hinweise (soft — Werker entscheidet, blockt nicht).
+    // Typische Schmalrollen-Range bei Ballerstaedt: 15-200 mm.
+    // Typische Mutterrollen ≥ 200 mm. Werte ausserhalb deuten oft auf Tippfehler hin
+    // (z.B. 250 statt 25, oder mm/cm verwechselt).
+    if (isFinite(inp.schmal) && inp.schmal > 0) {
+      if (inp.schmal > 250) {
+        add("warn", `Schmalrolle ${nf0.format(inp.schmal)} mm — sicher? Üblich sind 15-200 mm. Tippfehler? (z. B. 25 statt 250)`);
+      } else if (inp.schmal < 8) {
+        add("warn", `Schmalrolle ${nf1.format(inp.schmal)} mm — sehr schmal. Üblich ≥ 8 mm. mm/cm verwechselt?`);
+      }
+    }
+    if (isFinite(inp.mutter) && inp.mutter > 0 && inp.mutter < 200) {
+      add("warn", `Mutterrolle ${nf0.format(inp.mutter)} mm — sehr schmal. Üblich ≥ 200 mm. Wert prüfen.`);
+    }
+
     if (!out) return;
 
     if (out.restMM < 0) {
@@ -11302,8 +11399,147 @@ audio.team-player-audio::-webkit-media-controls-panel {
   updateMachineToggleUI();
   updateMachineInfoUI();
 
+  // ---------- Recent-History: letzte 5 Berechnungen ----------
+  const HISTORY_KEY = "rr.history";
+  const HISTORY_MAX = 5;
+
+  function loadHistory() {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr.slice(0, HISTORY_MAX) : [];
+    } catch (_) { return []; }
+  }
+
+  function currentInputSnapshot() {
+    const flaeche = (els.flaeche && els.flaeche.value) || "";
+    const schmal  = (els.schmal  && els.schmal.value)  || "";
+    const lfm     = (els.lfm     && els.lfm.value)     || "";
+    const mutter  = (els.mutter  && els.mutter.value)  || "";
+    if (!flaeche && !schmal && !lfm && !mutter) return null;
+    const machine = (typeof activeMachineId !== "undefined" && activeMachineId) || "DCM";
+    const schmalUnit = (typeof getUnit === "function") ? getUnit("schmal") : "mm";
+    const mutterUnit = (typeof getUnit === "function") ? getUnit("mutter") : "mm";
+    const fmode = (typeof getFlaecheMode === "function") ? getFlaecheMode() : "qm";
+    return { ts: Date.now(), machine, flaeche, schmal, schmalUnit, lfm, mutter, mutterUnit, fmode };
+  }
+
+  function pushHistory(snap) {
+    if (!snap) return;
+    let hist = loadHistory();
+    // Dedupe: gleiche Geometrie nicht doppelt eintragen (gleiche Mutter+Schmal+Maschine)
+    hist = hist.filter(h => !(h.mutter === snap.mutter && h.schmal === snap.schmal && h.machine === snap.machine));
+    hist.unshift(snap);
+    hist = hist.slice(0, HISTORY_MAX);
+    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(hist)); } catch (_) {}
+  }
+
+  function fmtHistoryTime(ts) {
+    const d = new Date(ts);
+    const now = new Date();
+    const sameDay = d.toDateString() === now.toDateString();
+    if (sameDay) {
+      return d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    }
+    return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+  }
+
+  function renderHistoryPop() {
+    const pop = document.getElementById("historyPop");
+    if (!pop) return;
+    const hist = loadHistory();
+    if (hist.length === 0) {
+      pop.innerHTML = '<div class="history-empty">Keine Einträge.<br>Verlauf wird bei Reset oder Druck gespeichert.</div>';
+      return;
+    }
+    let html = "";
+    hist.forEach((h, idx) => {
+      const mr = h.mutter || "?";
+      const sr = h.schmal || "?";
+      const mrU = h.mutterUnit || "mm";
+      const srU = h.schmalUnit || "mm";
+      html += `<div class="history-item" data-idx="${idx}" role="option">
+        <div class="history-item-main">
+          <div class="history-item-title">${h.machine} · ${sr} ${srU} / MR ${mr} ${mrU}</div>
+          <div class="history-item-sub">${h.flaeche ? h.flaeche + (h.fmode === "lfm" ? " LFM" : " qm") + " · " : ""}${h.lfm ? "LFM " + h.lfm : ""}</div>
+        </div>
+        <span class="history-item-tag">${fmtHistoryTime(h.ts)}</span>
+      </div>`;
+    });
+    html += '<div class="history-clear" id="historyClearBtn">Verlauf löschen</div>';
+    pop.innerHTML = html;
+
+    pop.querySelectorAll(".history-item").forEach(el => {
+      el.addEventListener("click", () => applyHistoryItem(parseInt(el.dataset.idx)));
+    });
+    const clearBtn = document.getElementById("historyClearBtn");
+    if (clearBtn) clearBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      try { localStorage.removeItem(HISTORY_KEY); } catch (_) {}
+      renderHistoryPop();
+      toast("Verlauf gelöscht");
+    });
+  }
+
+  function applyHistoryItem(idx) {
+    const hist = loadHistory();
+    const h = hist[idx];
+    if (!h) return;
+    // Maschine wechseln wenn nötig
+    if (h.machine && typeof setActiveMachine === "function" && h.machine !== activeMachineId) {
+      setActiveMachine(h.machine);
+    }
+    // Felder befüllen
+    if (els.flaeche) els.flaeche.value = h.flaeche || "";
+    if (els.schmal)  els.schmal.value  = h.schmal  || "";
+    if (els.lfm)     els.lfm.value     = h.lfm     || "";
+    if (els.mutter)  els.mutter.value  = h.mutter  || "";
+    // Einheiten setzen
+    if (h.schmalUnit && typeof setUnit === "function") setUnit("schmal", h.schmalUnit);
+    if (h.mutterUnit && typeof setUnit === "function") setUnit("mutter", h.mutterUnit);
+    // Fläche-Mode
+    if (h.fmode && typeof setFlaecheModeStored === "function") {
+      setFlaecheModeStored(h.fmode);
+      if (typeof syncFlaecheModeUI === "function") syncFlaecheModeUI();
+    }
+    // Pop schließen
+    const pop = document.getElementById("historyPop");
+    const btn = document.getElementById("historyBtn");
+    if (pop) pop.hidden = true;
+    if (btn) btn.setAttribute("aria-expanded", "false");
+    calc();
+    toast(`Eintrag geladen: ${h.machine} ${h.schmal}/${h.mutter}`);
+  }
+
+  const historyBtnEl = document.getElementById("historyBtn");
+  const historyPopEl = document.getElementById("historyPop");
+  if (historyBtnEl && historyPopEl) {
+    historyBtnEl.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = !historyPopEl.hidden;
+      if (open) {
+        historyPopEl.hidden = true;
+        historyBtnEl.setAttribute("aria-expanded", "false");
+      } else {
+        renderHistoryPop();
+        historyPopEl.hidden = false;
+        historyBtnEl.setAttribute("aria-expanded", "true");
+      }
+    });
+    // Click ausserhalb → schließen
+    document.addEventListener("click", (e) => {
+      if (!historyPopEl.hidden && !historyPopEl.contains(e.target) && e.target !== historyBtnEl && !historyBtnEl.contains(e.target)) {
+        historyPopEl.hidden = true;
+        historyBtnEl.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
   // ---------- reset ----------
   els.resetBtn.addEventListener("click", () => {
+    // Aktuellen Stand in Verlauf speichern (vor Clear)
+    pushHistory(currentInputSnapshot());
     [els.flaeche, els.schmal, els.lfm, els.mutter].forEach(el => el.value = "");
     if (els.speed)        els.speed.value = "250";
     if (els.ruestBase)    els.ruestBase.value = "";
@@ -12831,6 +13067,10 @@ body > *:not(#printMaster) { display: none !important; }
   if (printBtnEl) {
     printBtnEl.addEventListener("click", () => {
       console.log("[Print] Button clicked");
+      // Aktuellen Stand in Verlauf speichern — Drucken = bestätigter Auftrag
+      if (typeof pushHistory === "function" && typeof currentInputSnapshot === "function") {
+        pushHistory(currentInputSnapshot());
+      }
       try {
         if (typeof preparePrintHeader === "function") preparePrintHeader();
         openPrintWindow();
