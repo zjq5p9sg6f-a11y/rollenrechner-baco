@@ -11546,33 +11546,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     teamAudioEl.addEventListener("timeupdate", () => {
       if (tpTimeEl) tpTimeEl.textContent = fmtTime(teamAudioEl.currentTime);
     });
-    // Self-Test: pingen wir die MP3-URL direkt — gibt sofortiges Feedback ob die
-    // Datei überhaupt erreichbar ist (Cache, Pfad, Server). 1-Sek-Timeout.
-    try {
-      const audioUrl = teamAudioEl.querySelector("source")?.src || "./team-handgriff.mp3";
-      const probe = new XMLHttpRequest();
-      probe.open("HEAD", audioUrl, true);
-      probe.timeout = 3000;
-      probe.onload = () => {
-        if (probe.status >= 200 && probe.status < 400) {
-          console.log("[teamPlayer] self-test OK · " + probe.status + " · " + audioUrl);
-        } else {
-          console.warn("[teamPlayer] self-test FAIL · HTTP " + probe.status);
-          setStatus("⚠ MP3 HTTP " + probe.status, "err");
-        }
-      };
-      probe.onerror = () => {
-        console.warn("[teamPlayer] self-test NETWORK ERROR");
-        setStatus("⚠ MP3 nicht erreichbar", "err");
-      };
-      probe.ontimeout = () => {
-        setStatus("⚠ MP3-Probe timeout", "warn");
-      };
-      probe.send();
-    } catch (e) {
-      console.warn("[teamPlayer] self-test skipped:", e && e.message);
-    }
-    console.log("[teamPlayer] v1.96 audiofix · ready · inline-onclick + listener hybrid");
+    // Self-Test entfernt: false-positive bei file:// (XHR blocked, Audio würde
+    // aber spielen). Nur play()-Promise-Status zeigt verlässlich was los ist.
+    console.log("[teamPlayer] v1.96-fix4 · single-trigger fortress · ready");
   } else {
     console.warn("[teamPlayer] init SKIPPED — DOM-Elemente fehlen. audio=" + !!teamAudioEl + " btn=" + !!tpPlayBtn);
     setStatus("⚠ Player-Init fehlgeschlagen", "err");
