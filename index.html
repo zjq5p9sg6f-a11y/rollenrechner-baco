@@ -1785,6 +1785,62 @@ header.bar {
   color: var(--accent-primary);
   margin: 0 0 12px 0;
 }
+/* Hauptschnitt-Stack-Composition (prominenter Block oben in der Stückliste).
+   Werker baut N Stacks identisch — präzise Pick-Anleitung verhindert Tip-Fehler. */
+.welle-holliste-hauptstack, .welle-holliste-reststack {
+  margin: 0 0 12px 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(0,230,118,0.35);
+  background: linear-gradient(135deg, rgba(0,230,118,0.06), rgba(0,230,118,0.02));
+}
+.welle-holliste-reststack {
+  border-color: rgba(255,193,7,0.25);
+  background: linear-gradient(135deg, rgba(255,193,7,0.05), rgba(255,193,7,0.015));
+}
+.welle-holliste-hauptstack .hs-head, .welle-holliste-reststack .hs-head {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+}
+.welle-holliste-hauptstack .hs-icon {
+  color: var(--accent-primary, #00e676);
+  font-size: 16px;
+  line-height: 1;
+}
+.welle-holliste-reststack .hs-icon-rest { color: #ffc107; }
+.welle-holliste-hauptstack .hs-title, .welle-holliste-reststack .hs-title {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+.welle-holliste-hauptstack .hs-detail, .welle-holliste-reststack .hs-detail {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 14px;
+  font-size: 13px;
+  align-items: baseline;
+}
+.welle-holliste-hauptstack .hs-row, .welle-holliste-reststack .hs-row {
+  display: contents;
+}
+.welle-holliste-hauptstack .hs-k, .welle-holliste-reststack .hs-k {
+  color: var(--text-secondary);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+.welle-holliste-hauptstack .hs-v, .welle-holliste-reststack .hs-v {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.welle-holliste-hauptstack .hs-v strong, .welle-holliste-reststack .hs-v strong {
+  color: var(--accent-primary, #00e676);
+  font-weight: 800;
+}
+.welle-holliste-reststack .hs-v strong { color: #ffc107; }
+
 .welle-holliste-grid {
   display: grid;
   grid-template-columns: 1fr auto auto;
@@ -7576,7 +7632,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
   // Helper: Distanzring-Stack-Aufschlüsselung für Sequenz-Detail
   function stackBreakdown(mm) {
     const f = distanzringeForDCM(mm);
-    return Object.entries(f.rings).map(([k, v]) => `${v}× ${k}`).join(" + ") || "—";
+    // Werker-Konvention: größte Ringe zuerst (sortiert absteigend), mm-Einheit für Klarheit.
+    return Object.entries(f.rings)
+      .sort((a, b) => parseFloat(b[0]) - parseFloat(a[0]))
+      .map(([k, v]) => `${v}× ${k} mm`)
+      .join(" + ") || "—";
   }
 
   // Bestückungs-Sequenz: Rechts → Links Reihenfolge auf Rüstdorn
@@ -7766,6 +7826,57 @@ audio.team-player-audio::-webkit-media-controls-panel {
     }
     const totalParts = result.holliste.reduce((s,h)=>s+h.anz, 0);
     let html = `<h4>Bestückungs-Stückliste · ${totalParts} Bauteile total</h4>`;
+
+    // Hauptschnitt-Stack-Komposition prominent oben — Werker baut diese N-mal identisch,
+    // präzise Picking ohne Mental-Math.
+    const M_h = getMachine();
+    const hauptDistSegs = (result.innerSegs || []).filter(s =>
+      s.kind === "distanz" && s.name === "Distanzring Hauptschnitt"
+    );
+    if (hauptDistSegs.length > 0 && hauptDistSegs[0].breite > 0.001) {
+      const stackMm = hauptDistSegs[0].breite;
+      const stackCount = hauptDistSegs.length;
+      const breakdown = stackBreakdown(stackMm);  // "2× 2 + 1× 5"
+      // Ring-Summe für diesen Stack-Typ: stackCount × ringComposition
+      const oneStack = distanzringeForMachine(stackMm, M_h).rings;
+      const sumDetail = Object.entries(oneStack)
+        .sort((a,b) => parseFloat(b[0]) - parseFloat(a[0]))
+        .map(([k,v]) => `${v * stackCount}× ${k} mm`)
+        .join(" + ");
+      html += `<div class="welle-holliste-hauptstack" data-match-kinds="distanz" data-match-role="haupt-distanz">
+        <div class="hs-head">
+          <span class="hs-icon" aria-hidden="true">●</span>
+          <span class="hs-title">Hauptschnitt-Distanzring · zwischen den Schmalrollen</span>
+        </div>
+        <div class="hs-detail">
+          <div class="hs-row"><span class="hs-k">Pro Stack:</span><span class="hs-v"><strong>${breakdown}</strong> = <strong>${stackMm.toFixed(stackMm % 1 ? 1 : 0)} mm</strong></span></div>
+          <div class="hs-row"><span class="hs-k">Anzahl Stacks:</span><span class="hs-v"><strong>${stackCount}×</strong> identisch bauen</span></div>
+          <div class="hs-row"><span class="hs-k">Ring-Bedarf (in Summe):</span><span class="hs-v">${sumDetail}</span></div>
+        </div>
+      </div>`;
+    }
+    // Rest-Distanzring-Stacks (Trim-Bereich) — präzise Komposition pro Seite zeigen
+    const restL = result.restL || 0;
+    const restR = result.restR || 0;
+    if (restL > 0.01 || restR > 0.01) {
+      const rows = [];
+      if (restL > 0.01) {
+        const compL = stackBreakdown(restL);
+        rows.push(`<div class="hs-row"><span class="hs-k">Rest links (${restL.toFixed(restL % 1 ? 1 : 0)} mm):</span><span class="hs-v">${compL}</span></div>`);
+      }
+      if (restR > 0.01) {
+        const compR = stackBreakdown(restR);
+        rows.push(`<div class="hs-row"><span class="hs-k">Rest rechts (${restR.toFixed(restR % 1 ? 1 : 0)} mm):</span><span class="hs-v">${compR}</span></div>`);
+      }
+      html += `<div class="welle-holliste-reststack" data-match-kinds="rest">
+        <div class="hs-head">
+          <span class="hs-icon hs-icon-rest" aria-hidden="true">●</span>
+          <span class="hs-title">Rest-Stack · Trim-Bereich</span>
+        </div>
+        <div class="hs-detail">${rows.join("")}</div>
+      </div>`;
+    }
+
     html += `<div class="welle-holliste-grid">`;
     for (const h of result.holliste) {
       // v1.95 Cross-Highlight: jede Holliste-Zeile bekommt einen Match-Schlüssel
