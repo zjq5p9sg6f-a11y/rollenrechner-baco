@@ -12838,9 +12838,57 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     // === Stückliste als Tabelle ===
     const totalParts = welleData.holliste.reduce((s, h) => s + h.anz, 0);
+    const escape = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    // Hauptschnitt-Stack-Komposition + Rest-Stack VOR der flat-Tabelle (gleiche Logik
+    // wie in der UI, gibt Werker präzise Pick-Anleitung)
+    let stackHtml = "";
+    const hauptDistSegsPm = (welleData.innerSegs || []).filter(s =>
+      s.kind === "distanz" && s.name === "Distanzring Hauptschnitt"
+    );
+    if (hauptDistSegsPm.length > 0 && hauptDistSegsPm[0].breite > 0.001) {
+      const stackMm = hauptDistSegsPm[0].breite;
+      const stackCount = hauptDistSegsPm.length;
+      const breakdown = stackBreakdown(stackMm);
+      const oneStack = distanzringeForMachine(stackMm, M).rings;
+      const sumDetail = Object.entries(oneStack)
+        .sort((a,b) => parseFloat(b[0]) - parseFloat(a[0]))
+        .map(([k,v]) => `${v * stackCount}× ${k} mm`)
+        .join(" + ");
+      const stackMmStr = stackMm.toFixed(stackMm % 1 ? 1 : 0);
+      stackHtml += `
+        <div class="pm-stack-block pm-stack-haupt">
+          <div class="pm-stack-head">● Hauptschnitt-Distanzring · zwischen den Schmalrollen</div>
+          <table class="pm-stack-table">
+            <tr><td class="pm-stack-k">Pro Stack:</td><td class="pm-stack-v"><strong>${escape(breakdown)} = ${stackMmStr} mm</strong></td></tr>
+            <tr><td class="pm-stack-k">Anzahl Stacks:</td><td class="pm-stack-v"><strong>${stackCount}×</strong> identisch bauen</td></tr>
+            <tr><td class="pm-stack-k">Ring-Bedarf (Summe):</td><td class="pm-stack-v">${escape(sumDetail)}</td></tr>
+          </table>
+        </div>
+      `;
+    }
+    const restLpm = welleData.restL || 0;
+    const restRpm = welleData.restR || 0;
+    if (restLpm > 0.01 || restRpm > 0.01) {
+      const rows = [];
+      if (restLpm > 0.01) {
+        rows.push(`<tr><td class="pm-stack-k">Rest links (${restLpm.toFixed(restLpm % 1 ? 1 : 0)} mm):</td><td class="pm-stack-v">${escape(stackBreakdown(restLpm))}</td></tr>`);
+      }
+      if (restRpm > 0.01) {
+        rows.push(`<tr><td class="pm-stack-k">Rest rechts (${restRpm.toFixed(restRpm % 1 ? 1 : 0)} mm):</td><td class="pm-stack-v">${escape(stackBreakdown(restRpm))}</td></tr>`);
+      }
+      stackHtml += `
+        <div class="pm-stack-block pm-stack-rest">
+          <div class="pm-stack-head">● Rest-Stack · Trim-Bereich</div>
+          <table class="pm-stack-table">${rows.join("")}</table>
+        </div>
+      `;
+    }
+
     let hollHtml = `
       <div class="pm-section pm-holliste">
         <h3 class="pm-section-title">Bestückungs-Stückliste · ${totalParts} Bauteile</h3>
+        ${stackHtml}
         <table class="pm-holliste-table">
           <colgroup>
             <col style="width:6mm">
@@ -12853,7 +12901,6 @@ audio.team-player-audio::-webkit-media-controls-panel {
           </thead>
           <tbody>
     `;
-    const escape = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     for (const h of welleData.holliste) {
       const isTrim = /Besäumung/i.test(h.name || "");
       hollHtml += `<tr${isTrim ? ' class="pm-row-trim"' : ""} style="page-break-inside:avoid;break-inside:avoid;">
@@ -13042,6 +13089,16 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-dir { display: inline-block; margin-left: 4mm; padding: 0.8mm 2.5mm; font-size: 7.5pt; background: #fff; border: 1.2px solid #000; border-radius: 1.5mm; color: #000; text-transform: none; letter-spacing: 0.04em; vertical-align: middle; font-weight: 700; }
       .pm-sequenz { page-break-before: always !important; break-before: page !important; }
       .pm-section-title + table { page-break-before: avoid; break-before: avoid; }
+      /* === Stack-Komposition-Blöcke (Hauptschnitt + Rest) === */
+      .pm-stack-block { margin: 0 0 3mm 0; padding: 2mm 2.5mm; border: 1.3px solid #000; border-radius: 1mm; background: #fff; page-break-inside: avoid !important; break-inside: avoid !important; }
+      .pm-stack-haupt { border-left-width: 3.5mm; }
+      .pm-stack-rest  { border-left-width: 3.5mm; border-left-color: #555; }
+      .pm-stack-head { font-size: 8.5pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #000; margin-bottom: 1.5mm; }
+      .pm-stack-table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+      .pm-stack-table td { padding: 0.6mm 0; vertical-align: baseline; }
+      .pm-stack-table td.pm-stack-k { width: 38mm; color: #444; font-size: 8pt; padding-right: 3mm; }
+      .pm-stack-table td.pm-stack-v { color: #000; font-variant-numeric: tabular-nums; }
+      .pm-stack-table td.pm-stack-v strong { color: #000; font-weight: 800; }
       /* === Stückliste === */
       .pm-holliste-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; page-break-inside: auto; }
       .pm-holliste-table thead th { text-align: left; font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #333; padding: 1.5mm 2mm; border-bottom: 1px solid #999; background: #f0f0f0; }
