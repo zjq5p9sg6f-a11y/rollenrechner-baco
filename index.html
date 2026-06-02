@@ -1691,9 +1691,8 @@ header.bar {
 .welle-seg-outline.is-active { opacity: 0.95; }
 .welle-seg-outline.is-cross { stroke: #ff8a00; opacity: 0.9; }
 
-/* v1.95 Cross-Highlight: Sequenz-Zeile + Stueckliste-Zeile pulsiert */
-.stueck-row.is-cross-active,
-.welle-holliste-row.is-cross-active {
+/* v1.95 Cross-Highlight: Sequenz-Zeile pulsiert (normaler Container) */
+.stueck-row.is-cross-active {
   background: linear-gradient(90deg, rgba(255,138,0,0.14), rgba(255,138,0,0.02)) !important;
   box-shadow: inset 3px 0 0 #ff8a00;
   transition: background 180ms ease, box-shadow 180ms ease;
@@ -1702,12 +1701,27 @@ header.bar {
 .stueck-row.is-cross-active .stueck-pos {
   color: #ff8a00 !important;
 }
-.welle-holliste-row {
-  transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+.stueck-row { cursor: pointer; }
+
+/* Holliste-Row hat display:contents — Highlight muss auf die CHILDREN gehen */
+.welle-holliste-row > * {
+  transition: background 180ms ease, box-shadow 180ms ease;
   cursor: pointer;
 }
-.welle-holliste-row:hover { background: rgba(255,255,255,0.025); }
-.stueck-row { cursor: pointer; }
+.welle-holliste-row:hover > * {
+  background: rgba(255,255,255,0.03);
+}
+.welle-holliste-row.is-cross-active > * {
+  background: linear-gradient(90deg, rgba(255,138,0,0.18), rgba(255,138,0,0.04)) !important;
+  color: #ffb060 !important;
+}
+.welle-holliste-row.is-cross-active > *:first-child {
+  box-shadow: inset 3px 0 0 #ff8a00;
+}
+.welle-holliste-row.is-cross-active .hl-anz {
+  color: #ff8a00 !important;
+  text-shadow: 0 0 12px rgba(255,138,0,0.45);
+}
 
 @media (max-width: 720px) {
   .welle-detail-overlay { width: 280px; }
