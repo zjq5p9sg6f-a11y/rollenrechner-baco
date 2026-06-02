@@ -11441,13 +11441,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
         teamAudioEl.pause();
       }
     };
-    // Sowohl 'click' als auch 'pointerdown' (Backup bei capture/intercept-Issues)
+    // Click-Handler — KISS. Vorherige stopPropagation in capture-phase war
+    // selbst der Bug: capture-stopPropagation blockt Click-Routing nach unten
+    // zum Button. Bubble-phase stopProp wäre OK, aber gar nichts ist sauberer.
     tpPlayBtn.addEventListener("click", togglePlay);
-    tpPlayBtn.addEventListener("pointerdown", (e) => {
-      // pointerdown nur als Backup wenn click ausbleibt (z.B. durch globalen capture)
-      // -> Wir setzen einen Flag und feuern manuell wenn der Click nicht kommt.
-      e.stopPropagation();  // verhindert dass globale pointerdown-Listener das Audio-Click stören
-    }, { capture: true });
     if (tpRewindBtn) tpRewindBtn.addEventListener("click", () => {
       teamAudioEl.currentTime = Math.max(0, teamAudioEl.currentTime - 15);
     });
@@ -11471,14 +11468,6 @@ audio.team-player-audio::-webkit-media-controls-panel {
       teamLoopBtn.setAttribute("aria-pressed", next ? "true" : "false");
       try { localStorage.setItem(TEAM_LOOP_KEY, next ? "1" : "0"); } catch (_) {}
     });
-    // Stop-Propagation auf dem ganzen team-player Container — verhindert dass
-    // globale pointerdown-Listener (setupCrossHighlight, setupWelleSegInteraction)
-    // den Click intercepten oder als "Klick außerhalb" interpretieren.
-    const tpContainer = tpPlayBtn.closest(".team-player-mini") || tpPlayBtn.parentElement;
-    if (tpContainer) {
-      tpContainer.addEventListener("pointerdown", (e) => e.stopPropagation(), { capture: true });
-      tpContainer.addEventListener("click", (e) => e.stopPropagation(), { capture: true });
-    }
   } else {
     console.warn("[teamPlayer] init SKIPPED — DOM-Elemente fehlen. audio=" + !!teamAudioEl + " btn=" + !!tpPlayBtn);
   }
