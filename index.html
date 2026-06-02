@@ -12308,6 +12308,35 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // Browser-Cache die neueste Version liefert.
     const PRINT_VERSION = "v1.95";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
+
+    // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
+    // direkt nach dem Header — Werker sieht die wichtigsten Zahlen sofort.
+    let pmWerkerMass = null;
+    if (welleData.layoutLR) {
+      let cur = 0, rightmost = null;
+      for (const seg of welleData.layoutLR) {
+        if (seg.kind === "schneid" || seg.kind === "neben") {
+          const c = cur + M.SCHNITT_OFFSET;
+          if (rightmost == null || c > rightmost) rightmost = c;
+        } else if (seg.kind === "buchse" && Array.isArray(seg.cuts)) {
+          for (const r of seg.cuts) {
+            const c = cur + r;
+            if (rightmost == null || c > rightmost) rightmost = c;
+          }
+        }
+        cur += seg.breite;
+      }
+      if (rightmost != null) pmWerkerMass = M.WELLE - rightmost;
+    }
+    const pmMr = out.mutter || 0;
+    const pmUsed = welleData.N * out.schmal + (out.nebenSlots || []).reduce((s, x) => s + x.breite * x.anz, 0);
+    const pmYield = pmMr > 0 ? (pmUsed / pmMr) * 100 : 0;
+    const pmTrim = pmMr - pmUsed;
+
+    const fmtHalf = (n, d) => (d != null ? d : 1) === 0
+      ? Math.round(n).toString()
+      : Number(n).toLocaleString("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 0 });
+
     const headerHtml = `
       <div class="pm-header">
         <div class="pm-brand-row">
@@ -12329,6 +12358,23 @@ audio.team-player-audio::-webkit-media-controls-panel {
             <td class="lbl">Bemerkung</td><td class="val">${bemerkung}</td>
           </tr>
         </table>
+      </div>
+      <div class="pm-kpi-row">
+        <div class="pm-kpi pm-kpi-mass">
+          <div class="pm-kpi-val">${pmWerkerMass != null ? fmtHalf(pmWerkerMass, 1) : "—"}<span class="pm-kpi-unit">mm</span></div>
+          <div class="pm-kpi-lbl">1. Schneidkante v. rechts</div>
+          <div class="pm-kpi-sub">vom rechten Wellenrand · inkl. Park-R</div>
+        </div>
+        <div class="pm-kpi">
+          <div class="pm-kpi-val">${pmYield > 0 ? fmtHalf(pmYield, 1) : "—"}<span class="pm-kpi-unit">%</span></div>
+          <div class="pm-kpi-lbl">Material-Ausnutzung</div>
+          <div class="pm-kpi-sub">${fmtHalf(pmTrim, 1)} mm Trim/Rest von ${pmMr} mm MR</div>
+        </div>
+        <div class="pm-kpi">
+          <div class="pm-kpi-val">${N}<span class="pm-kpi-unit">Stk.</span></div>
+          <div class="pm-kpi-lbl">Schmalrollen pro MR</div>
+          <div class="pm-kpi-sub">je ${out.schmal} mm Haupt-Schmal</div>
+        </div>
       </div>
     `;
     root.insertAdjacentHTML("beforeend", headerHtml);
@@ -12692,6 +12738,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-meta tr:last-child td { border-bottom: none; }
       .pm-meta td.lbl { font-weight: 700; font-size: 7pt; text-transform: uppercase; letter-spacing: 0.06em; color: #333; width: 22%; background: #f0f0f0; white-space: nowrap; }
       .pm-meta td.val { font-weight: 600; width: 28%; color: #000; }
+      /* === v1.95 KPI-Row im Print (Werker-Top-Zahlen prominent) === */
+      .pm-kpi-row { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 3mm; margin: 0 0 6mm 0; page-break-inside: avoid; }
+      .pm-kpi { border: 1.4px solid #000; border-radius: 2mm; padding: 2.5mm 3.5mm 2mm; page-break-inside: avoid; }
+      .pm-kpi-mass { border-width: 2.2px; }
+      .pm-kpi-val { font-size: 17pt; font-weight: 900; line-height: 1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+      .pm-kpi-unit { font-size: 9.5pt; font-weight: 700; margin-left: 1.5mm; color: #555; }
+      .pm-kpi-lbl { font-size: 8.5pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #000; margin-top: 1.5mm; }
+      .pm-kpi-sub { font-size: 7.5pt; color: #666; margin-top: 0.5mm; }
       /* === SVG === */
       .pm-svg-wrap { margin: 0 0 6mm 0; page-break-inside: avoid; }
       .pm-svg-wrap svg { display: block; width: 173mm; height: 56mm; border: 1px solid #999; border-radius: 2mm; background: #fff; }
