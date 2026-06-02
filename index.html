@@ -5081,29 +5081,66 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <span class="legend-item"><span class="legend-swatch swatch-rest"></span>Besäumung</span>
         </div>
       </div>
-      <svg id="vizSvg" viewBox="0 0 1000 340" preserveAspectRatio="none" aria-label="Visuelle Aufteilung der Mutterrolle">
+      <svg id="vizSvg" viewBox="0 0 1000 390" preserveAspectRatio="none" aria-label="Visuelle Aufteilung der Mutterrolle">
         <defs>
+          <!-- v1.95 Mutterrolle 12/10 Premium-Polish -->
           <linearGradient id="gradNutzen" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#00ff88"/>
-            <stop offset="50%" stop-color="#00e676"/>
-            <stop offset="100%" stop-color="#00a040"/>
+            <stop offset="0%"  stop-color="#5dff9c"/>
+            <stop offset="35%" stop-color="#00e676"/>
+            <stop offset="100%" stop-color="#005828"/>
+          </linearGradient>
+          <linearGradient id="gradNutzenHi" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"  stop-color="rgba(255,255,255,0.45)"/>
+            <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
           </linearGradient>
           <linearGradient id="gradNeben" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#ffd370"/>
-            <stop offset="50%" stop-color="#ffb400"/>
-            <stop offset="100%" stop-color="#c08800"/>
+            <stop offset="0%"  stop-color="#ffe095"/>
+            <stop offset="35%" stop-color="#ffb400"/>
+            <stop offset="100%" stop-color="#7a5400"/>
+          </linearGradient>
+          <linearGradient id="gradMrFoil" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"  stop-color="rgba(255,255,255,0.06)"/>
+            <stop offset="50%" stop-color="rgba(255,255,255,0.015)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.35)"/>
           </linearGradient>
           <linearGradient id="gradEdge" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="rgba(255,255,255,0.4)"/>
+            <stop offset="0%"  stop-color="rgba(255,255,255,0.55)"/>
             <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
           </linearGradient>
           <linearGradient id="gradEdgeBottom" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="rgba(0,0,0,0)"/>
-            <stop offset="100%" stop-color="rgba(0,0,0,0.35)"/>
+            <stop offset="0%"  stop-color="rgba(0,0,0,0)"/>
+            <stop offset="100%" stop-color="rgba(0,0,0,0.45)"/>
           </linearGradient>
-          <pattern id="restPattern" patternUnits="userSpaceOnUse" width="8" height="8" patternTransform="rotate(45)">
-            <rect width="4" height="8" fill="rgba(255,107,53,0.75)"/>
+          <radialGradient id="gradMrEndCap" cx="0.5" cy="0.5" r="0.7">
+            <stop offset="0%"   stop-color="#2a2a2a"/>
+            <stop offset="55%"  stop-color="#141414"/>
+            <stop offset="100%" stop-color="#000000"/>
+          </radialGradient>
+          <linearGradient id="gradMrEndCapHi" x1="0.3" y1="0.1" x2="0.6" y2="0.9">
+            <stop offset="0%"  stop-color="rgba(0,212,255,0.18)"/>
+            <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+          </linearGradient>
+          <pattern id="restPattern" patternUnits="userSpaceOnUse" width="10" height="10" patternTransform="rotate(45)">
+            <rect width="2" height="10" fill="rgba(255,107,53,0.85)"/>
+            <line x1="5" y1="0" x2="5" y2="10" stroke="rgba(255,107,53,0.30)" stroke-width="0.5"/>
           </pattern>
+          <filter id="mrGlowGreen" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="1.4" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+          <filter id="mrGlowOrange" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+          <filter id="mrShadow" x="-10%" y="-30%" width="120%" height="180%">
+            <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#000000" flood-opacity="0.55"/>
+          </filter>
         </defs>
         <g id="vizGroup"></g>
       </svg>
@@ -10254,27 +10291,39 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const g = els.vizGroup;
     g.innerHTML = "";
 
-    const W = 1000, H = 340;
-    const padX = 40;
+    const W = 1000, H = 390;
+    const padX = 50;
     const innerW = W - padX*2;
 
-    // Vertical layout zones
+    // Vertical layout zones (v1.95 Mutterrolle 12/10 — mehr Vertical-Space)
     const dimTopY      = 36;
-    const knifeY       = 56;
-    const barTop       = 76;
-    const barH         = 120;
+    const knifeY       = 60;
+    const barTop       = 84;
+    const barH         = 128;
     const barBottom    = barTop + barH;
     const widthLabelY  = barBottom + 22;
-    const dimRowY      = barBottom + 50;
-    const scaleY       = barBottom + 110;
+    const dimRowY      = barBottom + 52;
+    const symRowY      = barBottom + 84;   // v1.95: L=R Symmetrie-Bemassung (neu)
+    const scaleY       = barBottom + 124;
 
-    // background grid (faint)
+    // v1.95 Background: subtle Tron-Grid (cyan dots) + dezenter green-Vertical-Glow
     for (let i = 1; i < 10; i++) {
       const x = padX + (innerW * i / 10);
       g.appendChild(svg("line", {
-        x1: x, y1: barTop - 6, x2: x, y2: barBottom + 6,
-        stroke: "rgba(0,230,118,0.05)", "stroke-width": "1"
+        x1: x, y1: barTop - 8, x2: x, y2: barBottom + 8,
+        stroke: "rgba(0,230,118,0.04)", "stroke-width": "1"
       }));
+    }
+    // Tron-Grid Mini-Dots (Cyan)
+    for (let i = 1; i < 20; i++) {
+      const x = padX + (innerW * i / 20);
+      for (let j = 0; j < 3; j++) {
+        const y = barTop - 6 + j * (barH + 8) / 2;
+        g.appendChild(svg("circle", {
+          cx: x, cy: y, r: 0.6,
+          fill: "rgba(0,212,255,0.18)"
+        }));
+      }
     }
 
     // empty state ----------------------------------------------------------
@@ -10336,11 +10385,51 @@ audio.team-player-audio::-webkit-media-controls-panel {
     dimT.textContent = labelText;
     g.appendChild(dimT);
 
-    // === Outer outline of MR (subtle frame) ===
+    // === Outer outline of MR (v1.95 Bobinen-Look mit End-Caps + Foil-Schimmer) ===
+    // Drop-Shadow under the roll
     g.appendChild(svg("rect", {
-      x: padX - 2, y: barTop - 2,
-      width: innerW + 4, height: barH + 4, rx: 12,
-      fill: "none", stroke: "rgba(255,255,255,0.10)", "stroke-width": "1"
+      x: padX - 6, y: barTop + 4,
+      width: innerW + 12, height: barH, rx: 10,
+      fill: "#000", opacity: "0.55", filter: "url(#mrShadow)"
+    }));
+    // Foil-Background (subtler Material-Look — die "Folie" der Mutterrolle)
+    g.appendChild(svg("rect", {
+      x: padX - 6, y: barTop - 2,
+      width: innerW + 12, height: barH + 4, rx: 10,
+      fill: "url(#gradMrFoil)"
+    }));
+    // Outer frame (Tron-Border grün + cyan)
+    g.appendChild(svg("rect", {
+      x: padX - 6, y: barTop - 2,
+      width: innerW + 12, height: barH + 4, rx: 10,
+      fill: "none", stroke: "rgba(0,230,118,0.40)", "stroke-width": "1.2"
+    }));
+    g.appendChild(svg("rect", {
+      x: padX - 4, y: barTop,
+      width: innerW + 8, height: barH, rx: 8,
+      fill: "none", stroke: "rgba(0,212,255,0.14)", "stroke-width": "0.8"
+    }));
+    // Bobinen-End-Caps (Roll-Optik) links
+    g.appendChild(svg("ellipse", {
+      cx: padX - 6, cy: barTop + barH/2,
+      rx: 5, ry: barH/2 + 2,
+      fill: "url(#gradMrEndCap)", stroke: "rgba(0,230,118,0.35)", "stroke-width": "1"
+    }));
+    g.appendChild(svg("ellipse", {
+      cx: padX - 5, cy: barTop + barH/2 - 6,
+      rx: 1.8, ry: barH/2 - 12,
+      fill: "url(#gradMrEndCapHi)"
+    }));
+    // Bobinen-End-Caps rechts
+    g.appendChild(svg("ellipse", {
+      cx: W - padX + 6, cy: barTop + barH/2,
+      rx: 5, ry: barH/2 + 2,
+      fill: "url(#gradMrEndCap)", stroke: "rgba(0,230,118,0.35)", "stroke-width": "1"
+    }));
+    g.appendChild(svg("ellipse", {
+      cx: W - padX + 5, cy: barTop + barH/2 - 6,
+      rx: 1.8, ry: barH/2 - 12,
+      fill: "url(#gradMrEndCapHi)"
     }));
 
     // === Left besäumung ===
@@ -10379,16 +10468,23 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const orderedStripes = applyWerkerRule(schmal, nutzen, slots || []);
     let hauptCounter = 0;
 
-    // === Knife / cut markers above bar (pro Streifen) ===
+    // === v1.95 Knife / Cut markers (mit Glow + Guide-Line) ===
     // Erste Cut-Linie am Anfang (nach Trim-L)
     {
       const xStart = padX + restLPx;
       const tri0 = svg("path", {
-        d: `M${xStart} ${knifeY+8} L${xStart-3} ${knifeY} L${xStart+3} ${knifeY} Z`,
-        fill: "var(--accent-primary)", opacity: "0"
+        d: `M${xStart} ${knifeY+10} L${xStart-4} ${knifeY} L${xStart+4} ${knifeY} Z`,
+        fill: "var(--accent-primary)", opacity: "0",
+        filter: "url(#mrGlowGreen)"
       });
       g.appendChild(tri0);
-      animateAttr(tri0, "opacity", 0, 0.85, 200, 0);
+      animateAttr(tri0, "opacity", 0, 0.95, 200, 0);
+      // Guide-Line von Marker zum Bar
+      g.appendChild(svg("line", {
+        x1: xStart, y1: knifeY + 10, x2: xStart, y2: barTop,
+        stroke: "var(--accent-primary)", "stroke-width": "0.8",
+        opacity: "0.35", "stroke-dasharray": "2 3"
+      }));
     }
 
     // === Segments aus geordneter Streifen-Liste ===
@@ -10466,15 +10562,34 @@ audio.team-player-audio::-webkit-media-controls-panel {
         }
       }
 
-      // Knife / Cut marker am rechten Rand des Streifens
+      // v1.95: Knife / Cut marker mit Glow + Guide-Line
       const cutX = xPos + stripeW;
       const cutColor = isHaupt ? "var(--accent-primary)" : "#ffb400";
       const tri = svg("path", {
-        d: `M${cutX} ${knifeY+8} L${cutX-3} ${knifeY} L${cutX+3} ${knifeY} Z`,
-        fill: cutColor, opacity: "0"
+        d: `M${cutX} ${knifeY+10} L${cutX-4} ${knifeY} L${cutX+4} ${knifeY} Z`,
+        fill: cutColor, opacity: "0",
+        filter: isHaupt ? "url(#mrGlowGreen)" : "url(#mrGlowOrange)"
       });
       g.appendChild(tri);
-      animateAttr(tri, "opacity", 0, 0.85, 200, delay);
+      animateAttr(tri, "opacity", 0, 0.95, 200, delay);
+      // Guide-Line vom Marker zum Bar (sehr subtil)
+      g.appendChild(svg("line", {
+        x1: cutX, y1: knifeY + 10, x2: cutX, y2: barTop,
+        stroke: cutColor, "stroke-width": "0.7",
+        opacity: "0.30", "stroke-dasharray": "2 3"
+      }));
+
+      // v1.95: Subtile Trenn-Linie zwischen Schmalrollen (vertikal im Bar, niedrige Opacity)
+      if (stripeW > 8) {
+        g.appendChild(svg("line", {
+          x1: cutX, y1: barTop + 6, x2: cutX, y2: barBottom - 6,
+          stroke: "rgba(0,0,0,0.40)", "stroke-width": "1"
+        }));
+        g.appendChild(svg("line", {
+          x1: cutX + 0.5, y1: barTop + 6, x2: cutX + 0.5, y2: barBottom - 6,
+          stroke: "rgba(255,255,255,0.10)", "stroke-width": "0.5"
+        }));
+      }
 
       cursor += stripeW;
     });
@@ -10607,6 +10722,72 @@ audio.team-player-audio::-webkit-media-controls-panel {
         dimColorBesaeumungR,
         { fontSize: 12, labelBg: "var(--bg-base)" });
     }
+
+    // === v1.95: MR-Mitte + L=R Symmetrie-Bemassung (wie bei der Welle) ===
+    const mrMidX = padX + innerW / 2;
+    const cMid = "rgba(0,230,118,0.55)";
+    const cMidStrong = "var(--accent-primary)";
+    // Mittellinie (oben + unten der Bar)
+    g.appendChild(svg("line", {
+      x1: mrMidX, y1: dimTopY + 14, x2: mrMidX, y2: barTop - 6,
+      stroke: cMidStrong, "stroke-width": "1.1",
+      "stroke-dasharray": "10 3 1 3", opacity: "0.80"
+    }));
+    g.appendChild(svg("line", {
+      x1: mrMidX, y1: barBottom + 6, x2: mrMidX, y2: symRowY + 12,
+      stroke: cMidStrong, "stroke-width": "1.1",
+      "stroke-dasharray": "10 3 1 3", opacity: "0.80"
+    }));
+    // ⊕ Cross-Mark TOP
+    const crossTopY = dimTopY + 18;
+    g.appendChild(svg("circle", {
+      cx: mrMidX, cy: crossTopY, r: 6,
+      fill: "var(--bg-base)", stroke: cMidStrong, "stroke-width": "1.2",
+      filter: "url(#mrGlowGreen)"
+    }));
+    g.appendChild(svg("line", {
+      x1: mrMidX - 4, y1: crossTopY, x2: mrMidX + 4, y2: crossTopY,
+      stroke: cMidStrong, "stroke-width": "1.2"
+    }));
+    g.appendChild(svg("line", {
+      x1: mrMidX, y1: crossTopY - 4, x2: mrMidX, y2: crossTopY + 4,
+      stroke: cMidStrong, "stroke-width": "1.2"
+    }));
+    // ⊕ Cross-Mark BOTTOM
+    const crossBotY = symRowY + 14;
+    g.appendChild(svg("circle", {
+      cx: mrMidX, cy: crossBotY, r: 6,
+      fill: "var(--bg-base)", stroke: cMidStrong, "stroke-width": "1.2",
+      filter: "url(#mrGlowGreen)"
+    }));
+    g.appendChild(svg("line", {
+      x1: mrMidX - 4, y1: crossBotY, x2: mrMidX + 4, y2: crossBotY,
+      stroke: cMidStrong, "stroke-width": "1.2"
+    }));
+    g.appendChild(svg("line", {
+      x1: mrMidX, y1: crossBotY - 4, x2: mrMidX, y2: crossBotY + 4,
+      stroke: cMidStrong, "stroke-width": "1.2"
+    }));
+    // L=R Symmetrie-Bemassung: zeigt halbe MR-Breite
+    const halfMr = mutter / 2;
+    // Linke Hälfte
+    g.appendChild(svg("line", { x1: padX + 6, y1: symRowY, x2: mrMidX - 10, y2: symRowY,
+      stroke: cMid, "stroke-width": "1" }));
+    g.appendChild(svg("path", { d: `M${padX} ${symRowY} L${padX+8} ${symRowY-4} L${padX+8} ${symRowY+4} Z`, fill: cMid }));
+    g.appendChild(svg("path", { d: `M${mrMidX-4} ${symRowY} L${mrMidX-10} ${symRowY-4} L${mrMidX-10} ${symRowY+4} Z`, fill: cMid }));
+    const lTxt = svg("text", { x: padX + (mrMidX - padX) / 2, y: symRowY - 6, "text-anchor": "middle",
+      fill: cMidStrong, "font-size": "11", "font-weight": "800", "letter-spacing": "0.06em", "font-family": "inherit" });
+    lTxt.textContent = `L = ${nf0.format(halfMr)} mm`;
+    g.appendChild(lTxt);
+    // Rechte Hälfte
+    g.appendChild(svg("line", { x1: mrMidX + 10, y1: symRowY, x2: W - padX - 6, y2: symRowY,
+      stroke: cMid, "stroke-width": "1" }));
+    g.appendChild(svg("path", { d: `M${mrMidX+4} ${symRowY} L${mrMidX+10} ${symRowY-4} L${mrMidX+10} ${symRowY+4} Z`, fill: cMid }));
+    g.appendChild(svg("path", { d: `M${W-padX} ${symRowY} L${W-padX-8} ${symRowY-4} L${W-padX-8} ${symRowY+4} Z`, fill: cMid }));
+    const rTxt = svg("text", { x: mrMidX + (W - padX - mrMidX) / 2, y: symRowY - 6, "text-anchor": "middle",
+      fill: cMidStrong, "font-size": "11", "font-weight": "800", "letter-spacing": "0.06em", "font-family": "inherit" });
+    rTxt.textContent = `R = ${nf0.format(halfMr)} mm`;
+    g.appendChild(rTxt);
 
     // === Bottom scale ruler ===
     const tickCount = Math.min(11, Math.max(5, Math.floor(mutter / 50) + 1));
