@@ -417,14 +417,15 @@ header.bar {
 .machine-bar {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 12px 16px;
+  gap: 20px;
+  padding: 16px 20px;
   margin-top: var(--s-3);
-  border: 1px solid rgba(255,154,60,0.28);
+  border: 1.5px solid rgba(255,154,60,0.32);
   border-radius: var(--r-3);
   background: linear-gradient(135deg, var(--machine-tint-soft) 0%, rgba(255,154,60,0.015) 100%);
   flex-wrap: wrap;
   position: relative;
+  box-shadow: 0 0 24px rgba(255,154,60,0.05);
 }
 /* Tron-Glow-Linie oben: subtile Akzent-Linie für Premium-Wahrnehmung */
 .machine-bar::before {
@@ -556,29 +557,29 @@ header.bar {
 .machine-bar-label {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   color: var(--machine-accent);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.20em;
   text-transform: uppercase;
-  text-shadow: 0 0 12px rgba(255,154,60,0.2);
+  text-shadow: 0 0 14px rgba(255,154,60,0.28);
 }
-.machine-bar-label svg { width: 16px; height: 16px; }
+.machine-bar-label svg { width: 20px; height: 20px; }
 
-/* Maschinen-Toggle (Segmented-Control) */
+/* Maschinen-Toggle (Segmented-Control) — größer, prominenter */
 .machine-toggle {
   display: inline-flex;
   border-radius: var(--r-2);
   border: 1px solid var(--border);
   background: var(--bg-card);
-  padding: 4px;
-  gap: 3px;
+  padding: 5px;
+  gap: 4px;
   flex: 1;
 }
 .machine-btn {
-  padding: 10px 18px;
-  border-radius: calc(var(--r-2) - 4px);
+  padding: 14px 22px;
+  border-radius: calc(var(--r-2) - 5px);
   border: 0;
   background: transparent;
   color: var(--text-secondary, #b0b0b0);
@@ -586,13 +587,13 @@ header.bar {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  line-height: 1.15;
+  line-height: 1.18;
   transition: all var(--t-fast) var(--ease-out-expo);
   font-family: inherit;
   flex: 1;
 }
-.machine-btn-label { font-size: 14px; font-weight: 700; letter-spacing: 0.02em; }
-.machine-btn-sub   { font-size: 11px; opacity: 0.7; margin-top: 2px; font-weight: 500; }
+.machine-btn-label { font-size: 17px; font-weight: 800; letter-spacing: 0.02em; }
+.machine-btn-sub   { font-size: 12px; opacity: 0.72; margin-top: 4px; font-weight: 500; }
 .machine-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
 .machine-btn[aria-selected="true"] {
   background: linear-gradient(135deg, var(--machine-accent) 0%, var(--machine-accent-dark) 100%);
@@ -605,11 +606,12 @@ header.bar {
 }
 .machine-btn[aria-selected="true"] .machine-btn-sub { opacity: 0.85; color: var(--machine-accent-text); }
 @media (max-width: 600px) {
-  .machine-bar { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px; }
-  .machine-bar-label { font-size: 10px; }
-  .machine-btn { padding: 8px 12px; }
-  .machine-btn-label { font-size: 13px; }
-  .machine-btn-sub { font-size: 10px; }
+  .machine-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
+  .machine-bar-label { font-size: 11px; }
+  .machine-bar-label svg { width: 17px; height: 17px; }
+  .machine-btn { padding: 10px 14px; }
+  .machine-btn-label { font-size: 15px; }
+  .machine-btn-sub { font-size: 11px; }
 }
 
 /* ------- card panels ------- */
