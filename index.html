@@ -5081,7 +5081,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <span class="legend-item"><span class="legend-swatch swatch-rest"></span>Besäumung</span>
         </div>
       </div>
-      <svg id="vizSvg" viewBox="0 0 1000 390" preserveAspectRatio="none" aria-label="Visuelle Aufteilung der Mutterrolle">
+      <svg id="vizSvg" viewBox="0 0 1000 400" preserveAspectRatio="none" aria-label="Visuelle Aufteilung der Mutterrolle">
         <defs>
           <!-- v1.95 Mutterrolle 12/10 Premium-Polish -->
           <linearGradient id="gradNutzen" x1="0" y1="0" x2="0" y2="1">
@@ -10291,20 +10291,20 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const g = els.vizGroup;
     g.innerHTML = "";
 
-    const W = 1000, H = 390;
-    const padX = 50;
+    const W = 1000, H = 400;
+    const padX = 64;   // v1.95-fix: mehr Bereich für End-Caps + Trim-Boxen ohne Scale-Konflikt
     const innerW = W - padX*2;
 
-    // Vertical layout zones (v1.95 Mutterrolle 12/10 — mehr Vertical-Space)
-    const dimTopY      = 36;
-    const knifeY       = 60;
-    const barTop       = 84;
-    const barH         = 128;
+    // Vertical layout zones (v1.95 Mutterrolle 12/10 — Y-Hierarchie entzerrt)
+    const dimTopY      = 28;       // 620 mm Mutterrolle Label
+    const knifeY       = 64;       // Cut-Triangles
+    const barTop       = 90;
+    const barH         = 130;
     const barBottom    = barTop + barH;
-    const widthLabelY  = barBottom + 22;
-    const dimRowY      = barBottom + 52;
-    const symRowY      = barBottom + 84;   // v1.95: L=R Symmetrie-Bemassung (neu)
-    const scaleY       = barBottom + 124;
+    const widthLabelY  = barBottom + 20;   // 30 30 30 ... (smart-reduziert)
+    const dimRowY      = barBottom + 50;   // Trim + Block-Bemaßung
+    const symRowY      = barBottom + 88;   // L = R Symmetrie (mehr Abstand zum dimRow)
+    const scaleY       = barBottom + 130;  // 0, 100, 200, ... Tick-Ruler
 
     // v1.95 Background: subtle Tron-Grid (cyan dots) + dezenter green-Vertical-Glow
     for (let i = 1; i < 10; i++) {
@@ -10730,35 +10730,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
         { fontSize: 12, labelBg: "var(--bg-base)" });
     }
 
-    // === v1.95: MR-Mitte + L=R Symmetrie-Bemassung (wie bei der Welle) ===
+    // === v1.95-fix: MR-Mitte + L=R Symmetrie-Bemassung (entzerrt, ein Cross-Mark) ===
     const mrMidX = padX + innerW / 2;
     const cMid = "rgba(0,230,118,0.55)";
     const cMidStrong = "var(--accent-primary)";
-    // Mittellinie OBEN (vom Cross-Top bis Bar-Top)
-    g.appendChild(svg("line", {
-      x1: mrMidX, y1: dimTopY + 24, x2: mrMidX, y2: barTop - 2,
-      stroke: cMidStrong, "stroke-width": "1.1",
-      "stroke-dasharray": "10 3 1 3", opacity: "0.80"
-    }));
-    // Mittellinie DURCH die Bar (sehr subtil, white-overlay)
-    g.appendChild(svg("line", {
-      x1: mrMidX, y1: barTop + 2, x2: mrMidX, y2: barBottom - 2,
-      stroke: "rgba(255,255,255,0.18)", "stroke-width": "0.8",
-      "stroke-dasharray": "3 4", opacity: "0.75"
-    }));
-    g.appendChild(svg("line", {
-      x1: mrMidX, y1: barTop + 2, x2: mrMidX, y2: barBottom - 2,
-      stroke: cMidStrong, "stroke-width": "0.6",
-      "stroke-dasharray": "3 4", opacity: "0.4"
-    }));
-    // Mittellinie UNTEN (Bar-Bottom bis Cross-Bot)
-    g.appendChild(svg("line", {
-      x1: mrMidX, y1: barBottom + 2, x2: mrMidX, y2: symRowY + 8,
-      stroke: cMidStrong, "stroke-width": "1.1",
-      "stroke-dasharray": "10 3 1 3", opacity: "0.80"
-    }));
-    // ⊕ Cross-Mark TOP
-    const crossTopY = dimTopY + 22;
+    // ⊕ Cross-Mark UNTER dem Top-Label (gut sichtbarer Anker an der Bar-Spitze)
+    const crossTopY = barTop - 12;
     g.appendChild(svg("circle", {
       cx: mrMidX, cy: crossTopY, r: 6,
       fill: "var(--bg-base)", stroke: cMidStrong, "stroke-width": "1.2",
@@ -10772,20 +10749,22 @@ audio.team-player-audio::-webkit-media-controls-panel {
       x1: mrMidX, y1: crossTopY - 4, x2: mrMidX, y2: crossTopY + 4,
       stroke: cMidStrong, "stroke-width": "1.2"
     }));
-    // ⊕ Cross-Mark BOTTOM
-    const crossBotY = symRowY + 14;
-    g.appendChild(svg("circle", {
-      cx: mrMidX, cy: crossBotY, r: 6,
-      fill: "var(--bg-base)", stroke: cMidStrong, "stroke-width": "1.2",
-      filter: "url(#mrGlowGreen)"
+    // Mittellinie DURCH die Bar (sehr subtil)
+    g.appendChild(svg("line", {
+      x1: mrMidX, y1: barTop + 2, x2: mrMidX, y2: barBottom - 2,
+      stroke: "rgba(255,255,255,0.18)", "stroke-width": "0.8",
+      "stroke-dasharray": "3 4", opacity: "0.75"
     }));
     g.appendChild(svg("line", {
-      x1: mrMidX - 4, y1: crossBotY, x2: mrMidX + 4, y2: crossBotY,
-      stroke: cMidStrong, "stroke-width": "1.2"
+      x1: mrMidX, y1: barTop + 2, x2: mrMidX, y2: barBottom - 2,
+      stroke: cMidStrong, "stroke-width": "0.6",
+      "stroke-dasharray": "3 4", opacity: "0.4"
     }));
+    // Mittellinie UNTERHALB der Bar (durch L=R-Bemaßung) bis zum Scale
     g.appendChild(svg("line", {
-      x1: mrMidX, y1: crossBotY - 4, x2: mrMidX, y2: crossBotY + 4,
-      stroke: cMidStrong, "stroke-width": "1.2"
+      x1: mrMidX, y1: barBottom + 2, x2: mrMidX, y2: scaleY - 6,
+      stroke: cMidStrong, "stroke-width": "1.1",
+      "stroke-dasharray": "10 3 1 3", opacity: "0.70"
     }));
     // L=R Symmetrie-Bemassung: zeigt halbe MR-Breite
     const halfMr = mutter / 2;
@@ -10810,34 +10789,28 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     // === v1.95 Bottom scale ruler — saubere 100er/50er-Ticks (statt unregelmäßig) ===
     // Mitte als prominenter Akzent-Tick
+    // v1.95-fix: nur Standard-Steps (kein extra Mid-Tick — der würde mit der
+    // Mittellinie + L=R-Bemaßung kollidieren und das Bild überfüllen).
     const scaleStep = mutter >= 800 ? 100 : mutter >= 400 ? 100 : mutter >= 200 ? 50 : 25;
     const scaleTicks = [];
     for (let mm = 0; mm <= mutter + 0.001; mm += scaleStep) scaleTicks.push(mm);
     if (scaleTicks[scaleTicks.length-1] < mutter - 0.5) scaleTicks.push(mutter);
-    const midMm = mutter / 2;
-    const hasMidTick = scaleTicks.some(t => Math.abs(t - midMm) < 1);
-    if (!hasMidTick) {
-      scaleTicks.push(midMm);
-      scaleTicks.sort((a, b) => a - b);
-    }
     g.appendChild(svg("line", {
       x1: padX, y1: scaleY, x2: W - padX, y2: scaleY,
       stroke: "rgba(255,255,255,0.18)", "stroke-width": "1"
     }));
     for (const mmVal of scaleTicks) {
       const xs = padX + (innerW * mmVal / mutter);
-      const isMid = Math.abs(mmVal - midMm) < 0.5;
       g.appendChild(svg("line", {
-        x1: xs, y1: scaleY - (isMid ? 5 : 3), x2: xs, y2: scaleY + (isMid ? 5 : 3),
-        stroke: isMid ? "var(--accent-primary)" : "rgba(255,255,255,0.32)",
-        "stroke-width": isMid ? "1.2" : "1"
+        x1: xs, y1: scaleY - 3, x2: xs, y2: scaleY + 3,
+        stroke: "rgba(255,255,255,0.32)", "stroke-width": "1"
       }));
       const ms = svg("text", {
         x: xs, y: scaleY + 16,
         "text-anchor": "middle",
-        fill: isMid ? "var(--accent-primary)" : "rgba(240,240,240,0.55)",
-        "font-size": isMid ? "10.5" : "10",
-        "font-weight": isMid ? "800" : "600", "font-family": "inherit"
+        fill: "rgba(240,240,240,0.55)",
+        "font-size": "10",
+        "font-weight": "600", "font-family": "inherit"
       });
       ms.textContent = nf0.format(mmVal);
       g.appendChild(ms);
