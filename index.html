@@ -1840,6 +1840,14 @@ header.bar {
   font-weight: 800;
 }
 .welle-holliste-reststack .hs-v strong { color: #ffc107; }
+.welle-holliste-hauptstack.is-cross-active {
+  border-color: var(--accent-primary, #00e676);
+  box-shadow: 0 0 0 1px var(--accent-primary, #00e676), 0 0 14px rgba(0,230,118,0.35);
+}
+.welle-holliste-reststack.is-cross-active {
+  border-color: #ffc107;
+  box-shadow: 0 0 0 1px #ffc107, 0 0 14px rgba(255,193,7,0.35);
+}
 
 .welle-holliste-grid {
   display: grid;
@@ -7696,6 +7704,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
             row.className = "stueck-row";
             row.dataset.segIdx = String(origIdx);
             row.dataset.segKind = "rest";
+            row.dataset.segBreite = String(size);  // für Cross-Highlight bei mm-Klick
             row.innerHTML = `
               <div class="stueck-nr distanz">${nr++}</div>
               <div>
@@ -7785,6 +7794,16 @@ audio.team-player-audio::-webkit-media-controls-panel {
       row.className = "stueck-row";
       row.dataset.segIdx = String(origIdx);
       row.dataset.segKind = seg.kind;
+      row.dataset.segBreite = String(seg.breite);  // für Cross-Highlight bei mm-Klick
+      // Bei Hauptschnitt-Stack: zusätzlich Komposition als comma-list, damit Klick
+      // auf "5 mm" oder "2 mm" die ganzen Stacks finden kann (5+2+2 → 9 mm Stack)
+      if (seg.kind === "distanz" && seg.breite > 0) {
+        const stackRings = distanzringeForMachine(seg.breite, M).rings;
+        const ringList = Object.entries(stackRings)
+          .flatMap(([k, v]) => Array(v).fill(parseFloat(k)))
+          .join(",");
+        row.dataset.stackRings = ringList;
+      }
       row.innerHTML = `
         <div class="stueck-nr ${cls}">${nr++}</div>
         <div>
@@ -9550,10 +9569,20 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const idx  = row.dataset.segIdx;
         const kind = row.dataset.segKind;
         const role = row.dataset.segRole;
+        const brt  = row.dataset.segBreite ? parseFloat(row.dataset.segBreite) : null;
+        const stackRings = row.dataset.stackRings
+          ? row.dataset.stackRings.split(",").map(parseFloat)
+          : null;
         if (filter.segIdx != null && filter.segIdx === idx) { result.push(row); continue; }
         if (filter.kinds && filter.kinds.length > 0 && !filter.kinds.includes(kind)) continue;
         if (filter.roles && filter.roles.length > 0 && role && !filter.roles.includes(role)) continue;
-        if (filter.kinds || filter.roles) result.push(row);
+        // Distanz-Filter: matche exakte Breite ODER Ring in Stack-Komposition
+        if (filter.distMm != null) {
+          const exact = brt != null && Math.abs(brt - filter.distMm) < 0.5;
+          const inStack = stackRings && stackRings.some(r => Math.abs(r - filter.distMm) < 0.01);
+          if (!exact && !inStack) continue;
+        }
+        if (filter.kinds || filter.roles || filter.distMm != null) result.push(row);
       }
       return result;
     }
@@ -9611,7 +9640,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         // ist eh schon hover-target — wir markieren nur die Cross-Anker
         seqRows = [];
       } else if (originType === "holl") {
-        seqRows = findSeqRows({ kinds: dataObj.kinds, roles: dataObj.roles });
+        seqRows = findSeqRows({ kinds: dataObj.kinds, roles: dataObj.roles, distMm: dataObj.distMm });
       }
       seqRows.forEach(r => r.classList.add("is-cross-active"));
       // 3) Holliste-Zeilen
@@ -9688,34 +9717,28 @@ audio.team-player-audio::-webkit-media-controls-panel {
       }
     });
 
-    // Holliste-Zeile: Hover/Tap
+    // Holliste-Zeile: Hover/Tap. Selector matched BOTH die flat-rows UND die
+    // neuen Stack-Composition-Blöcke (Hauptschnitt-Stack, Rest-Stack).
+    const HOLL_TARGET_SEL = ".welle-holliste-row[data-match-kinds], .welle-holliste-hauptstack[data-match-kinds], .welle-holliste-reststack[data-match-kinds]";
+    const applyHollHighlight = (row) => {
+      applyHighlight("holl", {
+        kinds: (row.dataset.matchKinds || "").split(",").filter(Boolean),
+        roles: (row.dataset.matchRoles || "").split(",").filter(Boolean),
+        distMm: row.dataset.matchDist ? parseFloat(row.dataset.matchDist) : null,
+        row
+      });
+    };
     hollEl.addEventListener("pointermove", (e) => {
       if ((e.pointerType || "mouse") !== "mouse") return;
-      const row = e.target.closest(".welle-holliste-row[data-match-kinds]");
-      if (row) {
-        applyHighlight("holl", {
-          kinds: (row.dataset.matchKinds || "").split(",").filter(Boolean),
-          roles: (row.dataset.matchRoles || "").split(",").filter(Boolean),
-          distMm: row.dataset.matchDist ? parseFloat(row.dataset.matchDist) : null,
-          row
-        });
-      } else {
-        clearCross();
-      }
+      const row = e.target.closest(HOLL_TARGET_SEL);
+      if (row) applyHollHighlight(row); else clearCross();
     });
     hollEl.addEventListener("pointerleave", (e) => {
       if ((e.pointerType || "mouse") === "mouse") clearCross();
     });
     hollEl.addEventListener("pointerdown", (e) => {
-      const row = e.target.closest(".welle-holliste-row[data-match-kinds]");
-      if (row) {
-        applyHighlight("holl", {
-          kinds: (row.dataset.matchKinds || "").split(",").filter(Boolean),
-          roles: (row.dataset.matchRoles || "").split(",").filter(Boolean),
-          distMm: row.dataset.matchDist ? parseFloat(row.dataset.matchDist) : null,
-          row
-        });
-      }
+      const row = e.target.closest(HOLL_TARGET_SEL);
+      if (row) applyHollHighlight(row);
     });
 
     // Click outside → clear (für Touch-Devices)
