@@ -1802,11 +1802,53 @@ header.bar {
   gap: 14px;
   margin-top: 14px;
 }
+/* v1.95: Collapsible Maschinen-Konstanten + SE-Sortiment via <details> */
 .welle-info-box {
-  padding: 14px 16px;
+  padding: 0;
   background: rgba(0,0,0,0.3);
   border: 1px solid var(--border);
   border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 200ms ease;
+}
+.welle-info-box[open] { border-color: rgba(0,230,118,0.20); }
+.welle-info-box > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  user-select: none;
+  transition: background 160ms ease;
+}
+.welle-info-box > summary::-webkit-details-marker { display: none; }
+.welle-info-box > summary:hover { background: rgba(255,255,255,0.025); }
+.welle-info-box > summary > h4 {
+  font-size: 12px; font-weight: 800;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent-primary);
+  margin: 0;
+}
+.welle-info-box > summary::after {
+  content: "";
+  width: 10px; height: 10px;
+  border-right: 2px solid var(--text-secondary);
+  border-bottom: 2px solid var(--text-secondary);
+  transform: rotate(45deg) translate(-2px, -2px);
+  transition: transform 200ms ease, border-color 200ms ease;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+.welle-info-box[open] > summary::after {
+  transform: rotate(-135deg) translate(-2px, -2px);
+  border-color: var(--accent-primary);
+  opacity: 1;
+}
+.welle-info-box-body {
+  padding: 4px 16px 14px;
+  border-top: 1px dashed rgba(255,255,255,0.06);
 }
 .welle-info-box h4 {
   font-size: 12px; font-weight: 800;
@@ -5432,34 +5474,38 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <div class="cluster-aggregate" id="clusterAggregate" hidden></div>
       </div>
 
-      <!-- Maschinen-Konstanten + Schneideeinheit-CAD-Detail (operator-orientiert) -->
+      <!-- Maschinen-Konstanten + Schneideeinheit-CAD-Detail (collapsible v1.95) -->
       <div class="welle-info-grid">
-        <div class="welle-info-box">
-          <h4 id="machineConstHead">Maschinen-Konstanten · DCM</h4>
-          <div class="info-row"><span>Welle-Länge</span><strong id="mcWelleLen">1472 mm</strong></div>
-          <div class="info-row"><span>Bestückungsbereich</span><strong id="mcBestueckung">1000 mm</strong></div>
-          <div class="info-row" id="mcParkRow"><span>Park-Ring</span><strong id="mcParkRing">59 mm · 4/Seite</strong></div>
-          <div class="info-row"><span>Schneideeinheit</span><strong id="mcSeLen">20 mm</strong></div>
-          <div class="info-row"><span>Schneidkante in SE</span><strong id="mcSchnitt">13 mm v. SE-l</strong></div>
-          <div class="info-row"><span>Distanzringe</span><strong id="mcDistRings">0,3 / 0,5 / 1 / 2 / 5 / 10 / 20 / 30 / 50 / 100 / 200 / 300 mm</strong></div>
-          <div class="info-row" id="mcMrCenterRow" style="display:none"><span>MR-Center-Versatz</span><strong id="mcMrCenter">±20 mm Standard · ±50 mm Trick</strong></div>
-          <div class="info-row" id="mcKlemmRow" style="display:none"><span>Klemm-Distanzring</span><strong id="mcKlemm">5–20 mm links auf Gewinde · Werker-Wahl</strong></div>
-          <div class="info-row" id="mcAsymmRow" style="display:none"><span>Asymmetrie-Ring</span><strong id="mcAsymm">20 mm rechts (Default an)</strong></div>
-          <div class="info-row" id="mcBahnOffsetRow" style="display:none"><span>Bahn-Versatz Einbau</span><strong id="mcBahnOffset">+15 mm Welle-Mitte zur Bahn-Mitte</strong></div>
-        </div>
-        <div class="welle-info-box">
-          <h4 id="seSortimentHead">Schneideeinheit</h4>
-          <div class="info-row"><span>Gesamt-Länge</span><strong id="seGesamtLen">20 mm</strong></div>
-          <div class="info-row"><span>Schneidkante</span><strong id="seSchnitt">13 mm v. SE-l · 7 mm v. SE-r · asymm.</strong></div>
-          <div class="info-row" id="seCompositionRow" style="display:none"><span>Aufbau</span><strong id="seComposition">—</strong></div>
-          <div class="info-row"><span>Anzahl je Welle</span><strong>N + 1 (für N Nutzen)</strong></div>
-          <div class="info-row" id="seBuchseRow" style="display:none"><span>Schneidebuchse</span><strong id="seBuchse">30 mm · 6 Schnitte alle 5 mm (Multi-Cut)</strong></div>
-          <button type="button" class="info-btn-large" id="seCadOpenBtn" tabindex="-1">
-            <span class="info-btn-icon">ℹ</span>
-            <span id="seCadBtnLabel">CAD-Detail anzeigen</span>
-            <span class="info-btn-sub" id="seCadBtnSub">Schneidring · Nutmesser · DIN ISO 128 Werkstattzeichnung</span>
-          </button>
-        </div>
+        <details class="welle-info-box">
+          <summary><h4 id="machineConstHead">Maschinen-Konstanten · DCM</h4></summary>
+          <div class="welle-info-box-body">
+            <div class="info-row"><span>Welle-Länge</span><strong id="mcWelleLen">1472 mm</strong></div>
+            <div class="info-row"><span>Bestückungsbereich</span><strong id="mcBestueckung">1000 mm</strong></div>
+            <div class="info-row" id="mcParkRow"><span>Park-Ring</span><strong id="mcParkRing">59 mm · 4/Seite</strong></div>
+            <div class="info-row"><span>Schneideeinheit</span><strong id="mcSeLen">20 mm</strong></div>
+            <div class="info-row"><span>Schneidkante in SE</span><strong id="mcSchnitt">13 mm v. SE-l</strong></div>
+            <div class="info-row"><span>Distanzringe</span><strong id="mcDistRings">0,3 / 0,5 / 1 / 2 / 5 / 10 / 20 / 30 / 50 / 100 / 200 / 300 mm</strong></div>
+            <div class="info-row" id="mcMrCenterRow" style="display:none"><span>MR-Center-Versatz</span><strong id="mcMrCenter">±20 mm Standard · ±50 mm Trick</strong></div>
+            <div class="info-row" id="mcKlemmRow" style="display:none"><span>Klemm-Distanzring</span><strong id="mcKlemm">5–20 mm links auf Gewinde · Werker-Wahl</strong></div>
+            <div class="info-row" id="mcAsymmRow" style="display:none"><span>Asymmetrie-Ring</span><strong id="mcAsymm">20 mm rechts (Default an)</strong></div>
+            <div class="info-row" id="mcBahnOffsetRow" style="display:none"><span>Bahn-Versatz Einbau</span><strong id="mcBahnOffset">+15 mm Welle-Mitte zur Bahn-Mitte</strong></div>
+          </div>
+        </details>
+        <details class="welle-info-box">
+          <summary><h4 id="seSortimentHead">Schneideeinheit</h4></summary>
+          <div class="welle-info-box-body">
+            <div class="info-row"><span>Gesamt-Länge</span><strong id="seGesamtLen">20 mm</strong></div>
+            <div class="info-row"><span>Schneidkante</span><strong id="seSchnitt">13 mm v. SE-l · 7 mm v. SE-r · asymm.</strong></div>
+            <div class="info-row" id="seCompositionRow" style="display:none"><span>Aufbau</span><strong id="seComposition">—</strong></div>
+            <div class="info-row"><span>Anzahl je Welle</span><strong>N + 1 (für N Nutzen)</strong></div>
+            <div class="info-row" id="seBuchseRow" style="display:none"><span>Schneidebuchse</span><strong id="seBuchse">30 mm · 6 Schnitte alle 5 mm (Multi-Cut)</strong></div>
+            <button type="button" class="info-btn-large" id="seCadOpenBtn" tabindex="-1">
+              <span class="info-btn-icon">ℹ</span>
+              <span id="seCadBtnLabel">CAD-Detail anzeigen</span>
+              <span class="info-btn-sub" id="seCadBtnSub">Schneidring · Nutmesser · DIN ISO 128 Werkstattzeichnung</span>
+            </button>
+          </div>
+        </details>
       </div>
 
       <!-- CAD-Detail-Modal (volle Werkstattzeichnung nach DIN ISO 128) -->
