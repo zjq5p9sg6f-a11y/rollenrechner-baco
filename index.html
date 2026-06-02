@@ -547,9 +547,11 @@ header.bar {
 }
 .ts-seg:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
 .ts-seg[aria-checked="true"] {
-  background: linear-gradient(135deg, var(--machine-accent) 0%, var(--machine-accent-dark) 100%);
-  color: var(--machine-accent-text);
-  box-shadow: 0 1px 6px var(--machine-glow-soft);
+  /* Besäumungs-Farbe (warn-color #ff6b35) — Trim-Strategie steuert genau diese
+     Besäumung, also visuell konsistent zur Mutterrollen-Trim-Markierung */
+  background: linear-gradient(135deg, #ff8550 0%, #c94817 100%);
+  color: #2a0d00;
+  box-shadow: 0 1px 8px rgba(255,107,53,0.42);
 }
 @media (max-width: 900px) {
   .trim-strategy-bar { flex-basis: 100%; }
