@@ -1,0 +1,104 @@
+{
+  "$schema_version": "1.0",
+  "description": "Maschinen-Profile für den Rollenrechner. Jede Schneiderei kann eigene Profile pflegen ohne Code-Änderung.",
+  "machines": {
+    "DCM": {
+      "id": "DCM",
+      "label": "DCM Panther",
+      "welleRenderMode": "left",
+      "parkRingMode": "external",
+      "WELLE": 1472,
+      "WELLE_MITTE": 736,
+      "BESTUECKUNGS_BREITE": 1000,
+      "PARK_RING": 59,
+      "PARK_PRO_SEITE": 4,
+      "PARK_TOTAL": 236,
+      "BAHN_MITTE_OFFSET_MM": 0,
+      "DISTANZRINGE": [300, 200, 100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
+      "SCHNEIDEEINHEIT": 20,
+      "SCHNITT_OFFSET": 13,
+      "SE_SORTIMENT": [
+        {
+          "id": "standard",
+          "label": "Standard-SE",
+          "length": 20,
+          "cutEdgeFromLeft": 13,
+          "cuts": 1,
+          "composition": "10 Schneidring + 3 Übergang + 7 Nutmesser"
+        }
+      ],
+      "MAX_MR_MM": 1000,
+      "MAX_SPEED_MMIN": 500,
+      "MR_CENTER_OFFSET_STD": 0,
+      "MR_CENTER_OFFSET_TRICK": 0,
+      "BESAEUMUNG_MIN_SOFT": 2.5,
+      "BESAEUMUNG_MAX": 20,
+      "_verified": {
+        "date": "2026-06-02",
+        "by": "Jan + Werker (CAD-Zeichnung)",
+        "cases": [
+          { "mr": 1000, "schmal": 122, "expected_werker_mass": 245.0, "note": "asymm-SE 3-mm-Versatz" }
+        ]
+      }
+    },
+    "EUROMAC": {
+      "id": "EUROMAC",
+      "label": "Euromac",
+      "welleRenderMode": "center",
+      "parkRingMode": "external",
+      "WELLE": 1320,
+      "WELLE_MITTE": 650,
+      "WELLE_PHYSISCH_MM": 1320,
+      "WELLE_LEFT_OF_GEO_CENTER": 650,
+      "WELLE_RIGHT_OF_GEO_CENTER": 670,
+      "KLEMM_DISTANZRING_MM": 5,
+      "KLEMM_DISTANZRING_MAX_MM": 20,
+      "KLEMM_SEITE": "left",
+      "ASYMMETRY_RING_RIGHT_MM": 20,
+      "ASYMMETRY_RING_DEFAULT_ON": false,
+      "MASCHINEN_BAHN_OFFSET_MM": 0,
+      "WELLE_REVERSED_ON_MOUNT": true,
+      "BESTUECKUNGS_BREITE": 1120,
+      "PARK_RING": 50,
+      "PARK_PRO_SEITE": 2,
+      "PARK_TOTAL": 100,
+      "BAHN_MITTE_OFFSET_MM": -10,
+      "DISTANZRINGE": [100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
+      "SCHNEIDEEINHEIT": 20,
+      "SCHNITT_OFFSET": 10,
+      "SE_SORTIMENT": [
+        {
+          "id": "standard",
+          "label": "Standard-SE",
+          "length": 20,
+          "cutEdgeFromLeft": 10,
+          "cuts": 1,
+          "composition": "Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9 mm"
+        },
+        {
+          "id": "schneidebuchse",
+          "label": "Schneidebuchse (Multi-Cut)",
+          "length": 30,
+          "cuts": 6,
+          "cutSpacing": 5,
+          "cutPositions": [2.5, 7.5, 12.5, 17.5, 22.5, 27.5],
+          "note": "30 mm Block · 6 Schnittkanten symmetrisch alle 5 mm"
+        }
+      ],
+      "MAX_MR_MM": 1120,
+      "MAX_SPEED_MMIN": 500,
+      "MR_CENTER_OFFSET_STD": 20,
+      "MR_CENTER_OFFSET_TRICK": 50,
+      "BESAEUMUNG_MIN_SOFT": 2.5,
+      "BESAEUMUNG_MAX": 20,
+      "_verified": {
+        "date": "2026-06-02",
+        "by": "Werker (mehrfach am Mitarbeiter-PC)",
+        "cases": [
+          { "mr": 1000, "schmal": 122, "expected_werker_mass": 182.0, "note": "8×122 = 976, Trim 12+12" },
+          { "mr": 630,  "schmal": 25,  "expected_werker_mass": 357.5, "note": "25×25 = 625, Trim 2.5+2.5, 0.5-mm-Präzision" }
+        ]
+      }
+    }
+  }
+}

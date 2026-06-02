@@ -9720,11 +9720,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
       halfStack = aMm - realWerkerMass;
       resultMm = realWerkerMass;
       if (hasTrim) {
-        // Mit Trim: die Werker-Vereinfachung "N × Schmal / 2" stimmt
-        bSubTxt = `${N} × ${fmtW(haupt, 1)} mm / 2 (mit Trim ${fmtW(restMM, 1)} mm)`;
+        // Mit Trim: die Werker-Vereinfachung "N × Schmal / 2" stimmt exakt
+        // weil Trim-Cuts an den MR-Außen-Kanten existieren → ½ Stack = ½ MR-Material
+        bSubTxt = `≈ ${N} × ${fmtW(haupt, 1)} mm / 2 (mit Trim)`;
       } else {
-        // Kein Trim: (N−1) × Schmal / 2 (es gibt N−1 innere Cuts zwischen N Schmalrollen)
-        bSubTxt = `(${N} − 1) × ${fmtW(haupt, 1)} mm / 2 — kein Trim, nur ${N - 1} innere Cuts`;
+        // Kein Trim: rechteste Cut ist letzter INNERER Cut, nicht MR-Außen-Kante
+        // → halbStack-Wert ist die echte Distanz Welle-Mitte zur letzten Cut
+        bSubTxt = `rechteste Cut v. Welle-Mitte · ${N - 1} innere Cuts (kein Trim)`;
       }
     } else {
       // Fallback wenn kein Cut-Layout: klassische Berechnung
