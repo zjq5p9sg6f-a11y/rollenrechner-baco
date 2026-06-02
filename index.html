@@ -5560,7 +5560,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   <footer class="footer">
     <div>Ballerstaedt · Längsschneidemaschinen-Operator</div>
-    <div>v1.95 · BETA · Visual-Polish 12/10: Hero-KPI-Strip (Werker-Mass · Material-Ausnutzung · Schmalrollen-Count) + Welle-Premium-Detailing (Lager-Schraffur · Knurl-Park · Distanzring-Highlight · Cut-Glow)</div>
+    <div>v1.95 · BETA · Visual-Polish + Werker-Cross-Highlight + Bobinen-MR-Visualisierung + transparente Werker-Formel + Hover/Touch-Detail-Cards</div>
   </footer>
 </div>
 
@@ -9263,7 +9263,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
       if (kind === "park") {
         eyebrow = "Parkplatz-Ring";
-        meta = "Hält das Obermesser ausserhalb der Bestueckungs-Breite. Stahl-Ring mit Knurl-Reibschluss.";
+        // v1.95 fix: Material Werker-bestätigt (Stahl). "Knurl-Reibschluss" war
+        // erfunden — raus. Funktion bleibt.
+        meta = "Hält das Obermesser ausserhalb der Bestueckungs-Breite. Stahl-Ring.";
         extras = `
           <dt>Position</dt><dd>${posTxt}</dd>
           <dt>Lage</dt><dd>${fromMitteTxt}</dd>
@@ -9272,11 +9274,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
       } else if (kind === "distanz") {
         const n = name.toLowerCase();
         eyebrow = "Distanzring";
+        // v1.95 fix: Stahl-Hülse (Jan-bestätigt 2026-06-02: alle Distanzhülsen
+        // sind Stahl, NICHT Alu — Alu wäre zu weich für den Klemm-Druck).
         meta = n.includes("haupt")
-          ? "Zwischen-Distanz für die Haupt-Schmalrolle. Aluminium-Hülse, präzisionsgefertigt."
+          ? "Zwischen-Distanz für die Haupt-Schmalrolle. Stahl-Hülse."
           : (n.includes("neben")
-            ? "Zwischen-Distanz für eine Nebenrolle (heterogene Einteilung)."
-            : "Distanzring zwischen zwei Bauteilen.");
+            ? "Zwischen-Distanz für eine Neben-Schmalrolle (heterogene Einteilung). Stahl-Hülse."
+            : "Distanzring zwischen zwei Bauteilen. Stahl-Hülse.");
         extras = `
           <dt>Position</dt><dd>${posTxt}</dd>
           <dt>Lage</dt><dd>${fromMitteTxt}</dd>
