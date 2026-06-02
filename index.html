@@ -11457,36 +11457,33 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (iconPlay) iconPlay.style.display = isPlaying ? "none" : "";
       if (iconPause) iconPause.style.display = isPlaying ? "" : "none";
     };
-    // Anti-AbortError: kein audio.load() VOR play() — das aborted den Promise.
-    // preload="auto" hat schon geladen. Bei AbortError (Race mit noch laufendem
-    // Load) warten wir auf canplay und versuchen play() nochmal.
-    let playRetryPending = false;
+    // AbortError-Retry mit setTimeout statt canplay-Listener (der kann silently
+    // hängen wenn Audio bereits ready ist). Max 3 retries à 150ms.
+    let playAttempt = 0;
     const tryPlay = () => {
       const p = teamAudioEl.play();
       if (p && typeof p.catch === "function") {
-        p.then(() => { setStatus(null); playRetryPending = false; })
+        p.then(() => { setStatus(null); playAttempt = 0; })
          .catch(err => {
           const n = (err && err.name) || "Error";
           const m = (err && err.message) || String(err);
-          console.warn("[teamPlayer] play() rejected:", n, m);
-          if (n === "AbortError" && !playRetryPending) {
-            playRetryPending = true;
-            setStatus("⏳ wartet auf Buffer …", "info");
-            teamAudioEl.addEventListener("canplay", () => {
-              playRetryPending = false;
-              tryPlay();
-            }, { once: true });
+          console.warn("[teamPlayer] play() rejected (attempt " + playAttempt + "):", n, m);
+          if (n === "AbortError" && playAttempt < 3) {
+            playAttempt++;
+            setStatus("⏳ retry " + playAttempt + "/3 …", "info");
+            setTimeout(tryPlay, 150);
           } else {
             setStatus("⚠ " + n + ": " + m, "err");
-            playRetryPending = false;
+            playAttempt = 0;
           }
         });
       }
     };
     const togglePlay = (ev) => {
-      console.log("[teamPlayer] toggle · paused=" + teamAudioEl.paused + " ev=" + (ev && ev.type));
-      if (ev && ev.stopPropagation) ev.stopPropagation();
+      console.log("[teamPlayer] toggle · paused=" + teamAudioEl.paused + " ev=" + (ev && ev.type) + " ready=" + teamAudioEl.readyState);
+      if (ev && ev.stopImmediatePropagation) ev.stopImmediatePropagation();
       if (teamAudioEl.paused) {
+        playAttempt = 0;  // fresh start, cancel any retry-state
         setStatus(teamAudioEl.readyState >= 3 ? null : "⏳ lädt …", "info");
         tryPlay();
       } else {
@@ -11506,18 +11503,17 @@ audio.team-player-audio::-webkit-media-controls-panel {
       try { localStorage.setItem(TEAM_LOOP_KEY, next ? "1" : "0"); } catch (_) {}
     };
 
-    // Globale Handler für Inline-onclick (primärer Trigger im HTML)
+    // Globale Handler für Inline-onclick (EINZIGER Trigger im HTML)
+    // KEIN addEventListener("click", ...) parallel — das wäre Double-Trigger:
+    //   Click → onclick.togglePlay → play() (paused=false) →
+    //   addEventListener.togglePlay → sieht paused=false → pause() →
+    //   AbortError auf laufendem play()-Promise.
+    // stopPropagation stoppt nur Bubble nach oben, nicht Sibling-Listener.
+    // stopImmediatePropagation würde funktionieren, aber single-path ist sauberer.
     window._tpToggle  = togglePlay;
     window._tpRewind  = rewind;
     window._tpForward = forward;
     window._tpLoop    = toggleLoop;
-
-    // addEventListener als doppelter Backup. Inline-onclick + Listener feuern
-    // beide → idempotent dank ev.stopPropagation im togglePlay.
-    tpPlayBtn.addEventListener("click", togglePlay);
-    if (tpRewindBtn)  tpRewindBtn.addEventListener("click", rewind);
-    if (tpForwardBtn) tpForwardBtn.addEventListener("click", forward);
-    if (teamLoopBtn)  teamLoopBtn.addEventListener("click", toggleLoop);
 
     teamAudioEl.addEventListener("play",  () => { console.log("[teamPlayer] PLAY"); setStatus(null); updatePlayUI(); });
     teamAudioEl.addEventListener("pause", () => { console.log("[teamPlayer] PAUSE"); updatePlayUI(); });
