@@ -4326,11 +4326,24 @@ header.bar {
   color: var(--text-secondary);
   font-weight: 500;
 }
+.viz-head-right {
+  display: flex; align-items: center; gap: var(--s-3);
+  flex-wrap: wrap;
+}
 .viz-legend {
   display: flex; gap: var(--s-3); flex-wrap: wrap;
   font-size: 13px;
   color: var(--text-secondary);
 }
+/* Trim-Strategie integriert in viz-head (gehört zur Mutterrollen-Aufteilung).
+   Kompakter als die alte separate Bar — kein extra Border, dezenter Look. */
+.trim-strategy-bar-viz {
+  padding: 4px 8px 4px 6px;
+  background: rgba(0,0,0,0.18);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.trim-strategy-bar-viz .trim-strategy-label { font-size: 9.5px; }
+.trim-strategy-bar-viz .ts-seg { padding: 4px 8px; font-size: 10.5px; }
 .legend-item { display: flex; align-items: center; gap: 8px; font-weight: 500; }
 .legend-swatch {
   width: 16px; height: 16px; border-radius: 4px;
@@ -5211,17 +5224,6 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <span id="bahnOffsetHint" class="bahn-eich-hint">+ = Bahn-Mitte rechts der Welle-Mitte</span>
         <button type="button" id="bahnOffsetReset" class="bahn-eich-reset" title="Zurück auf 0 (Welle-Mitte)">↺</button>
       </div>
-      <div class="trim-strategy-bar" title="Trim-Strategie: Wie wird die Gesamt-Besäumung auf links/rechts verteilt?\n· Sym (L=R) = beidseitig gleich, 2 Besäumungs-SE, Stack mittig — der konkrete Trim-Wert (z.B. 2.5, 5, 12 mm) ergibt sich aus MR − Nutzen\n· Asym L = ganzer Trim links (1 Besäumungs-SE, Stack rechts versetzt)\n· Asym R = ganzer Trim rechts (1 Besäumungs-SE, Stack links versetzt)\nPro Maschine gespeichert.">
-        <label class="trim-strategy-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
-          <span>Trim-Strategie</span>
-        </label>
-        <div class="trim-strategy-segments" role="radiogroup" aria-label="Trim-Strategie">
-          <button type="button" class="ts-seg" data-trim-mode="asym-l" role="radio" aria-checked="false" title="Asymmetrisch links: gesamter Trim auf der linken Seite, 1 Besäumungs-SE gespart">← Asym L</button>
-          <button type="button" class="ts-seg ts-seg-sym" data-trim-mode="sym" role="radio" aria-checked="true" title="Symmetrisch: Trim 50/50 auf beide Seiten, 2 Besäumungs-SE. Konkreter mm-Wert ergibt sich aus MR − Nutzen.">↔ Sym (L=R)</button>
-          <button type="button" class="ts-seg" data-trim-mode="asym-r" role="radio" aria-checked="false" title="Asymmetrisch rechts: gesamter Trim auf der rechten Seite, 1 Besäumungs-SE gespart">Asym R →</button>
-        </div>
-      </div>
     </section>
 
     <!-- ============== VIZ STAGE (full width) ============== -->
@@ -5234,10 +5236,24 @@ audio.team-player-audio::-webkit-media-controls-panel {
           </div>
           <div class="viz-sub" id="vizSubtitle">Werte eingeben, um die Aufteilung zu sehen</div>
         </div>
-        <div class="viz-legend">
-          <span class="legend-item"><span class="legend-swatch swatch-nutzen"></span>Haupt-Schmalrolle</span>
-          <span class="legend-item" id="legendNeben" style="display:none"><span class="legend-swatch swatch-neben"></span>Neben-Schmalrolle</span>
-          <span class="legend-item"><span class="legend-swatch swatch-rest"></span>Besäumung</span>
+<div class="viz-head-right">
+          <div class="viz-legend">
+            <span class="legend-item"><span class="legend-swatch swatch-nutzen"></span>Haupt-Schmalrolle</span>
+            <span class="legend-item" id="legendNeben" style="display:none"><span class="legend-swatch swatch-neben"></span>Neben-Schmalrolle</span>
+            <span class="legend-item"><span class="legend-swatch swatch-rest"></span>Besäumung</span>
+          </div>
+          <!-- Trim-Strategie · steuert Besäumungs-Verteilung der Mutterrolle -->
+          <div class="trim-strategy-bar trim-strategy-bar-viz" title="Trim-Strategie: Wie wird die Gesamt-Besäumung auf links/rechts verteilt?&#10;· Sym (L=R) = beidseitig gleich, 2 Besäumungs-SE, Stack mittig&#10;· Asym L = ganzer Trim links (1 Besäumungs-SE gespart)&#10;· Asym R = ganzer Trim rechts (1 Besäumungs-SE gespart)&#10;Pro Maschine gespeichert.">
+            <label class="trim-strategy-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px;flex-shrink:0"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+              <span>Trim</span>
+            </label>
+            <div class="trim-strategy-segments" role="radiogroup" aria-label="Trim-Strategie">
+              <button type="button" class="ts-seg" data-trim-mode="asym-l" role="radio" aria-checked="false" title="Asymmetrisch links: gesamter Trim auf der linken Seite, 1 Besäumungs-SE gespart">← Asym L</button>
+              <button type="button" class="ts-seg ts-seg-sym" data-trim-mode="sym" role="radio" aria-checked="true" title="Symmetrisch: Trim 50/50 auf beide Seiten">↔ Sym (L=R)</button>
+              <button type="button" class="ts-seg" data-trim-mode="asym-r" role="radio" aria-checked="false" title="Asymmetrisch rechts: gesamter Trim auf der rechten Seite, 1 Besäumungs-SE gespart">Asym R →</button>
+            </div>
+          </div>
         </div>
       </div>
       <svg id="vizSvg" viewBox="0 0 1000 400" preserveAspectRatio="none" aria-label="Visuelle Aufteilung der Mutterrolle">
