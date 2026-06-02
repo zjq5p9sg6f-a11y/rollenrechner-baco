@@ -13081,16 +13081,16 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-kpi-lbl { font-size: 8.5pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #000; margin-top: 1.5mm; }
       .pm-kpi-sub { font-size: 7.5pt; color: #666; margin-top: 0.5mm; }
       /* === SVG === */
-      .pm-svg-wrap { margin: 0 0 6mm 0; page-break-inside: avoid; }
-      .pm-svg-wrap svg { display: block; width: 173mm; height: 56mm; border: 1px solid #999; border-radius: 2mm; background: #fff; }
+      .pm-svg-wrap { margin: 0 0 4mm 0; page-break-inside: avoid; }
+      .pm-svg-wrap svg { display: block; width: 173mm; height: 50mm; border: 1px solid #999; border-radius: 2mm; background: #fff; }
       /* === Sections === */
-      .pm-section { margin: 0 0 6mm 0; page-break-inside: auto; }
-      .pm-section-title { font-size: 10.5pt; font-weight: 800; color: #000; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 3mm 0; padding: 0 0 2mm 0; border-bottom: 1.5px solid #000; page-break-after: avoid; break-after: avoid; }
+      .pm-section { margin: 0 0 4mm 0; page-break-inside: auto; }
+      .pm-section-title { font-size: 10.5pt; font-weight: 800; color: #000; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 2.5mm 0; padding: 0 0 1.5mm 0; border-bottom: 1.5px solid #000; page-break-after: avoid; break-after: avoid; }
       .pm-dir { display: inline-block; margin-left: 4mm; padding: 0.8mm 2.5mm; font-size: 7.5pt; background: #fff; border: 1.2px solid #000; border-radius: 1.5mm; color: #000; text-transform: none; letter-spacing: 0.04em; vertical-align: middle; font-weight: 700; }
       .pm-sequenz { page-break-before: always !important; break-before: page !important; }
       .pm-section-title + table { page-break-before: avoid; break-before: avoid; }
       /* === Stack-Komposition-Blöcke (Hauptschnitt + Rest) === */
-      .pm-stack-block { margin: 0 0 3mm 0; padding: 2mm 2.5mm; border: 1.3px solid #000; border-radius: 1mm; background: #fff; page-break-inside: avoid !important; break-inside: avoid !important; }
+      .pm-stack-block { margin: 0 0 2mm 0; padding: 1.8mm 2.5mm; border: 1.3px solid #000; border-radius: 1mm; background: #fff; page-break-inside: avoid !important; break-inside: avoid !important; }
       .pm-stack-haupt { border-left-width: 3.5mm; }
       .pm-stack-rest  { border-left-width: 3.5mm; border-left-color: #555; }
       .pm-stack-head { font-size: 8.5pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #000; margin-bottom: 1.5mm; }
@@ -13100,12 +13100,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-stack-table td.pm-stack-v { color: #000; font-variant-numeric: tabular-nums; }
       .pm-stack-table td.pm-stack-v strong { color: #000; font-weight: 800; }
       /* === Stückliste === */
-      .pm-holliste-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; page-break-inside: auto; }
-      .pm-holliste-table thead th { text-align: left; font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #333; padding: 1.5mm 2mm; border-bottom: 1px solid #999; background: #f0f0f0; }
+      /* Werker muss die Pick-Liste am Stück sehen — splitting über 2 Seiten zwingt
+         ihn zum Blättern. Wenn alles auf eine Seite passt, das auch erzwingen. */
+      .pm-section.pm-holliste { page-break-inside: avoid !important; break-inside: avoid !important; }
+      .pm-holliste-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 9.5pt; page-break-inside: avoid !important; break-inside: avoid !important; }
+      .pm-holliste-table thead th { text-align: left; font-size: 7pt; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #333; padding: 1.2mm 2mm; border-bottom: 1px solid #999; background: #f0f0f0; }
       .pm-holliste-table thead th:nth-child(3) { text-align: right; }
-      .pm-holliste-table tbody { page-break-inside: auto; }
+      .pm-holliste-table tbody { page-break-inside: avoid !important; break-inside: avoid !important; }
       .pm-holliste-table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
-      .pm-holliste-table tbody td { padding: 2mm 2mm; border-bottom: 1px dashed #bbb; vertical-align: top; word-wrap: break-word; page-break-inside: avoid !important; break-inside: avoid !important; }
+      .pm-holliste-table tbody td { padding: 1.4mm 2mm; border-bottom: 1px dashed #bbb; vertical-align: top; word-wrap: break-word; page-break-inside: avoid !important; break-inside: avoid !important; }
       .pm-holliste-table tbody tr:last-child td { border-bottom: none; }
       .pm-holliste-table td.check::before { content: ""; display: inline-block; width: 3.8mm; height: 3.8mm; border: 1.2px solid #333; border-radius: 0.8mm; }
       .pm-holliste-table td.bauteil { font-weight: 700; color: #000; }
