@@ -11457,23 +11457,38 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (iconPlay) iconPlay.style.display = isPlaying ? "none" : "";
       if (iconPause) iconPause.style.display = isPlaying ? "" : "none";
     };
+    // Anti-AbortError: kein audio.load() VOR play() — das aborted den Promise.
+    // preload="auto" hat schon geladen. Bei AbortError (Race mit noch laufendem
+    // Load) warten wir auf canplay und versuchen play() nochmal.
+    let playRetryPending = false;
+    const tryPlay = () => {
+      const p = teamAudioEl.play();
+      if (p && typeof p.catch === "function") {
+        p.then(() => { setStatus(null); playRetryPending = false; })
+         .catch(err => {
+          const n = (err && err.name) || "Error";
+          const m = (err && err.message) || String(err);
+          console.warn("[teamPlayer] play() rejected:", n, m);
+          if (n === "AbortError" && !playRetryPending) {
+            playRetryPending = true;
+            setStatus("⏳ wartet auf Buffer …", "info");
+            teamAudioEl.addEventListener("canplay", () => {
+              playRetryPending = false;
+              tryPlay();
+            }, { once: true });
+          } else {
+            setStatus("⚠ " + n + ": " + m, "err");
+            playRetryPending = false;
+          }
+        });
+      }
+    };
     const togglePlay = (ev) => {
       console.log("[teamPlayer] toggle · paused=" + teamAudioEl.paused + " ev=" + (ev && ev.type));
       if (ev && ev.stopPropagation) ev.stopPropagation();
       if (teamAudioEl.paused) {
-        setStatus("⏳ lädt …", "info");
-        try { teamAudioEl.load(); } catch (_) {}
-        const p = teamAudioEl.play();
-        if (p && typeof p.catch === "function") {
-          p.then(() => setStatus(null))
-           .catch(err => {
-            const m = (err && err.message) || String(err);
-            const n = (err && err.name) || "Error";
-            console.warn("[teamPlayer] play() rejected:", n, m);
-            setStatus("⚠ " + n + ": " + m, "err");
-            if (typeof toast === "function") toast("Audio: " + n + " · " + m);
-          });
-        }
+        setStatus(teamAudioEl.readyState >= 3 ? null : "⏳ lädt …", "info");
+        tryPlay();
       } else {
         teamAudioEl.pause();
         setStatus(null);
