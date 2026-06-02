@@ -585,15 +585,14 @@ header.bar {
   color: var(--text-secondary, #b0b0b0);
   cursor: pointer;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
   line-height: 1.18;
   transition: all var(--t-fast) var(--ease-out-expo);
   font-family: inherit;
   flex: 1;
 }
 .machine-btn-label { font-size: 17px; font-weight: 800; letter-spacing: 0.02em; }
-.machine-btn-sub   { font-size: 12px; opacity: 0.72; margin-top: 4px; font-weight: 500; }
 .machine-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
 .machine-btn[aria-selected="true"] {
   background: linear-gradient(135deg, var(--machine-accent) 0%, var(--machine-accent-dark) 100%);
@@ -604,14 +603,12 @@ header.bar {
     0 0 0 1px rgba(255,154,60,0.32),
     inset 0 1px 0 rgba(255,255,255,0.28);
 }
-.machine-btn[aria-selected="true"] .machine-btn-sub { opacity: 0.85; color: var(--machine-accent-text); }
 @media (max-width: 600px) {
   .machine-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
   .machine-bar-label { font-size: 11px; }
   .machine-bar-label svg { width: 17px; height: 17px; }
   .machine-btn { padding: 10px 14px; }
   .machine-btn-label { font-size: 15px; }
-  .machine-btn-sub { font-size: 11px; }
 }
 
 /* ------- card panels ------- */
@@ -5198,11 +5195,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
       <div class="machine-toggle" role="tablist" aria-label="Maschinen-Auswahl">
         <button type="button" class="machine-btn" data-machine="DCM" role="tab" aria-selected="true">
           <span class="machine-btn-label">DCM Panther</span>
-          <span class="machine-btn-sub">1000 mm Bestückung</span>
         </button>
         <button type="button" class="machine-btn" data-machine="EUROMAC" role="tab" aria-selected="false">
           <span class="machine-btn-label">Euromac</span>
-          <span class="machine-btn-sub">1320 mm asymm. · 1120 mm Bestückung</span>
         </button>
       </div>
       <div class="bahn-eich-bar" title="Bahn-Mitte-Offset (mm): Verschiebung der Stack-Mitte gegenüber der operativen Welle-Mitte. Positiv = Stack nach rechts. Pro Maschine separat einstellbar und gespeichert.">
