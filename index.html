@@ -3113,19 +3113,61 @@ header.bar {
   font-size: 14px; font-weight: 800;
 }
 
-/* Quality-Score-Badge */
+/* Quality-Score-Badge (jetzt collapsible <details>) */
 .welle-quality {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 6px 14px;
+  display: block;
   margin-top: 8px;
   border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+  border: 1px solid transparent;
+}
+.welle-quality summary {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 14px;
   font-size: 13px; font-weight: 700;
   letter-spacing: 0.04em;
-  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 6px;
 }
-.welle-quality.q-good { background: rgba(0,230,118,0.12); color: var(--accent-primary); border: 1px solid rgba(0,230,118,0.4); }
-.welle-quality.q-ok { background: rgba(255,180,0,0.12); color: #ffb400; border: 1px solid rgba(255,180,0,0.4); }
-.welle-quality.q-bad { background: rgba(255,77,109,0.12); color: var(--danger-color); border: 1px solid rgba(255,77,109,0.4); }
+.welle-quality summary::-webkit-details-marker { display: none; }
+.welle-quality .q-num { font-size: 18px; font-weight: 800; }
+.welle-quality .q-expand-hint { font-size: 10px; font-weight: 600; opacity: 0.65; margin-left: auto; letter-spacing: 0.06em; }
+.welle-quality[open] .q-expand-hint::before { content: "▲ "; }
+.welle-quality[open] .q-expand-hint { content: "▲ Schließen"; }
+.welle-quality.q-good { background: rgba(0,230,118,0.10); color: var(--accent-primary); border-color: rgba(0,230,118,0.35); }
+.welle-quality.q-ok   { background: rgba(255,180,0,0.10); color: #ffb400;             border-color: rgba(255,180,0,0.35); }
+.welle-quality.q-bad  { background: rgba(255,77,109,0.10); color: var(--danger-color); border-color: rgba(255,77,109,0.35); }
+.q-explanation {
+  padding: 12px 16px 14px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+.q-verdict { margin-bottom: 12px; color: var(--text-secondary); font-style: italic; }
+.q-breakdown-head { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-primary); margin-bottom: 8px; }
+.welle-quality.q-bad .q-breakdown-head { color: var(--danger-color); }
+.welle-quality.q-ok .q-breakdown-head { color: #ffb400; }
+.q-breakdown {
+  display: grid;
+  grid-template-columns: max-content max-content 1fr;
+  gap: 4px 14px;
+  margin-bottom: 10px;
+}
+.qb-row { display: contents; }
+.qb-label { font-weight: 600; color: var(--text-primary); }
+.qb-pts { font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+.qb-pts.qb-good { color: var(--accent-primary); }
+.qb-pts.qb-ok   { color: #ffb400; }
+.qb-pts.qb-low  { color: #888; }
+.qb-pts.qb-neg  { color: var(--danger-color); }
+.qb-detail { color: var(--text-secondary); font-size: 11px; }
+.qb-hint { color: var(--accent-primary); font-size: 10.5px; margin-top: 1px; font-weight: 600; }
+.welle-quality.q-bad .qb-hint { color: #ffb400; }
+.q-foot { font-size: 10.5px; color: var(--text-secondary); margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.06); font-style: italic; }
 .welle-alerts .welle-alert {
   padding: 10px 14px;
   border-radius: 8px;
@@ -7937,15 +7979,43 @@ audio.team-player-audio::-webkit-media-controls-panel {
     if (!cont) return;
     cont.innerHTML = "";
     if (!result) return;
-    // Quality-Score-Badge oben
+    // Quality-Score-Badge oben — collapsible mit Breakdown
     if (result.qScore != null) {
-      const q = result.qScore;
+      // Backward-Compat: alte Caller übergeben qScore als Number, neue als Object
+      const qData = (typeof result.qScore === "object") ? result.qScore : { score: result.qScore, breakdown: [] };
+      const q = qData.score;
       const cls = q >= 80 ? "q-good" : q >= 60 ? "q-ok" : "q-bad";
       const lbl = q >= 80 ? "✓ exzellent" : q >= 60 ? "ok" : "⚠ kritisch";
-      const div = document.createElement("div");
-      div.className = `welle-quality ${cls}`;
-      div.innerHTML = `<strong>Quality-Score</strong> · <span style="font-size:18px">${q}</span>/100 · ${lbl}`;
-      cont.appendChild(div);
+      const verdict = q >= 80
+        ? "Sehr gute Bestückung — Material gut genutzt, kaum Verschnitt."
+        : q >= 60
+          ? "Brauchbare Bestückung — funktioniert, aber Verbesserung möglich."
+          : "Diese Bestückung erfüllt den Auftrag, ist aber suboptimal — z.B. wenig Material-Ausnutzung oder Cut-Konflikte. Welle wird gebaut, sollte aber überprüft werden.";
+      const breakdownHtml = qData.breakdown.map(b => {
+        const pctPts = b.max > 0 ? (b.points / b.max * 100) : 0;
+        const ptsClass = b.points < 0 ? "qb-neg" : (pctPts >= 80 ? "qb-good" : pctPts >= 50 ? "qb-ok" : "qb-low");
+        const hintHtml = b.hint ? `<div class="qb-hint">→ ${b.hint}</div>` : "";
+        return `<div class="qb-row">
+          <div class="qb-label">${b.label}</div>
+          <div class="qb-pts ${ptsClass}">${b.points} / ${b.max}</div>
+          <div class="qb-detail">${b.detail}${hintHtml}</div>
+        </div>`;
+      }).join("");
+      const details = document.createElement("details");
+      details.className = `welle-quality ${cls}`;
+      details.innerHTML = `
+        <summary>
+          <strong>Quality-Score</strong> · <span class="q-num">${q}</span>/100 · ${lbl}
+          <span class="q-expand-hint">▼ Details</span>
+        </summary>
+        <div class="q-explanation">
+          <div class="q-verdict">${verdict}</div>
+          <div class="q-breakdown-head">Wie kommt der Score zustande?</div>
+          <div class="q-breakdown">${breakdownHtml}</div>
+          <div class="q-foot">Score ist informativ — Welle wird in jedem Fall gebaut.
+            Bestückungs-Reihenfolge und Schnittkanten bleiben unverändert.</div>
+        </div>`;
+      cont.appendChild(details);
     }
     if (!result.alerts) return;
     for (const a of result.alerts) {
@@ -9277,23 +9347,90 @@ audio.team-player-audio::-webkit-media-controls-panel {
     });
   }
 
-  // Quality-Score (vereinfacht, aus Wellenbestückungs-Engine inspiriert)
+  // Quality-Score: Werker-Transparenz über die Bewertung der Bestückungs-Lösung.
+  // Returns: { score: 0-100, breakdown: [{label, points, max, hint}] }
   function calcQualityScore(welle, out) {
     if (!welle || !welle.ok) return null;
+    const M = getMachine();
+    const breakdown = [];
     let score = 0;
-    // Trim-Effizienz: innerLen / Bestückungsbereich (näher an 100% = besser)
-    const trimEff = welle.innerLen / getMachine().BESTUECKUNGS_BREITE;
-    score += Math.min(40, trimEff * 40);
-    // Cut-Konflikte (Master-Mode) — strafe
-    if (welle.mergedCount && welle.mergedCount > 0) score -= welle.mergedCount * 5;
-    // Anzahl Aufträge im Cluster — Bonus
-    if (welle.validJobs && welle.validJobs.length >= 2) score += 25;
-    // Besäumung (single) — innerhalb 5-20mm = ok
-    if (out && out.restMM >= 10 && out.restMM <= 40) score += 20;
-    else if (out && out.restMM > 0) score += 10;
-    // Parkplatz-Vollständigkeit (immer 100% bei DCM)
+
+    // 1. Trim-Effizienz: wie gut wird der Bestückungsbereich genutzt
+    const trimEff = welle.innerLen / M.BESTUECKUNGS_BREITE;
+    const trimPts = Math.min(40, trimEff * 40);
+    score += trimPts;
+    breakdown.push({
+      label: "Bestückungs-Ausnutzung",
+      points: Math.round(trimPts),
+      max: 40,
+      detail: `${(trimEff * 100).toFixed(0)} % vom Bestückungsbereich genutzt`,
+      hint: trimPts < 25 ? "Mehr Nutzen oder breitere Schmalrollen testen" : null
+    });
+
+    // 2. Multi-Auftrag-Bonus: Cluster-Mode mit ≥2 Aufträgen
+    if (welle.validJobs && welle.validJobs.length >= 2) {
+      score += 25;
+      breakdown.push({
+        label: "Multi-Auftrag-Cluster",
+        points: 25, max: 25,
+        detail: `${welle.validJobs.length} Aufträge auf einer Welle gebündelt`,
+        hint: null
+      });
+    } else {
+      breakdown.push({
+        label: "Multi-Auftrag-Cluster",
+        points: 0, max: 25,
+        detail: "Einzel-Auftrag",
+        hint: "Mit weiteren Folge-Aufträgen kombinieren spart Rüstzeit"
+      });
+    }
+
+    // 3. Cut-Konflikte (Master-Mode) — Strafpunkte
+    if (welle.mergedCount && welle.mergedCount > 0) {
+      const strafe = welle.mergedCount * 5;
+      score -= strafe;
+      breakdown.push({
+        label: "Cut-Konflikte",
+        points: -strafe, max: 0,
+        detail: `${welle.mergedCount} Cuts mussten gemergt werden`,
+        hint: "Aufträge mit kompatibleren Geometrien wählen"
+      });
+    }
+
+    // 4. Besäumung im Optimal-Range (10-40 mm Gesamt-Trim)
+    let besPts = 0, besDetail = "";
+    if (out && out.restMM != null) {
+      if (out.restMM >= 10 && out.restMM <= 40) {
+        besPts = 20;
+        besDetail = `${out.restMM.toFixed(1)} mm Trim — im Optimal-Bereich`;
+      } else if (out.restMM > 0) {
+        besPts = 10;
+        besDetail = `${out.restMM.toFixed(1)} mm Trim — knapp (optimal 10-40 mm)`;
+      } else {
+        besDetail = "Kein Trim — Außen-Schmalrollen werden ohne Besäumung gefertigt";
+      }
+    }
+    score += besPts;
+    breakdown.push({
+      label: "Besäumung-Range",
+      points: besPts, max: 20,
+      detail: besDetail,
+      hint: besPts < 20 && out && out.restMM > 0 ? "MR-Breite leicht anpassen für 10-40 mm Trim" : null
+    });
+
+    // 5. Parkplatz-Vollständigkeit (immer da → 15)
     score += 15;
-    return Math.max(0, Math.min(100, Math.round(score)));
+    breakdown.push({
+      label: "Parkplatz-Ringe",
+      points: 15, max: 15,
+      detail: `${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm pro Seite — Standard`,
+      hint: null
+    });
+
+    return {
+      score: Math.max(0, Math.min(100, Math.round(score))),
+      breakdown
+    };
   }
 
   // v1.95: Welle-Detail-Slide-Over (Hover am Desktop, Tap am Touch)
