@@ -570,6 +570,19 @@ header.bar {
   min-width: 28px;
   text-align: center;
 }
+.tp-status {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  margin-left: 4px;
+  letter-spacing: 0.02em;
+}
+.tp-status-info { background: rgba(0,230,118,0.10); color: var(--accent-primary, #00e676); }
+.tp-status-warn { background: rgba(255,193,7,0.15);  color: #ffc107; }
+.tp-status-err  { background: rgba(239,68,68,0.18);  color: #ff5252; }
+.tp-status-ok   { background: rgba(0,230,118,0.18);  color: var(--accent-primary, #00e676); }
 .tp-loop[aria-pressed="true"] {
   color: var(--accent-primary);
   background: rgba(0,230,118,0.12);
@@ -4637,36 +4650,42 @@ audio.team-player-audio::-webkit-media-controls-panel {
       </div>
     </div>
     <div class="bar-actions">
-      <div class="team-player-mini" title="Dein Handgriff">
+      <div class="team-player-mini" title="Dein Handgriff" id="teamPlayerMini">
         <span class="team-player-mini-label">Dein Handgriff</span>
-        <audio preload="none" id="teamPlayerAudio">
-          <source src="./team-handgriff.mp3" type="audio/mpeg">
+        <!-- preload=auto: lädt vorab, play() reagiert sofort statt async-Promise-blockiert.
+             KEIN crossorigin: same-origin reicht, crossorigin würde bei file:// CORS-blocken. -->
+        <audio preload="auto" id="teamPlayerAudio">
+          <source src="./team-handgriff.mp3?v=2" type="audio/mpeg">
+          <source src="./team-handgriff.mp3?v=2" type="audio/mp3">
         </audio>
-        <button type="button" class="tp-btn" id="tpRewind" title="15 Sekunden zurück" tabindex="-1" aria-label="Zurück">
+        <button type="button" class="tp-btn" id="tpRewind" title="15 Sekunden zurück" aria-label="Zurück" onclick="window._tpRewind && window._tpRewind()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="11 19 2 12 11 5"/><polyline points="22 19 13 12 22 5"/>
           </svg>
         </button>
-        <button type="button" class="tp-btn tp-play" id="tpPlay" title="Abspielen / Pause" tabindex="-1" aria-label="Play/Pause">
-          <svg class="tp-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <!-- Inline onclick = robuster Fallback wenn addEventListener nicht greift -->
+        <button type="button" class="tp-btn tp-play" id="tpPlay" title="Abspielen / Pause" aria-label="Play/Pause" onclick="window._tpToggle && window._tpToggle(event)">
+          <svg class="tp-icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="pointer-events:none">
             <polygon points="6 4 20 12 6 20 6 4"/>
           </svg>
-          <svg class="tp-icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none">
+          <svg class="tp-icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="display:none; pointer-events:none">
             <rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>
           </svg>
         </button>
-        <button type="button" class="tp-btn" id="tpForward" title="15 Sekunden vor" tabindex="-1" aria-label="Vor">
+        <button type="button" class="tp-btn" id="tpForward" title="15 Sekunden vor" aria-label="Vor" onclick="window._tpForward && window._tpForward()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="13 5 22 12 13 19"/><polyline points="2 5 11 12 2 19"/>
           </svg>
         </button>
         <span class="tp-time" id="tpTime" aria-live="off">0:00</span>
-        <button type="button" class="tp-btn tp-loop" id="teamPlayerLoop" aria-pressed="false" title="Dauerschleife" tabindex="-1">
+        <button type="button" class="tp-btn tp-loop" id="teamPlayerLoop" aria-pressed="false" title="Dauerschleife" onclick="window._tpLoop && window._tpLoop()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
             <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
           </svg>
         </button>
+        <!-- Status-Element: sichtbar wenn Audio-Fehler. Im Normal-Betrieb leer + display:none -->
+        <span id="tpStatus" class="tp-status" style="display:none;" aria-live="polite"></span>
       </div>
       <button class="icon-btn" id="resetBtn" title="Werte zurücksetzen" aria-label="Zurücksetzen">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
@@ -11400,16 +11419,27 @@ audio.team-player-audio::-webkit-media-controls-panel {
   updateMachineToggleUI();
   updateMachineInfoUI();
 
-  // ---------- Team-Song · Custom Player (Play/Pause + Skip + Loop + Time) ----------
-  // v1.95 Defensive-Rebuild: + Console-Logs für Diagnose, + Promise-catch auf play(),
-  // + pointerdown als Click-Backup falls click-Event-Routing gestört.
+  // ---------- Team-Song · Custom Player ----------
+  // v1.96 Robust-Edition: Inline-onclick als primärer Trigger (window._tp*),
+  // addEventListener als doppelter Backup, sichtbarer Status-Banner bei Fehler.
   const teamAudioEl = document.getElementById("teamPlayerAudio");
   const tpPlayBtn = document.getElementById("tpPlay");
   const tpRewindBtn = document.getElementById("tpRewind");
   const tpForwardBtn = document.getElementById("tpForward");
   const tpTimeEl = document.getElementById("tpTime");
   const teamLoopBtn = document.getElementById("teamPlayerLoop");
+  const tpStatusEl = document.getElementById("tpStatus");
   console.log("[teamPlayer] init · audio:", !!teamAudioEl, "btn:", !!tpPlayBtn);
+
+  // Status sichtbar in der UI (kein Console nötig). Type: 'info' | 'warn' | 'err' | 'ok'
+  const setStatus = (msg, type) => {
+    if (!tpStatusEl) return;
+    if (!msg) { tpStatusEl.style.display = "none"; tpStatusEl.textContent = ""; return; }
+    tpStatusEl.style.display = "";
+    tpStatusEl.className = "tp-status tp-status-" + (type || "info");
+    tpStatusEl.textContent = msg;
+  };
+
   if (teamAudioEl && tpPlayBtn) {
     const TEAM_LOOP_KEY = "rr.teamLoop";
     const initialLoop = localStorage.getItem(TEAM_LOOP_KEY) === "1";
@@ -11429,47 +11459,100 @@ audio.team-player-audio::-webkit-media-controls-panel {
     };
     const togglePlay = (ev) => {
       console.log("[teamPlayer] toggle · paused=" + teamAudioEl.paused + " ev=" + (ev && ev.type));
+      if (ev && ev.stopPropagation) ev.stopPropagation();
       if (teamAudioEl.paused) {
+        setStatus("⏳ lädt …", "info");
+        try { teamAudioEl.load(); } catch (_) {}
         const p = teamAudioEl.play();
         if (p && typeof p.catch === "function") {
-          p.catch(err => {
-            console.warn("[teamPlayer] play() rejected:", err && err.name, err && err.message);
-            if (typeof toast === "function") toast("Audio konnte nicht starten: " + (err && err.message || err));
+          p.then(() => setStatus(null))
+           .catch(err => {
+            const m = (err && err.message) || String(err);
+            const n = (err && err.name) || "Error";
+            console.warn("[teamPlayer] play() rejected:", n, m);
+            setStatus("⚠ " + n + ": " + m, "err");
+            if (typeof toast === "function") toast("Audio: " + n + " · " + m);
           });
         }
       } else {
         teamAudioEl.pause();
+        setStatus(null);
       }
     };
-    // Click-Handler — KISS. Vorherige stopPropagation in capture-phase war
-    // selbst der Bug: capture-stopPropagation blockt Click-Routing nach unten
-    // zum Button. Bubble-phase stopProp wäre OK, aber gar nichts ist sauberer.
-    tpPlayBtn.addEventListener("click", togglePlay);
-    if (tpRewindBtn) tpRewindBtn.addEventListener("click", () => {
-      teamAudioEl.currentTime = Math.max(0, teamAudioEl.currentTime - 15);
-    });
-    if (tpForwardBtn) tpForwardBtn.addEventListener("click", () => {
+    const rewind = () => { teamAudioEl.currentTime = Math.max(0, teamAudioEl.currentTime - 15); };
+    const forward = () => {
       const dur = teamAudioEl.duration;
       teamAudioEl.currentTime = Math.min(isFinite(dur) ? dur : Infinity, teamAudioEl.currentTime + 15);
-    });
-    teamAudioEl.addEventListener("play",  () => { console.log("[teamPlayer] PLAY"); updatePlayUI(); });
+    };
+    const toggleLoop = () => {
+      const next = !teamAudioEl.loop;
+      teamAudioEl.loop = next;
+      if (teamLoopBtn) teamLoopBtn.setAttribute("aria-pressed", next ? "true" : "false");
+      try { localStorage.setItem(TEAM_LOOP_KEY, next ? "1" : "0"); } catch (_) {}
+    };
+
+    // Globale Handler für Inline-onclick (primärer Trigger im HTML)
+    window._tpToggle  = togglePlay;
+    window._tpRewind  = rewind;
+    window._tpForward = forward;
+    window._tpLoop    = toggleLoop;
+
+    // addEventListener als doppelter Backup. Inline-onclick + Listener feuern
+    // beide → idempotent dank ev.stopPropagation im togglePlay.
+    tpPlayBtn.addEventListener("click", togglePlay);
+    if (tpRewindBtn)  tpRewindBtn.addEventListener("click", rewind);
+    if (tpForwardBtn) tpForwardBtn.addEventListener("click", forward);
+    if (teamLoopBtn)  teamLoopBtn.addEventListener("click", toggleLoop);
+
+    teamAudioEl.addEventListener("play",  () => { console.log("[teamPlayer] PLAY"); setStatus(null); updatePlayUI(); });
     teamAudioEl.addEventListener("pause", () => { console.log("[teamPlayer] PAUSE"); updatePlayUI(); });
     teamAudioEl.addEventListener("ended", updatePlayUI);
-    teamAudioEl.addEventListener("error", (e) => {
-      console.error("[teamPlayer] audio ERROR:", teamAudioEl.error && teamAudioEl.error.code, teamAudioEl.error && teamAudioEl.error.message);
-      if (typeof toast === "function") toast("Audio-Fehler · Datei team-handgriff.mp3 nicht ladbar");
+    teamAudioEl.addEventListener("error", () => {
+      const code = teamAudioEl.error && teamAudioEl.error.code;
+      const msg  = teamAudioEl.error && teamAudioEl.error.message;
+      console.error("[teamPlayer] audio ERROR:", code, msg);
+      setStatus("⚠ Datei-Fehler (Code " + code + ")", "err");
+      if (typeof toast === "function") toast("Audio-Fehler · Code " + code + " · " + (msg || "team-handgriff.mp3"));
+    });
+    teamAudioEl.addEventListener("stalled", () => setStatus("⏳ Lade-Stau …", "warn"));
+    teamAudioEl.addEventListener("waiting", () => setStatus("⏳ buffer …", "info"));
+    teamAudioEl.addEventListener("canplay", () => { if (teamAudioEl.paused) setStatus(null); });
+    teamAudioEl.addEventListener("loadedmetadata", () => {
+      console.log("[teamPlayer] loadedmetadata · duration=" + teamAudioEl.duration);
     });
     teamAudioEl.addEventListener("timeupdate", () => {
       if (tpTimeEl) tpTimeEl.textContent = fmtTime(teamAudioEl.currentTime);
     });
-    if (teamLoopBtn) teamLoopBtn.addEventListener("click", () => {
-      const next = !teamAudioEl.loop;
-      teamAudioEl.loop = next;
-      teamLoopBtn.setAttribute("aria-pressed", next ? "true" : "false");
-      try { localStorage.setItem(TEAM_LOOP_KEY, next ? "1" : "0"); } catch (_) {}
-    });
+    // Self-Test: pingen wir die MP3-URL direkt — gibt sofortiges Feedback ob die
+    // Datei überhaupt erreichbar ist (Cache, Pfad, Server). 1-Sek-Timeout.
+    try {
+      const audioUrl = teamAudioEl.querySelector("source")?.src || "./team-handgriff.mp3";
+      const probe = new XMLHttpRequest();
+      probe.open("HEAD", audioUrl, true);
+      probe.timeout = 3000;
+      probe.onload = () => {
+        if (probe.status >= 200 && probe.status < 400) {
+          console.log("[teamPlayer] self-test OK · " + probe.status + " · " + audioUrl);
+        } else {
+          console.warn("[teamPlayer] self-test FAIL · HTTP " + probe.status);
+          setStatus("⚠ MP3 HTTP " + probe.status, "err");
+        }
+      };
+      probe.onerror = () => {
+        console.warn("[teamPlayer] self-test NETWORK ERROR");
+        setStatus("⚠ MP3 nicht erreichbar", "err");
+      };
+      probe.ontimeout = () => {
+        setStatus("⚠ MP3-Probe timeout", "warn");
+      };
+      probe.send();
+    } catch (e) {
+      console.warn("[teamPlayer] self-test skipped:", e && e.message);
+    }
+    console.log("[teamPlayer] v1.96 audiofix · ready · inline-onclick + listener hybrid");
   } else {
     console.warn("[teamPlayer] init SKIPPED — DOM-Elemente fehlen. audio=" + !!teamAudioEl + " btn=" + !!tpPlayBtn);
+    setStatus("⚠ Player-Init fehlgeschlagen", "err");
   }
 
   // ---------- reset ----------
