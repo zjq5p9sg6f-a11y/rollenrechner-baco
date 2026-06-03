@@ -1773,30 +1773,42 @@ header.bar {
 }
 .at-group-icon { font-size: 11px; }
 .at-group-name { font-weight: 700; }
-/* Lösch-× — klein, nur bei Hover des Wraps sichtbar */
+/* Lösch-× — position absolute Overlay in der Ecke (Browser-Tab-Pattern).
+   Vorher inline-flex → bei Nachbar-+ flackerte Hover-Status. Jetzt absolut
+   positioniert, höher z-index als + Button, klar separater Hit-Bereich. */
 .at-tab-del {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  width: 20px;
+  height: 20px;
   display: inline-flex;
   align-items: center; justify-content: center;
-  width: 22px;
-  margin-left: 2px;
   padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--bg-base);
-  color: var(--text-secondary);
+  border: 1.5px solid #ff5252;
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: #ff5252;
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 120ms ease, color 120ms ease, border-color 120ms ease;
+  transform: scale(0.85);
+  transition: opacity 120ms ease, transform 120ms ease, background 120ms ease;
+  z-index: 5;
+  pointer-events: auto;
 }
 .at-tab-wrap:hover .at-tab-del,
-.at-tab-del:focus { opacity: 1; }
+.at-tab-del:focus {
+  opacity: 1;
+  transform: scale(1);
+}
 .at-tab-del:hover {
-  color: #ff5252;
-  border-color: #ff5252;
-  background: rgba(255,82,82,0.10);
+  background: #ff5252;
+  color: #fff;
+  box-shadow: 0 0 8px rgba(255,82,82,0.5);
 }
 .at-tab {
   padding: 8px 14px;
