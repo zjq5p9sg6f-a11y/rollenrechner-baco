@@ -1737,12 +1737,16 @@ header.bar {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
 }
-.at-tab[aria-pressed="true"] {
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-dark) 100%);
-  color: #062b14;
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 12px var(--accent-glow-soft);
+.at-tab[aria-pressed="true"],
+.at-tab.at-tab-active {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-dark) 100%) !important;
+  color: #062b14 !important;
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 14px var(--accent-glow-soft), inset 0 1px 0 rgba(255,255,255,0.28) !important;
+  transform: translateY(-1px);
 }
+.at-tab[aria-pressed="true"] .at-tab-meta,
+.at-tab.at-tab-active .at-tab-meta { color: rgba(6,43,20,0.78) !important; opacity: 1 !important; }
 .at-tab .at-tab-id { font-weight: 800; }
 .at-tab .at-tab-meta {
   font-size: 10px; opacity: 0.72; font-weight: 600;
@@ -8425,10 +8429,34 @@ audio.team-player-audio::-webkit-media-controls-panel {
   //   UI-State:  expanded (▼-Toggle)
   let clusterJobs = [];
   const CLUSTER_FIELDS = ["mr","haupt","nebenBreite","nebenAnz","flaeche","lfm","auftragsNr","kunde","material","bemerkung"];
+  // v1.99.11: Stabile Job-IDs damit Tabs nicht verrutschen beim Swap.
+  // Primary = jobId 1 by default, Cluster-Jobs werden mit nächster freier ID erstellt.
+  let __nextJobId = (function() {
+    try {
+      const stored = parseInt(localStorage.getItem("rr.nextJobId") || "2");
+      return isNaN(stored) || stored < 2 ? 2 : stored;
+    } catch(_) { return 2; }
+  })();
+  let __primaryJobId = (function() {
+    try {
+      const stored = parseInt(localStorage.getItem("rr.primaryJobId") || "1");
+      return isNaN(stored) || stored < 1 ? 1 : stored;
+    } catch(_) { return 1; }
+  })();
+  function assignNextJobId() {
+    const id = __nextJobId++;
+    try { localStorage.setItem("rr.nextJobId", String(__nextJobId)); } catch(_) {}
+    return id;
+  }
+  function setPrimaryJobId(id) {
+    __primaryJobId = id;
+    try { localStorage.setItem("rr.primaryJobId", String(id)); } catch(_) {}
+  }
   function ensureClusterJobShape(j) {
     if (!j || typeof j !== "object") j = {};
     CLUSTER_FIELDS.forEach(f => { if (j[f] == null) j[f] = ""; });
     if (typeof j.expanded !== "boolean") j.expanded = false;
+    if (j._jobId == null || typeof j._jobId !== "number") j._jobId = assignNextJobId();
     return j;
   }
   function loadClusterJobs() {
@@ -8545,13 +8573,24 @@ audio.team-player-audio::-webkit-media-controls-panel {
   // Inhalt geht in den Slot. So kann jeder Auftrag voll konfiguriert werden.
   function swapSlotWithMain(slotIdx) {
     if (!clusterJobs[slotIdx]) return;
+    // v1.99.11: Pending Input-Edits committen BEVOR captureMainState läuft.
+    // Wenn der User gerade tippt und auf einen Tab klickt, müssen die aktuellen
+    // Input-Werte ins State propagiert sein. blur() triggert change-Events.
+    if (document.activeElement && typeof document.activeElement.blur === "function" &&
+        document.activeElement.tagName === "INPUT") {
+      try { document.activeElement.blur(); } catch(_) {}
+    }
     const slotJob = clusterJobs[slotIdx];
+    const oldPrimaryJobId = __primaryJobId;
+    const incomingJobId = slotJob._jobId || assignNextJobId();
     const currentMain = captureMainState();
-    // Hauptrechner-Inhalt → Slot
-    clusterJobs[slotIdx] = mainStateToJob(currentMain);
-    // Persist expanded-Flag aus dem alten Slot beibehalten — Operator-UX-Kontinuität
-    clusterJobs[slotIdx].expanded = slotJob.expanded;
-    // Slot-Inhalt → Hauptrechner
+    // Hauptrechner-Inhalt → Slot (mit alter Primary-JobId, damit Tab-Reihenfolge stabil bleibt)
+    const newSlotJob = mainStateToJob(currentMain);
+    newSlotJob._jobId = oldPrimaryJobId;
+    newSlotJob.expanded = slotJob.expanded; // UX-Kontinuität
+    clusterJobs[slotIdx] = newSlotJob;
+    // Slot-Inhalt → Hauptrechner (mit alter Slot-JobId, jetzt neuer __primaryJobId)
+    setPrimaryJobId(incomingJobId);
     applyMainState(jobToMainState(slotJob), { calc: true });
     saveClusterJobs();
     saveActiveJob();
@@ -9045,42 +9084,61 @@ audio.team-player-audio::-webkit-media-controls-panel {
     }
     root.hidden = false;
     list.innerHTML = "";
-    // Primary-Tab (immer aktiv — Primary lebt im Haupt-Eingabe-Bereich)
-    const primaryEl = els.mutter, primarySchmalEl = els.schmal;
-    const primaryMr = (primaryEl && primaryEl.value) || "—";
-    const primarySchmal = (primarySchmalEl && primarySchmalEl.value) || "—";
-    const primaryTab = document.createElement("button");
-    primaryTab.type = "button";
-    primaryTab.className = "at-tab";
-    primaryTab.setAttribute("aria-pressed", "true");
-    primaryTab.setAttribute("role", "tab");
-    primaryTab.tabIndex = -1;
-    primaryTab.dataset.atIdx = "primary";
-    primaryTab.innerHTML = `<span class="at-tab-id">A1</span><span class="at-tab-meta">MR ${primaryMr} · ${primarySchmal}</span>`;
-    list.appendChild(primaryTab);
-    // Cluster-Slots als Tabs (A2..AN)
-    clusterJobs.forEach((job, idx) => {
-      const tab = document.createElement("button");
-      tab.type = "button";
-      tab.className = "at-tab";
-      tab.setAttribute("aria-pressed", "false");
-      tab.setAttribute("role", "tab");
-      tab.tabIndex = -1;
-      tab.dataset.atIdx = String(idx);
-      tab.innerHTML = `<span class="at-tab-id">A${idx + 2}</span><span class="at-tab-meta">MR ${job.mr || "—"} · ${job.haupt || "—"}</span>`;
-      list.appendChild(tab);
+    // v1.99.11: Tabs nach stabilen Job-IDs rendern, NICHT nach Position.
+    // Damit bleibt "A2" immer "A2", auch nach Swap mit Main.
+    const primaryMr = (els.mutter && els.mutter.value) || "—";
+    const primarySchmal = (els.schmal && els.schmal.value) || "—";
+    const allTabs = [];
+    allTabs.push({
+      jobId: __primaryJobId,
+      isPrimary: true,
+      mr: primaryMr,
+      schmal: primarySchmal,
+      slotIdx: null
     });
-    // Click-Listener: Tab klick → swapSlotWithMain (Slot kommt in Main, Main wandert
-    // in Slot — existing swap-Logic, vollständig getestet).
+    clusterJobs.forEach((job, idx) => {
+      allTabs.push({
+        jobId: job._jobId || 999,
+        isPrimary: false,
+        mr: job.mr || "—",
+        schmal: job.haupt || "—",
+        slotIdx: idx
+      });
+    });
+    // Stabile Reihenfolge nach JobId (numerisch aufsteigend)
+    allTabs.sort((a, b) => a.jobId - b.jobId);
+    allTabs.forEach(t => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "at-tab" + (t.isPrimary ? " at-tab-active" : "");
+      btn.setAttribute("aria-pressed", t.isPrimary ? "true" : "false");
+      btn.setAttribute("role", "tab");
+      btn.tabIndex = -1;
+      btn.dataset.atIdx = t.isPrimary ? "primary" : String(t.slotIdx);
+      btn.dataset.atJobId = String(t.jobId);
+      btn.innerHTML = `<span class="at-tab-id">A${t.jobId}</span><span class="at-tab-meta">MR ${t.mr} · ${t.schmal}</span>`;
+      list.appendChild(btn);
+    });
     list.querySelectorAll(".at-tab").forEach(t => {
       t.addEventListener("click", () => {
         const idx = t.dataset.atIdx;
-        if (idx === "primary") return; // bereits aktiv
+        if (idx === "primary") return;
         const slotIdx = parseInt(idx);
-        if (!isNaN(slotIdx) && clusterJobs[slotIdx]) {
-          swapSlotWithMain(slotIdx);
-          // renderClusterJobs ruft renderAuftragTabs am Ende
+        if (isNaN(slotIdx) || !clusterJobs[slotIdx]) return;
+        // Pending input-edits committen (blur triggert change-Event)
+        if (document.activeElement && typeof document.activeElement.blur === "function") {
+          try { document.activeElement.blur(); } catch(_) {}
         }
+        // Mini-Delay damit DOM-Events (input/change/blur) durch sind, dann swap
+        setTimeout(() => {
+          if (!clusterJobs[slotIdx]) return;
+          try {
+            swapSlotWithMain(slotIdx);
+          } catch (err) {
+            console.error("[at-tab] swap error:", err);
+            toast("Auftrag-Wechsel fehlgeschlagen: " + err.message, "err");
+          }
+        }, 30);
       });
     });
   }
@@ -9089,44 +9147,86 @@ audio.team-player-audio::-webkit-media-controls-panel {
   // Power-User-Feature: kompletter Plan (Maschine + Primary + Folgeaufträge + Settings)
   // als JSON-Datei lokal speichern. Bridge bis ERP-Anbindung.
   function exportPlanJson() {
-    const M = getMachine();
-    const plan = {
-      plan_name: `Plan ${new Date().toISOString().slice(0, 16).replace("T", " ")}`,
-      schema_version: "1.0",
-      machine: M.id,
-      machine_label: M.label,
-      trim_strategy: (typeof readTrimMode === "function") ? readTrimMode(M.id) : "sym",
-      bahn_offset_mm: parseFloat(localStorage.getItem("rr.bahnOffset." + M.id) || "0"),
-      main: captureMainState(),
-      cluster: JSON.parse(JSON.stringify(clusterJobs || [])),
-      metadata: {
-        created: new Date().toISOString(),
-        tool_version: "1.99.10",
-        cluster_count: (clusterJobs || []).length,
-        max_cluster: MAX_CLUSTER
+    try {
+      // Pending Input-Edits committen vor dem Capture
+      if (document.activeElement && typeof document.activeElement.blur === "function" &&
+          document.activeElement.tagName === "INPUT") {
+        try { document.activeElement.blur(); } catch(_) {}
       }
-    };
-    const json = JSON.stringify(plan, null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    const auftragsNr = (document.getElementById("welleAuftragNr") || {}).value || "ohneNr";
-    const dateTag = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const safeAuftrag = String(auftragsNr).replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 30);
-    a.download = `Rollenrechner_${M.id}_${safeAuftrag}_${dateTag}.json`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast(`Plan exportiert · ${plan.cluster.length + 1} Aufträge`);
+      const M = getMachine();
+      const mainSnap = captureMainState();
+      // Defensive Validation: Main muss mindestens leer-fähiges Object sein
+      if (!mainSnap || typeof mainSnap !== "object") throw new Error("captureMainState liefert ungültig");
+      const clusterCopy = JSON.parse(JSON.stringify(clusterJobs || []));
+      // Stelle sicher dass alle Jobs eine stabile _jobId haben (sollte schon — defensive)
+      clusterCopy.forEach(j => { if (j._jobId == null) j._jobId = assignNextJobId(); });
+      const plan = {
+        plan_name: `Plan ${new Date().toISOString().slice(0, 16).replace("T", " ")}`,
+        schema_version: "1.1",
+        machine: M.id,
+        machine_label: M.label,
+        trim_strategy: (typeof readTrimMode === "function") ? readTrimMode(M.id) : "sym",
+        bahn_offset_mm: parseFloat(localStorage.getItem("rr.bahnOffset." + M.id) || "0"),
+        primary_job_id: __primaryJobId,
+        next_job_id: __nextJobId,
+        main: mainSnap,
+        cluster: clusterCopy,
+        metadata: {
+          created: new Date().toISOString(),
+          tool_version: "1.99.11",
+          cluster_count: clusterCopy.length,
+          max_cluster: MAX_CLUSTER
+        }
+      };
+      const json = JSON.stringify(plan, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const auftragsNr = (document.getElementById("welleAuftragNr") || {}).value || "ohneNr";
+      const dateTag = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const safeAuftrag = String(auftragsNr).replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 30) || "ohneNr";
+      a.download = `Rollenrechner_${M.id}_${safeAuftrag}_${dateTag}.json`;
+      document.body.appendChild(a);
+      a.click();
+      // Cleanup mit Delay damit Download wirklich gestartet hat
+      setTimeout(() => {
+        try { document.body.removeChild(a); } catch(_) {}
+        try { URL.revokeObjectURL(url); } catch(_) {}
+      }, 200);
+      const count = clusterCopy.length;
+      toast(`✓ Plan exportiert · ${count + 1} Aufträge · ${blob.size} Bytes`);
+    } catch(err) {
+      console.error("[exportPlanJson] error:", err);
+      toast("Export fehlgeschlagen: " + (err.message || err), "err");
+    }
   }
 
   function importPlanJson(file) {
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast("Datei zu groß (>5 MB) — vermutlich kein Plan-JSON", "err");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = (e) => {
+      let plan;
       try {
-        const plan = JSON.parse(e.target.result);
-        if (!plan || typeof plan !== "object") throw new Error("Kein gültiges JSON-Plan-Objekt");
+        plan = JSON.parse(e.target.result);
+      } catch (parseErr) {
+        console.error("[importPlanJson] JSON-Parse-Error:", parseErr);
+        toast("Datei ist kein gültiges JSON: " + parseErr.message, "err");
+        return;
+      }
+      if (!plan || typeof plan !== "object") {
+        toast("JSON enthält kein Plan-Objekt", "err");
+        return;
+      }
+      if (!plan.machine || (!plan.main && !plan.cluster)) {
+        toast("Plan-Schema fehlt (machine/main/cluster nicht gefunden)", "err");
+        return;
+      }
+      try {
         // 1. Maschine wechseln falls nötig
         if (plan.machine && plan.machine !== activeMachineId && typeof setActiveMachine === "function") {
           setActiveMachine(plan.machine);
@@ -9142,11 +9242,18 @@ audio.team-player-audio::-webkit-media-controls-panel {
           const offsetEl = document.getElementById("bahnOffset");
           if (offsetEl) offsetEl.value = String(plan.bahn_offset_mm);
         }
-        // 4. Cluster-Jobs setzen
+        // 4. JobId-Counter wiederherstellen (für Tab-Sortier-Stabilität)
+        if (plan.next_job_id && typeof plan.next_job_id === "number") {
+          __nextJobId = Math.max(__nextJobId, plan.next_job_id);
+          try { localStorage.setItem("rr.nextJobId", String(__nextJobId)); } catch(_) {}
+        }
+        if (plan.primary_job_id && typeof plan.primary_job_id === "number") {
+          setPrimaryJobId(plan.primary_job_id);
+        }
+        // 5. Cluster-Jobs setzen (mit ensureClusterJobShape für _jobId-Garantie)
         if (Array.isArray(plan.cluster)) {
           clusterJobs = plan.cluster.map(j => ensureClusterJobShape(j));
           saveClusterJobs();
-          // Cluster-Section öffnen wenn Folgeaufträge da
           if (clusterJobs.length > 0) {
             const ct = document.getElementById("clusterToggle");
             const cs = document.getElementById("clusterSection");
@@ -9155,20 +9262,26 @@ audio.team-player-audio::-webkit-media-controls-panel {
           }
           renderClusterJobs();
         }
-        // 5. Main-State zuletzt (triggert calc + UI-Updates)
+        // 6. Main-State zuletzt (triggert calc + UI-Updates)
         if (plan.main) applyMainState(plan.main, { calc: true });
         else if (typeof calc === "function") calc();
-        // 6. Tabs synchronisieren
+        // 7. Tabs synchronisieren (renderClusterJobs sollte das eh tun, defensive)
         if (typeof renderAuftragTabs === "function") renderAuftragTabs();
         const count = (plan.cluster && plan.cluster.length) || 0;
-        toast(`Plan geladen · "${plan.plan_name || "ohne Name"}" · ${count + 1} Aufträge (${plan.machine_label || plan.machine || "?"})`);
+        const planName = plan.plan_name || "ohne Name";
+        const machineLabel = plan.machine_label || plan.machine || "?";
+        toast(`✓ Plan geladen · "${planName}" · ${count + 1} Aufträge · ${machineLabel}`);
       } catch(err) {
-        console.error("[importPlanJson] error:", err);
-        toast("Import fehlgeschlagen: " + (err.message || err), "err");
+        console.error("[importPlanJson] restore error:", err);
+        toast("Import-Fehler nach JSON-Parse: " + (err.message || err), "err");
       }
     };
-    reader.onerror = () => toast("JSON-Datei konnte nicht gelesen werden", "err");
-    reader.readAsText(file);
+    reader.onerror = () => {
+      console.error("[importPlanJson] FileReader error:", reader.error);
+      toast("Datei konnte nicht gelesen werden", "err");
+    };
+    try { reader.readAsText(file); }
+    catch (err) { toast("Datei-Lesen fehlgeschlagen: " + err.message, "err"); }
   }
 
   // ============== Master-Welle-Engine (port aus Wellenbestückungs-Tool) ==============
