@@ -1695,6 +1695,90 @@ header.bar {
   --wdo-glow: rgba(0,212,255,0.30);
 }
 
+/* === v1.99.10 Auftrags-Tabs · Wechsel zwischen Primary + Folgeaufträgen === */
+.auftrag-tabs {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  margin-bottom: var(--s-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-2);
+  background: var(--bg-card);
+  flex-wrap: wrap;
+}
+.auftrag-tabs[hidden] { display: none; }
+.at-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 10.5px; font-weight: 800;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.at-list {
+  display: flex; gap: 4px; flex-wrap: wrap; flex: 1;
+}
+.at-tab {
+  padding: 8px 14px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--bg-base);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: all 120ms ease;
+  display: inline-flex; align-items: center; gap: 8px;
+  line-height: 1.1;
+}
+.at-tab:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+.at-tab[aria-pressed="true"] {
+  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-dark) 100%);
+  color: #062b14;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px var(--accent-glow-soft);
+}
+.at-tab .at-tab-id { font-weight: 800; }
+.at-tab .at-tab-meta {
+  font-size: 10px; opacity: 0.72; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.at-tab[aria-pressed="true"] .at-tab-meta { opacity: 0.85; }
+.at-actions {
+  display: flex; gap: 6px;
+  flex-shrink: 0;
+}
+.at-action-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 11px;
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: all 120ms ease;
+}
+.at-action-btn:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: rgba(0,230,118,0.04);
+}
+@media (max-width: 720px) {
+  .auftrag-tabs { gap: 8px; padding: 8px 10px; }
+  .at-list { gap: 3px; }
+  .at-tab { padding: 6px 10px; font-size: 11px; }
+  .at-tab .at-tab-meta { display: none; }
+}
+
 /* === v1.99.7 Auftrags-Solo-Card · Hover/Click in Master-Welle-Cluster === */
 .job-solo-card {
   position: absolute;
@@ -4921,6 +5005,26 @@ audio.team-player-audio::-webkit-media-controls-panel {
   </header>
 
   <div class="stage">
+
+    <!-- ============== Auftrags-Tabs (v1.99.10) · Wechsel zwischen Primary + Folgeaufträgen ============== -->
+    <section class="auftrag-tabs" id="auftragTabs" aria-label="Auftrags-Auswahl" hidden>
+      <div class="at-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <span>Auftrag</span>
+      </div>
+      <div class="at-list" id="atList" role="tablist"></div>
+      <div class="at-actions">
+        <button type="button" class="at-action-btn" id="atExportBtn" tabindex="-1" title="Gesamten Plan (Primary + alle Folgeaufträge) als JSON-Datei speichern">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>Speichern</span>
+        </button>
+        <button type="button" class="at-action-btn" id="atImportBtn" tabindex="-1" title="Plan aus JSON-Datei laden">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>Laden</span>
+        </button>
+        <input type="file" id="atImportFile" accept=".json,application/json" hidden>
+      </div>
+    </section>
 
     <!-- ============== HERO STRIP (full width) ============== -->
     <section class="hero-strip fade-up fade-up-1" id="hero" aria-labelledby="hero-title">
@@ -8923,6 +9027,148 @@ audio.team-player-audio::-webkit-media-controls-panel {
     });
     // Σ-Aggregat-Zeile updaten
     if (typeof renderClusterAggregate === "function") renderClusterAggregate();
+    // v1.99.10: Auftrags-Tabs synchronisieren (Tabs sichtbar wenn Cluster aktiv)
+    if (typeof renderAuftragTabs === "function") renderAuftragTabs();
+  }
+
+  // ============== v1.99.10 · Auftrags-Tabs Switcher ==============
+  // Werker wechselt zwischen Primary (immer A1) und Folgeaufträgen (A2..AN) per Klick.
+  // Nutzt existing swapSlotWithMain-Logic — A1 immer im Haupt-Eingabe-Bereich,
+  // alle anderen wandern bei Klick rein und zurück.
+  function renderAuftragTabs() {
+    const root = document.getElementById("auftragTabs");
+    const list = document.getElementById("atList");
+    if (!root || !list) return;
+    if (!Array.isArray(clusterJobs) || clusterJobs.length === 0) {
+      root.hidden = true;
+      return;
+    }
+    root.hidden = false;
+    list.innerHTML = "";
+    // Primary-Tab (immer aktiv — Primary lebt im Haupt-Eingabe-Bereich)
+    const primaryEl = els.mutter, primarySchmalEl = els.schmal;
+    const primaryMr = (primaryEl && primaryEl.value) || "—";
+    const primarySchmal = (primarySchmalEl && primarySchmalEl.value) || "—";
+    const primaryTab = document.createElement("button");
+    primaryTab.type = "button";
+    primaryTab.className = "at-tab";
+    primaryTab.setAttribute("aria-pressed", "true");
+    primaryTab.setAttribute("role", "tab");
+    primaryTab.tabIndex = -1;
+    primaryTab.dataset.atIdx = "primary";
+    primaryTab.innerHTML = `<span class="at-tab-id">A1</span><span class="at-tab-meta">MR ${primaryMr} · ${primarySchmal}</span>`;
+    list.appendChild(primaryTab);
+    // Cluster-Slots als Tabs (A2..AN)
+    clusterJobs.forEach((job, idx) => {
+      const tab = document.createElement("button");
+      tab.type = "button";
+      tab.className = "at-tab";
+      tab.setAttribute("aria-pressed", "false");
+      tab.setAttribute("role", "tab");
+      tab.tabIndex = -1;
+      tab.dataset.atIdx = String(idx);
+      tab.innerHTML = `<span class="at-tab-id">A${idx + 2}</span><span class="at-tab-meta">MR ${job.mr || "—"} · ${job.haupt || "—"}</span>`;
+      list.appendChild(tab);
+    });
+    // Click-Listener: Tab klick → swapSlotWithMain (Slot kommt in Main, Main wandert
+    // in Slot — existing swap-Logic, vollständig getestet).
+    list.querySelectorAll(".at-tab").forEach(t => {
+      t.addEventListener("click", () => {
+        const idx = t.dataset.atIdx;
+        if (idx === "primary") return; // bereits aktiv
+        const slotIdx = parseInt(idx);
+        if (!isNaN(slotIdx) && clusterJobs[slotIdx]) {
+          swapSlotWithMain(slotIdx);
+          // renderClusterJobs ruft renderAuftragTabs am Ende
+        }
+      });
+    });
+  }
+
+  // ============== v1.99.10 · Plan-Export / -Import (JSON-Bridge) ==============
+  // Power-User-Feature: kompletter Plan (Maschine + Primary + Folgeaufträge + Settings)
+  // als JSON-Datei lokal speichern. Bridge bis ERP-Anbindung.
+  function exportPlanJson() {
+    const M = getMachine();
+    const plan = {
+      plan_name: `Plan ${new Date().toISOString().slice(0, 16).replace("T", " ")}`,
+      schema_version: "1.0",
+      machine: M.id,
+      machine_label: M.label,
+      trim_strategy: (typeof readTrimMode === "function") ? readTrimMode(M.id) : "sym",
+      bahn_offset_mm: parseFloat(localStorage.getItem("rr.bahnOffset." + M.id) || "0"),
+      main: captureMainState(),
+      cluster: JSON.parse(JSON.stringify(clusterJobs || [])),
+      metadata: {
+        created: new Date().toISOString(),
+        tool_version: "1.99.10",
+        cluster_count: (clusterJobs || []).length,
+        max_cluster: MAX_CLUSTER
+      }
+    };
+    const json = JSON.stringify(plan, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const auftragsNr = (document.getElementById("welleAuftragNr") || {}).value || "ohneNr";
+    const dateTag = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const safeAuftrag = String(auftragsNr).replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 30);
+    a.download = `Rollenrechner_${M.id}_${safeAuftrag}_${dateTag}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast(`Plan exportiert · ${plan.cluster.length + 1} Aufträge`);
+  }
+
+  function importPlanJson(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const plan = JSON.parse(e.target.result);
+        if (!plan || typeof plan !== "object") throw new Error("Kein gültiges JSON-Plan-Objekt");
+        // 1. Maschine wechseln falls nötig
+        if (plan.machine && plan.machine !== activeMachineId && typeof setActiveMachine === "function") {
+          setActiveMachine(plan.machine);
+        }
+        // 2. Trim-Strategie setzen
+        if (plan.trim_strategy && typeof writeTrimMode === "function") {
+          writeTrimMode(getMachine().id, plan.trim_strategy);
+          if (typeof syncTrimModeUI === "function") syncTrimModeUI();
+        }
+        // 3. Bahn-Offset setzen
+        if (plan.bahn_offset_mm != null) {
+          try { localStorage.setItem("rr.bahnOffset." + getMachine().id, String(plan.bahn_offset_mm)); } catch(_) {}
+          const offsetEl = document.getElementById("bahnOffset");
+          if (offsetEl) offsetEl.value = String(plan.bahn_offset_mm);
+        }
+        // 4. Cluster-Jobs setzen
+        if (Array.isArray(plan.cluster)) {
+          clusterJobs = plan.cluster.map(j => ensureClusterJobShape(j));
+          saveClusterJobs();
+          // Cluster-Section öffnen wenn Folgeaufträge da
+          if (clusterJobs.length > 0) {
+            const ct = document.getElementById("clusterToggle");
+            const cs = document.getElementById("clusterSection");
+            if (ct) ct.setAttribute("aria-expanded", "true");
+            if (cs) cs.setAttribute("aria-hidden", "false");
+          }
+          renderClusterJobs();
+        }
+        // 5. Main-State zuletzt (triggert calc + UI-Updates)
+        if (plan.main) applyMainState(plan.main, { calc: true });
+        else if (typeof calc === "function") calc();
+        // 6. Tabs synchronisieren
+        if (typeof renderAuftragTabs === "function") renderAuftragTabs();
+        const count = (plan.cluster && plan.cluster.length) || 0;
+        toast(`Plan geladen · "${plan.plan_name || "ohne Name"}" · ${count + 1} Aufträge (${plan.machine_label || plan.machine || "?"})`);
+      } catch(err) {
+        console.error("[importPlanJson] error:", err);
+        toast("Import fehlgeschlagen: " + (err.message || err), "err");
+      }
+    };
+    reader.onerror = () => toast("JSON-Datei konnte nicht gelesen werden", "err");
+    reader.readAsText(file);
   }
 
   // ============== Master-Welle-Engine (port aus Wellenbestückungs-Tool) ==============
@@ -12504,6 +12750,33 @@ audio.team-player-audio::-webkit-media-controls-panel {
       renderClusterJobs();
     });
   }
+
+  // v1.99.10 · Plan-Export/Import-Buttons in der Auftrags-Tabs-Section wiren
+  const atExportBtn = document.getElementById("atExportBtn");
+  const atImportBtn = document.getElementById("atImportBtn");
+  const atImportFile = document.getElementById("atImportFile");
+  if (atExportBtn) atExportBtn.addEventListener("click", () => {
+    if (typeof exportPlanJson === "function") exportPlanJson();
+  });
+  if (atImportBtn && atImportFile) {
+    atImportBtn.addEventListener("click", () => atImportFile.click());
+    atImportFile.addEventListener("change", (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file && typeof importPlanJson === "function") importPlanJson(file);
+      e.target.value = ""; // reset for next select
+    });
+  }
+  // Initial render der Tabs (falls clusterJobs aus localStorage geladen wurden)
+  if (typeof renderAuftragTabs === "function") renderAuftragTabs();
+
+  // Tab-Sync bei Main-Input-Änderungen (Primary-Tab zeigt MR/Schmal aktuell)
+  ["mutter", "schmal"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener("input", () => {
+      if (typeof renderAuftragTabs === "function" && clusterJobs.length > 0) renderAuftragTabs();
+    });
+  });
 
   // ============== Bulk-Paste · Aufträge aus Excel/CSV einfügen ==============
   // Spalten-Reihenfolge: MR · Haupt · Neben · Anz, getrennt durch Tab oder Semikolon
