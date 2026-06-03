@@ -1717,6 +1717,38 @@ header.bar {
 }
 .at-list {
   display: flex; gap: 4px; flex-wrap: wrap; flex: 1;
+  align-items: center;
+}
+/* Tab-Wrap: hält Tab + Lösch-× nebeneinander */
+.at-tab-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+}
+/* Lösch-× — klein, nur bei Hover des Wraps sichtbar */
+.at-tab-del {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 22px;
+  margin-left: 2px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-base);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.at-tab-wrap:hover .at-tab-del,
+.at-tab-del:focus { opacity: 1; }
+.at-tab-del:hover {
+  color: #ff5252;
+  border-color: #ff5252;
+  background: rgba(255,82,82,0.10);
 }
 .at-tab {
   padding: 8px 14px;
@@ -9226,6 +9258,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // Stabile Reihenfolge nach JobId (numerisch aufsteigend)
     allTabs.sort((a, b) => a.jobId - b.jobId);
     allTabs.forEach(t => {
+      // Container DIV statt button — damit das ×-Lösch-Icon als Sub-Button funktioniert
+      const wrap = document.createElement("div");
+      wrap.className = "at-tab-wrap";
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = "at-tab" + (t.isPrimary ? " at-tab-active" : "");
@@ -9235,7 +9270,21 @@ audio.team-player-audio::-webkit-media-controls-panel {
       btn.dataset.atIdx = t.isPrimary ? "primary" : String(t.slotIdx);
       btn.dataset.atJobId = String(t.jobId);
       btn.innerHTML = `<span class="at-tab-id">A${t.jobId}</span><span class="at-tab-meta">MR ${t.mr} · ${t.schmal}</span>`;
-      list.appendChild(btn);
+      wrap.appendChild(btn);
+      // Lösch-Icon (×) — NICHT für Primary (sonst hat man keinen Auftrag mehr)
+      if (!t.isPrimary && t.slotIdx != null) {
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "at-tab-del";
+        delBtn.setAttribute("aria-label", `Auftrag A${t.jobId} löschen`);
+        delBtn.title = `Auftrag A${t.jobId} löschen`;
+        delBtn.tabIndex = -1;
+        delBtn.dataset.delIdx = String(t.slotIdx);
+        delBtn.dataset.delJobId = String(t.jobId);
+        delBtn.innerHTML = "×";
+        wrap.appendChild(delBtn);
+      }
+      list.appendChild(wrap);
     });
     // "+ Neuer Auftrag"-Tab am Ende (deaktiviert wenn MAX_CLUSTER erreicht)
     const addTab = document.createElement("button");
@@ -9250,6 +9299,25 @@ audio.team-player-audio::-webkit-media-controls-panel {
     addTab.dataset.atIdx = "add";
     list.appendChild(addTab);
 
+    // Lösch-Button-Handler — mit Confirm vor Aktion
+    list.querySelectorAll(".at-tab-del").forEach(d => {
+      d.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const slotIdx = parseInt(d.dataset.delIdx);
+        const jobId = d.dataset.delJobId;
+        if (isNaN(slotIdx) || !clusterJobs[slotIdx]) return;
+        const j = clusterJobs[slotIdx];
+        const mr = j.mr || "—";
+        const schmal = j.haupt || "—";
+        const auftragsNr = j.auftragsNr ? ` (${j.auftragsNr})` : "";
+        const msg = `Auftrag A${jobId}${auftragsNr} · MR ${mr} mm · Schmal ${schmal} mm\n\nWirklich löschen?\n\nDie Eingaben gehen verloren und können nicht wiederhergestellt werden.`;
+        if (!confirm(msg)) return;
+        clusterJobs.splice(slotIdx, 1);
+        saveClusterJobs();
+        renderClusterJobs();
+        toast(`✓ Auftrag A${jobId} gelöscht`);
+      });
+    });
     list.querySelectorAll(".at-tab").forEach(t => {
       t.addEventListener("click", () => {
         const idx = t.dataset.atIdx;
