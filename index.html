@@ -1695,6 +1695,119 @@ header.bar {
   --wdo-glow: rgba(0,212,255,0.30);
 }
 
+/* === v1.99.7 Auftrags-Solo-Card · Hover/Click in Master-Welle-Cluster === */
+.job-solo-card {
+  position: absolute;
+  top: 10px; right: 10px;
+  max-width: 320px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--accent-primary, #00e676);
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 16px rgba(0,230,118,0.15);
+  opacity: 0;
+  transition: opacity 140ms ease;
+  pointer-events: none;
+  z-index: 30;
+  font-size: 12px;
+}
+.job-solo-card[aria-hidden="false"] { opacity: 1; }
+.job-solo-card .jsc-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 6px;
+}
+.job-solo-card .jsc-eyebrow {
+  font-size: 9.5px; font-weight: 800; letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.job-solo-card .jsc-mode {
+  font-size: 9.5px; font-weight: 700;
+  color: var(--accent-primary, #00e676);
+  background: rgba(0,230,118,0.10);
+  padding: 1.5px 7px;
+  border-radius: 3px;
+  letter-spacing: 0.02em;
+}
+.job-solo-card[data-mode="solo"] .jsc-mode {
+  color: #ffb74d;
+  background: rgba(255,180,77,0.12);
+}
+.job-solo-card .jsc-title {
+  font-size: 16px; font-weight: 800;
+  margin-bottom: 4px;
+  letter-spacing: 0.01em;
+}
+.job-solo-card .jsc-meta {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.job-solo-card .jsc-stats {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  font-variant-numeric: tabular-nums;
+  font-size: 11.5px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed rgba(255,255,255,0.08);
+}
+.job-solo-card .jsc-stats .jsc-k { color: var(--text-secondary); }
+.job-solo-card .jsc-stats .jsc-v { color: var(--text-primary); font-weight: 700; text-align: right; }
+.job-solo-card .jsc-stats .jsc-v-hi { color: var(--accent-primary, #00e676); font-weight: 800; }
+.job-solo-card .jsc-stats .jsc-v-warn { color: #ffb74d; font-weight: 800; }
+.job-solo-card .jsc-foot {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  font-style: italic;
+}
+.job-solo-card .jsc-foot strong { color: var(--accent-primary, #00e676); font-style: normal; }
+
+/* Solo-Banner · prominent bei aktivem Click-Solo-Mode */
+.job-solo-banner {
+  display: none;
+  position: absolute;
+  top: 10px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  background: linear-gradient(135deg, rgba(255,180,77,0.18), rgba(255,180,77,0.08));
+  border: 1.5px solid #ffb74d;
+  color: #ffb74d;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 0 18px rgba(255,180,77,0.20);
+  display: none;
+  align-items: center;
+  gap: 10px;
+}
+.job-solo-banner[aria-hidden="false"] { display: inline-flex; }
+.job-solo-banner .jsb-icon { font-size: 14px; }
+.job-solo-banner .jsb-close {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,180,77,0.5);
+  color: #ffb74d;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: background 120ms ease;
+}
+.job-solo-banner .jsb-close:hover { background: rgba(255,180,77,0.2); }
+
+/* Track-Highlight-States — opacity wird via JS gesetzt (data-track-active als
+   nur-marker für Solo-Mode-Erkennung in Print/anderen Scopes). */
+#welleSvg .welle-track-group { transition: opacity 180ms ease; cursor: pointer; }
+#welleSvg .welle-track-connections { transition: opacity 180ms ease; }
+#welleSvg .welle-track-group[data-track-job] .welle-track-bg { transition: stroke 160ms ease, stroke-width 160ms ease; }
+
 /* Hover-States für interaktive SVG-Segments */
 #welleSvg .welle-seg-hit {
   cursor: pointer;
@@ -5566,6 +5679,23 @@ audio.team-player-audio::-webkit-media-controls-panel {
         Hover oder antippen für Bauteil-Details
       </div>
 
+      <!-- v1.99.7 Auftrags-Solo-Card · Hover/Click auf Track in Master-Welle-Cluster -->
+      <div class="job-solo-card" id="jobSoloCard" aria-hidden="true">
+        <div class="jsc-head">
+          <span class="jsc-eyebrow" id="jscEyebrow">Auftrag</span>
+          <span class="jsc-mode" id="jscMode">Hover-Vorschau</span>
+        </div>
+        <div class="jsc-title" id="jscTitle">A—</div>
+        <div class="jsc-meta" id="jscMeta">—</div>
+        <div class="jsc-stats" id="jscStats"></div>
+        <div class="jsc-foot" id="jscFoot"></div>
+      </div>
+      <div class="job-solo-banner" id="jobSoloBanner" aria-hidden="true">
+        <span class="jsb-icon">🔍</span>
+        <span class="jsb-text" id="jobSoloBannerText">Solo-Mode aktiv</span>
+        <button type="button" class="jsb-close" id="jobSoloClose" aria-label="Solo-Mode beenden">↺ Cluster-Ansicht</button>
+      </div>
+
 
       <!-- Folgeauftrags-Cluster (Beta) — Multi-Order Master-Welle -->
       <button type="button" class="cluster-toggle" id="clusterToggle" aria-expanded="false" aria-controls="clusterSection" tabindex="-1">
@@ -7067,6 +7197,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // v1.95: Hover/Touch-Interaktion einmalig wiren
     if (typeof setupWelleSegInteraction === "function") setupWelleSegInteraction();
     if (typeof setupCrossHighlight === "function") setupCrossHighlight();
+    if (typeof setupTrackInteraction === "function") setupTrackInteraction();
+    // v1.99.7: Solo-Mode bei Re-Render zurücksetzen (Tracks werden neu gerendert,
+    // alter Solo-State passt nicht mehr zu den neuen Elementen)
+    if (typeof window._resetTrackSolo === "function") window._resetTrackSolo();
     const M = getMachine();
     const isCenter = M.welleRenderMode === "center";
     const hasParkRing = (M.PARK_PRO_SEITE > 0);
@@ -7653,22 +7787,43 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const ty = tracksY0 + trackHeader + i * (trackH + trackGap);
         const tmidY = ty + trackH / 2;
         const color = jobColors[i % jobColors.length];
+        // Connection-Lines auch in einem Group mit data-track-job, damit Solo-Mode/Hover
+        // sie mit-dimmen kann.
+        const connG = svgW(g, "g", {
+          class: "welle-track-connections",
+          "data-track-job": String(i)
+        });
         for (const c of jw.cuts) {
           const x = xAt(c);
           // Durchgehende farbige Linie von Track-Mittelpunkt bis Master-Bar-Boden
-          svgW(g, "line", { x1: x, y1: barBottom, x2: x, y2: tmidY,
+          svgW(connG, "line", { x1: x, y1: barBottom, x2: x, y2: tmidY,
             stroke: color, "stroke-width": "1.4", opacity: "0.45" });
         }
       });
 
-      // PHASE 2: Pro Job Track + Markers
+      // PHASE 2: Pro Job Track + Markers — wrap in <g> für Solo/Hover-Interaktion
       d.validJobs.forEach((jw, i) => {
         const ty = tracksY0 + trackHeader + i * (trackH + trackGap);
         const tmidY = ty + trackH / 2;
         const color = jobColors[i % jobColors.length];
 
-        // Track-Background
+        // Track-Group: ein <g> pro Track. Hover/Click setzt CSS-Class auf SVG-Root,
+        // welche dann via attribute-Selector die anderen Tracks dimmt.
+        const g = svgW(svgEl, "g", {
+          class: "welle-track-group",
+          "data-track-job": String(i),
+          "data-job-idx": String(jw.idx),
+          "data-job-mr": String(jw.mr),
+          "data-job-haupt": String(jw.haupt),
+          "data-job-versatz": String(jw.versatz || 0),
+          "data-job-cuts-active": String(jw.cuts.length),
+          "data-job-cuts-total": String(d.cuts.length),
+          style: "cursor: pointer;"
+        });
+
+        // Track-Background (hit-area für Hover/Click)
         svgW(g, "rect", { x: padX, y: ty, width: innerW, height: trackH,
+          class: "welle-track-bg",
           fill: "rgba(0,0,0,0.4)", stroke: "rgba(255,255,255,0.07)", "stroke-width": "0.7", rx: "5" });
 
         // Park-Zonen dezent
@@ -9722,6 +9877,143 @@ audio.team-player-audio::-webkit-media-controls-panel {
     });
   }
   // Wire-up beim ersten Render (renderWelleSvg ruft das mit auf)
+
+  // v1.99.7 · Track-Interaction (Master-Welle-Cluster):
+  //   Hover  → temporäre Vorschau: dim alle anderen Tracks, Tooltip mit Stats
+  //   Click  → persistenter Solo-Mode (Werker kann in Ruhe Stückliste lesen)
+  //   Click2 → exit Solo-Mode (zurück zur Cluster-Ansicht)
+  let __trackInteractionWired = false;
+  let __soloJobIdx = null;        // null = Cluster, number = Solo für Job
+  let __hoverJobIdx = null;       // Hover-Vorschau wenn nicht im Solo
+  function setupTrackInteraction() {
+    if (__trackInteractionWired) return;
+    __trackInteractionWired = true;
+    const svg = document.getElementById("welleSvg");
+    if (!svg) return;
+    const card = document.getElementById("jobSoloCard");
+    const banner = document.getElementById("jobSoloBanner");
+    const bannerText = document.getElementById("jobSoloBannerText");
+    const closeBtn = document.getElementById("jobSoloClose");
+
+    function setActiveTrack(activeIdx, mode) {
+      const groups = svg.querySelectorAll(".welle-track-group, .welle-track-connections");
+      groups.forEach(grp => {
+        const idx = parseInt(grp.getAttribute("data-track-job"));
+        const isConn = grp.classList.contains("welle-track-connections");
+        if (activeIdx == null) {
+          grp.style.opacity = "";
+        } else if (idx === activeIdx) {
+          grp.style.opacity = "1";
+        } else {
+          grp.style.opacity = isConn ? "0.10" : "0.18";
+        }
+      });
+      if (activeIdx == null) svg.removeAttribute("data-track-active");
+      else svg.setAttribute("data-track-active", String(activeIdx));
+      // Card-Mode
+      if (card) card.setAttribute("data-mode", mode || "hover");
+    }
+
+    function fillCard(trackG) {
+      if (!card) return;
+      const jobIdx = parseInt(trackG.getAttribute("data-job-idx"));
+      const mr = trackG.getAttribute("data-job-mr");
+      const haupt = trackG.getAttribute("data-job-haupt");
+      const versatz = parseFloat(trackG.getAttribute("data-job-versatz") || "0");
+      const cutsActive = parseInt(trackG.getAttribute("data-job-cuts-active"));
+      const cutsTotal = parseInt(trackG.getAttribute("data-job-cuts-total"));
+      const cutsParked = cutsTotal - cutsActive;
+      const usagePct = cutsTotal > 0 ? Math.round((cutsActive / cutsTotal) * 100) : 0;
+      const elTitle = document.getElementById("jscTitle");
+      const elMeta = document.getElementById("jscMeta");
+      const elStats = document.getElementById("jscStats");
+      const elFoot = document.getElementById("jscFoot");
+      const elMode = document.getElementById("jscMode");
+      if (elTitle) elTitle.textContent = `Auftrag ${jobIdx + 1}`;
+      if (elMeta) elMeta.textContent = `MR ${mr} mm · Schmal ${haupt} mm` + (versatz ? ` · Δ ${versatz>0?"+":""}${versatz} mm` : "");
+      if (elStats) {
+        elStats.innerHTML = `
+          <span class="jsc-k">Aktive Schnittkanten:</span><span class="jsc-v jsc-v-hi">${cutsActive}</span>
+          <span class="jsc-k">davon mit Cluster geteilt:</span><span class="jsc-v">— *</span>
+          <span class="jsc-k">Geparkte (für andere):</span><span class="jsc-v jsc-v-warn">${cutsParked}</span>
+          <span class="jsc-k">Master-SE-Nutzung:</span><span class="jsc-v">${usagePct} %</span>
+        `;
+      }
+      if (elFoot) {
+        const allein = `Allein gefahren: ~${cutsActive} eigene SE · 1 zusätzlicher Setup-Wechsel`;
+        const cluster = `Im Cluster: <strong>0 Wechsel</strong>, Setup mit anderen Aufträgen geteilt.`;
+        elFoot.innerHTML = `${allein}<br>${cluster}`;
+      }
+      if (elMode) elMode.textContent = __soloJobIdx === jobIdx ? "Solo-Mode (Click)" : "Hover-Vorschau";
+    }
+
+    function showCard() { if (card) card.setAttribute("aria-hidden", "false"); }
+    function hideCard() { if (card) card.setAttribute("aria-hidden", "true"); }
+
+    function enterSolo(idx) {
+      __soloJobIdx = idx;
+      setActiveTrack(idx, "solo");
+      const trackG = svg.querySelector(`.welle-track-group[data-track-job="${idx}"]`);
+      if (trackG) fillCard(trackG);
+      showCard();
+      if (banner && bannerText) {
+        bannerText.textContent = `🔍 Solo-Mode aktiv · Auftrag ${idx + 1} isoliert · Klick nochmal zum Beenden`;
+        banner.setAttribute("aria-hidden", "false");
+      }
+    }
+    function exitSolo() {
+      __soloJobIdx = null;
+      setActiveTrack(__hoverJobIdx, "hover");
+      if (banner) banner.setAttribute("aria-hidden", "true");
+      if (__hoverJobIdx == null) hideCard();
+    }
+
+    // Pointer-Events auf svg (delegation)
+    svg.addEventListener("pointermove", (e) => {
+      if ((e.pointerType || "mouse") !== "mouse") return;
+      const trackG = e.target.closest(".welle-track-group[data-track-job]");
+      if (trackG) {
+        const idx = parseInt(trackG.getAttribute("data-track-job"));
+        __hoverJobIdx = idx;
+        if (__soloJobIdx == null) {
+          setActiveTrack(idx, "hover");
+          fillCard(trackG);
+          showCard();
+        }
+      } else if (__soloJobIdx == null) {
+        __hoverJobIdx = null;
+        setActiveTrack(null);
+        hideCard();
+      }
+    });
+    svg.addEventListener("pointerleave", () => {
+      __hoverJobIdx = null;
+      if (__soloJobIdx == null) {
+        setActiveTrack(null);
+        hideCard();
+      }
+    });
+    svg.addEventListener("pointerdown", (e) => {
+      const trackG = e.target.closest(".welle-track-group[data-track-job]");
+      if (!trackG) return;
+      const idx = parseInt(trackG.getAttribute("data-track-job"));
+      e.stopPropagation();
+      if (__soloJobIdx === idx) {
+        exitSolo();
+      } else {
+        enterSolo(idx);
+      }
+    });
+    // Solo-Banner Close-Button
+    if (closeBtn) {
+      closeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (__soloJobIdx != null) exitSolo();
+      });
+    }
+    // Reset Solo bei Re-Render (welle wird neu gebaut)
+    window._resetTrackSolo = exitSolo;
+  }
 
   // v1.95: Cross-Highlight — Welle ↔ Sequenz ↔ Stückliste bidirektional verbunden.
   // Werker hovert über ein Welle-Segment → die zugehörige Sequenz-Zeile pulsiert,
