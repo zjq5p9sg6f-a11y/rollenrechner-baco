@@ -1813,11 +1813,17 @@ header.bar {
   .at-tab .at-tab-meta { display: none; }
 }
 
+/* === v1.99.13 Welle-Stage-Wrap · Card+Banner direkt an der Welle === */
+.welle-stage-wrap {
+  position: relative;
+  width: 100%;
+}
+
 /* === v1.99.7 Auftrags-Solo-Card · Hover/Click in Master-Welle-Cluster === */
 .job-solo-card {
   position: absolute;
-  top: 10px; right: 10px;
-  max-width: 320px;
+  top: 8px; right: 8px;
+  max-width: 280px;
   background: var(--bg-card);
   border: 1.5px solid var(--accent-primary, #00e676);
   border-radius: 8px;
@@ -5718,6 +5724,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
         </div>
       </div>
 
+      <!-- v1.99.13: Wrapper für welle-svg + Solo-Card + Solo-Banner.
+           Position:relative → Card/Banner werden direkt neben der Welle positioniert,
+           nicht weit oben im welle-section-Header. -->
+      <div class="welle-stage-wrap" id="welleStageWrap">
       <svg id="welleSvg" viewBox="0 0 1500 460" preserveAspectRatio="xMidYMid meet" aria-label="Bestückte Welle">
         <defs>
           <!-- v1.95 Premium-Detailing: tieferer Stahl-Look, metallische Highlights, weichere Glows -->
@@ -5819,7 +5829,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
         Hover oder antippen für Bauteil-Details
       </div>
 
-      <!-- v1.99.7 Auftrags-Solo-Card · Hover/Click auf Track in Master-Welle-Cluster -->
+      <!-- v1.99.7 Auftrags-Solo-Card · Hover/Click auf Track in Master-Welle-Cluster
+           v1.99.13: Card+Banner sind INSIDE welle-stage-wrap → direkt an der Welle. -->
       <div class="job-solo-card" id="jobSoloCard" aria-hidden="true">
         <div class="jsc-head">
           <span class="jsc-eyebrow" id="jscEyebrow">Auftrag</span>
@@ -5835,6 +5846,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <span class="jsb-text" id="jobSoloBannerText">Solo-Mode aktiv</span>
         <button type="button" class="jsb-close" id="jobSoloClose" aria-label="Solo-Mode beenden">↺ Cluster-Ansicht</button>
       </div>
+      </div><!-- /welle-stage-wrap -->
 
 
       <!-- Folgeauftrags-Cluster (Beta) — Multi-Order Master-Welle -->
@@ -6987,6 +6999,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
   }
   function setActiveMachine(id) {
     if (!MACHINES[id]) return;
+    if (id === activeMachineId) return;
+    // v1.99.13: aktuelle clusterJobs unter alter Maschine sichern BEVOR Wechsel
+    try {
+      if (typeof saveClusterJobs === "function") saveClusterJobs();
+    } catch(_) {}
     activeMachineId = id;
     try { localStorage.setItem("activeMachine", id); } catch (_) {}
     if (typeof onMachineChanged === "function") onMachineChanged();
@@ -7514,8 +7531,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const jobColors = ["#00e676", "#ffb74d", "#42a5f5", "#ec407a", "#ce93d8", "#80cbc4", "#ffd54f", "#ff8a65", "#aed581", "#4dd0e1", "#f48fb1"];
       // groups bereits oben berechnet (für extraTop) — reuse aus cache
       const groups = _mrGroupsCache;
-      // tracksBottom für Projection-Linien (von Bracket bis zum Ende der Track-Zone)
-      const projTracksBottom = barBottom + (isMaster ? (trackHeader + d.validJobs.length * (trackH + trackGap)) : 0);
+      // tracksY0 hier vorberechnen für Projection-Y-End (Track-Mitte pro Job)
+      const __tracksY0 = baseH + 6;
       groups.forEach((grp, i) => {
         const yOff = dimTop2Y + i * 14;
         const lX = xAt(grp.mrLeft), rX = xAt(grp.mrRight);
@@ -7543,17 +7560,21 @@ audio.team-player-audio::-webkit-media-controls-panel {
         svgW(bracketG, "line", { x1: lX, y1: yOff, x2: rX, y2: yOff, stroke: color, "stroke-width": "1", opacity: "0.85" });
         svgW(bracketG, "path", { d: `M${lX} ${yOff} L${lX+7} ${yOff-3} L${lX+7} ${yOff+3} Z`, fill: color, opacity: "0.85" });
         svgW(bracketG, "path", { d: `M${rX} ${yOff} L${rX-7} ${yOff-3} L${rX-7} ${yOff+3} Z`, fill: color, opacity: "0.85" });
-        // Projection-Linien (links + rechts): von Bracket-Y bis Track-Bottom durch
+        // v1.99.13 Projection-Y-End: NUR bis zur Mitte des KORRESPONDIERENDEN Tracks
+        // (vorher: bis zum letzten Track unten — Linien zogen durch alle Tracks durch,
+        // visuell unklar). Bracket i ↔ Track i (gleiche d.validJobs-Reihenfolge).
+        const projY2 = __tracksY0 + trackHeader + i * (trackH + trackGap) + trackH / 2;
+        // Projection-Linien (links + rechts): von Bracket-Y bis Track-Mitte durch
         // die Master-Welle. Standard versteckt (opacity 0), bei aktivem Track sichtbar.
         svgW(bracketG, "line", {
           class: "welle-mr-projection",
-          x1: lX, y1: yOff + 2, x2: lX, y2: projTracksBottom,
+          x1: lX, y1: yOff + 2, x2: lX, y2: projY2,
           stroke: color, "stroke-width": "1.2", "stroke-dasharray": "4 3",
           opacity: "0", "pointer-events": "none"
         });
         svgW(bracketG, "line", {
           class: "welle-mr-projection",
-          x1: rX, y1: yOff + 2, x2: rX, y2: projTracksBottom,
+          x1: rX, y1: yOff + 2, x2: rX, y2: projY2,
           stroke: color, "stroke-width": "1.2", "stroke-dasharray": "4 3",
           opacity: "0", "pointer-events": "none"
         });
@@ -8450,7 +8471,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
   }
 
   // ============== Cluster-State (Folgeaufträge) ==============
-  const CLUSTER_KEY = "rr.clusterJobs";
+  // v1.99.13: pro Maschine separater clusterJobs-State.
+  // Schneiderei kann DCM- und Euromac-Aufträge parallel pflegen — Wechsel
+  // der Maschine lädt die jeweils passenden Aufträge automatisch.
+  const CLUSTER_KEY_LEGACY = "rr.clusterJobs"; // alt — wird beim Migrate gelesen
+  function clusterStorageKey(machineId) { return "rr.clusterJobs." + (machineId || activeMachineId || "DCM"); }
   const MAX_CLUSTER = 10; // bis 10 Folge-Aufträge + Primary = 11 Aufträge max auf Master-Welle
   // Felder pro Cluster-Slot:
   //   Geometrie: mr, haupt, nebenBreite, nebenAnz
@@ -8490,8 +8515,22 @@ audio.team-player-audio::-webkit-media-controls-panel {
     return j;
   }
   function loadClusterJobs() {
+    // v1.99.13: maschinenspezifisch laden. Legacy-Key (rr.clusterJobs) wird als
+    // Fallback in den DCM-Slot migriert, falls neuer Key leer ist.
     try {
-      const saved = JSON.parse(localStorage.getItem(CLUSTER_KEY) || "[]");
+      const key = clusterStorageKey();
+      let raw = localStorage.getItem(key);
+      // Migrate: Legacy-Key war global gültig. Falls existiert + neuer Key leer:
+      // unter aktive Maschine umziehen.
+      if (!raw && activeMachineId === "DCM") {
+        const legacy = localStorage.getItem(CLUSTER_KEY_LEGACY);
+        if (legacy) {
+          raw = legacy;
+          try { localStorage.setItem(key, legacy); } catch(_) {}
+          try { localStorage.removeItem(CLUSTER_KEY_LEGACY); } catch(_) {}
+        }
+      }
+      const saved = JSON.parse(raw || "[]");
       if (Array.isArray(saved)) {
         clusterJobs = saved.slice(0, MAX_CLUSTER).map(j => {
           // Migration v1.19→v1.20: alte Felder "neben: '60×2'" → nebenBreite + nebenAnz
@@ -8512,11 +8551,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
           // Migration v1.26→v1.27: ergänze fehlende Voll-Auftrags-Felder
           return ensureClusterJobShape(j);
         });
+      } else {
+        clusterJobs = [];
       }
     } catch(e) { clusterJobs = []; }
   }
   function saveClusterJobs() {
-    try { localStorage.setItem(CLUSTER_KEY, JSON.stringify(clusterJobs)); } catch(e) {}
+    try { localStorage.setItem(clusterStorageKey(), JSON.stringify(clusterJobs)); } catch(e) {}
   }
 
   // ============== Auftrags-Snapshot · Hauptrechner ↔ Cluster-Slot Swap ==============
@@ -12299,9 +12340,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
     updateMachineInfoUI();
     if (typeof syncBahnOffsetUI === "function") syncBahnOffsetUI();
     if (typeof syncTrimModeUI === "function") syncTrimModeUI();
+    // v1.99.13: clusterJobs neu laden — pro Maschine separater Speicher.
+    // Werker switcht Maschine → seine Aufträge der anderen Maschine bleiben
+    // erhalten, kommen beim Zurückschalten wieder.
+    if (typeof loadClusterJobs === "function") loadClusterJobs();
     if (typeof calc === "function") calc();
     if (typeof renderClusterJobs === "function") renderClusterJobs();
-    toast(`Maschine: ${getMachine().label}`);
+    toast(`Maschine: ${getMachine().label} · ${clusterJobs.length} Folgeauftrag${clusterJobs.length === 1 ? "" : "äge"}`);
   }
   machineBtns.forEach(b => {
     b.addEventListener("click", () => {
