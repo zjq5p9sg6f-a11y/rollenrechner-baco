@@ -1806,6 +1806,8 @@ header.bar {
    nur-marker für Solo-Mode-Erkennung in Print/anderen Scopes). */
 #welleSvg .welle-track-group { transition: opacity 180ms ease; cursor: pointer; }
 #welleSvg .welle-track-connections { transition: opacity 180ms ease; }
+#welleSvg .welle-mr-bracket { transition: opacity 180ms ease; }
+#welleSvg .welle-mr-projection { transition: opacity 220ms ease; }
 #welleSvg .welle-track-group[data-track-job] .welle-track-bg { transition: stroke 160ms ease, stroke-width 160ms ease; }
 
 /* Hover-States für interaktive SVG-Segments */
@@ -7374,23 +7376,43 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const jobColors = ["#00e676", "#ffb74d", "#42a5f5", "#ec407a", "#ce93d8", "#80cbc4", "#ffd54f", "#ff8a65", "#aed581", "#4dd0e1", "#f48fb1"];
       // groups bereits oben berechnet (für extraTop) — reuse aus cache
       const groups = _mrGroupsCache;
+      // tracksBottom für Projection-Linien (von Bracket bis zum Ende der Track-Zone)
+      const projTracksBottom = barBottom + (isMaster ? (trackHeader + d.validJobs.length * (trackH + trackGap)) : 0);
       groups.forEach((grp, i) => {
         const yOff = dimTop2Y + i * 14;
         const lX = xAt(grp.mrLeft), rX = xAt(grp.mrRight);
-        // Erste Job-Farbe für Bracket — bei Multi-Job auf weiß-grün setzen (gemeinsam)
-        const color = grp.jobs.length > 1
-          ? "rgba(220,220,220,0.9)"
-          : jobColors[grp.jobs[0].idx % jobColors.length];
-        svgW(g, "line", { x1: lX, y1: yOff, x2: rX, y2: yOff, stroke: color, "stroke-width": "1", opacity: "0.85" });
-        svgW(g, "path", { d: `M${lX} ${yOff} L${lX+7} ${yOff-3} L${lX+7} ${yOff+3} Z`, fill: color, opacity: "0.85" });
-        svgW(g, "path", { d: `M${rX} ${yOff} L${rX-7} ${yOff-3} L${rX-7} ${yOff+3} Z`, fill: color, opacity: "0.85" });
-        // Label: bei Single-Job "A1 · MR 620", bei Multi-Job "A1+A2 · MR 620"
-        const idsTxt = grp.jobs.map(j => `A${j.idx + 1}`).join("+");
-        const lbl = `${idsTxt} · MR ${grp.jobs[0].mr}`;
+        const jobIdx = grp.jobs[0].idx;
+        // Each Bracket = ein Job (nach cb7594d keine Konsolidierung mehr).
+        // Wrap in <g> für Track-Sync: Hover/Solo auf Track → Bracket leuchtet + Projection.
+        const bracketG = svgW(g, "g", {
+          class: "welle-mr-bracket",
+          "data-track-job": String(i)
+        });
+        const color = jobColors[jobIdx % jobColors.length];
+        // Bracket: horizontale Linie + Arrow-Spitzen
+        svgW(bracketG, "line", { x1: lX, y1: yOff, x2: rX, y2: yOff, stroke: color, "stroke-width": "1", opacity: "0.85" });
+        svgW(bracketG, "path", { d: `M${lX} ${yOff} L${lX+7} ${yOff-3} L${lX+7} ${yOff+3} Z`, fill: color, opacity: "0.85" });
+        svgW(bracketG, "path", { d: `M${rX} ${yOff} L${rX-7} ${yOff-3} L${rX-7} ${yOff+3} Z`, fill: color, opacity: "0.85" });
+        // Projection-Linien (links + rechts): von Bracket-Y bis Track-Bottom durch
+        // die Master-Welle. Standard versteckt (opacity 0), bei aktivem Track sichtbar.
+        svgW(bracketG, "line", {
+          class: "welle-mr-projection",
+          x1: lX, y1: yOff + 2, x2: lX, y2: projTracksBottom,
+          stroke: color, "stroke-width": "1.2", "stroke-dasharray": "4 3",
+          opacity: "0", "pointer-events": "none"
+        });
+        svgW(bracketG, "line", {
+          class: "welle-mr-projection",
+          x1: rX, y1: yOff + 2, x2: rX, y2: projTracksBottom,
+          stroke: color, "stroke-width": "1.2", "stroke-dasharray": "4 3",
+          opacity: "0", "pointer-events": "none"
+        });
+        // Label
+        const lbl = `A${jobIdx + 1} · MR ${grp.jobs[0].mr}`;
         const lblW = lbl.length * 6.2 + 12;
-        svgW(g, "rect", { x: lX - lblW - 6, y: yOff - 8, width: lblW, height: 16, rx: 4,
+        svgW(bracketG, "rect", { x: lX - lblW - 6, y: yOff - 8, width: lblW, height: 16, rx: 4,
           fill: "var(--bg-base)", stroke: color, "stroke-width": "0.8" });
-        svgW(g, "text", { x: lX - 6 - lblW/2, y: yOff + 4, "text-anchor": "middle",
+        svgW(bracketG, "text", { x: lX - 6 - lblW/2, y: yOff + 4, "text-anchor": "middle",
           fill: color, "font-size": "9.5", "font-weight": "700", "font-family": "inherit" }, lbl);
       });
     } else if (d.mr) {
@@ -9896,21 +9918,30 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const closeBtn = document.getElementById("jobSoloClose");
 
     function setActiveTrack(activeIdx, mode) {
-      const groups = svg.querySelectorAll(".welle-track-group, .welle-track-connections");
+      // Tracks + Connections dimmen je nach aktiv-Status
+      const groups = svg.querySelectorAll(".welle-track-group, .welle-track-connections, .welle-mr-bracket");
       groups.forEach(grp => {
         const idx = parseInt(grp.getAttribute("data-track-job"));
         const isConn = grp.classList.contains("welle-track-connections");
+        const isBracket = grp.classList.contains("welle-mr-bracket");
         if (activeIdx == null) {
           grp.style.opacity = "";
         } else if (idx === activeIdx) {
           grp.style.opacity = "1";
         } else {
-          grp.style.opacity = isConn ? "0.10" : "0.18";
+          // Brackets etwas weniger dim als Tracks (bleiben als Überblick sichtbar)
+          grp.style.opacity = isConn ? "0.10" : (isBracket ? "0.28" : "0.18");
         }
+      });
+      // MR-Projektion-Linien NUR für aktiven Bracket sichtbar machen
+      const projLines = svg.querySelectorAll(".welle-mr-projection");
+      projLines.forEach(line => {
+        const parent = line.parentNode;
+        const idx = parent ? parseInt(parent.getAttribute("data-track-job")) : -1;
+        line.style.opacity = (activeIdx != null && idx === activeIdx) ? "0.65" : "0";
       });
       if (activeIdx == null) svg.removeAttribute("data-track-active");
       else svg.setAttribute("data-track-active", String(activeIdx));
-      // Card-Mode
       if (card) card.setAttribute("data-mode", mode || "hover");
     }
 
