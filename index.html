@@ -7386,9 +7386,21 @@ audio.team-player-audio::-webkit-media-controls-panel {
         // Wrap in <g> für Track-Sync: Hover/Solo auf Track → Bracket leuchtet + Projection.
         const bracketG = svgW(g, "g", {
           class: "welle-mr-bracket",
-          "data-track-job": String(i)
+          "data-track-job": String(i),
+          style: "cursor: pointer;"
         });
         const color = jobColors[jobIdx % jobColors.length];
+        // Hit-Area: unsichtbares Rect über dem ganzen Bracket-Bereich
+        // (Label links + Bracket-Linie + Pfeil-Spitzen) für Pointer-Events.
+        // Symmetrisch zum Track: Hover/Click auf Bracket → Solo-Mode für diesen Job.
+        const lblWidth = (`A${jobIdx + 1} · MR ${grp.jobs[0].mr}`.length * 6.2) + 12;
+        svgW(bracketG, "rect", {
+          class: "welle-mr-bracket-hit",
+          x: lX - lblWidth - 10, y: yOff - 10,
+          width: (rX - lX) + lblWidth + 16, height: 20,
+          fill: "transparent",
+          "pointer-events": "all"
+        });
         // Bracket: horizontale Linie + Arrow-Spitzen
         svgW(bracketG, "line", { x1: lX, y1: yOff, x2: rX, y2: yOff, stroke: color, "stroke-width": "1", opacity: "0.85" });
         svgW(bracketG, "path", { d: `M${lX} ${yOff} L${lX+7} ${yOff-3} L${lX+7} ${yOff+3} Z`, fill: color, opacity: "0.85" });
@@ -9999,16 +10011,23 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (__hoverJobIdx == null) hideCard();
     }
 
-    // Pointer-Events auf svg (delegation)
+    // Pointer-Events auf svg (delegation) — Hover/Click sowohl auf Track UNTEN
+    // als auch auf MR-Bracket OBEN. Beide triggern identisch.
+    const HIT_SEL = ".welle-track-group[data-track-job], .welle-mr-bracket[data-track-job]";
+    function findTrackElForJob(idx) {
+      return svg.querySelector(`.welle-track-group[data-track-job="${idx}"]`);
+    }
     svg.addEventListener("pointermove", (e) => {
       if ((e.pointerType || "mouse") !== "mouse") return;
-      const trackG = e.target.closest(".welle-track-group[data-track-job]");
-      if (trackG) {
-        const idx = parseInt(trackG.getAttribute("data-track-job"));
+      const hit = e.target.closest(HIT_SEL);
+      if (hit) {
+        const idx = parseInt(hit.getAttribute("data-track-job"));
         __hoverJobIdx = idx;
         if (__soloJobIdx == null) {
           setActiveTrack(idx, "hover");
-          fillCard(trackG);
+          // Track-Element holen für Card-Daten (Bracket hat nicht alle data-attributes)
+          const trackG = hit.classList.contains("welle-track-group") ? hit : findTrackElForJob(idx);
+          if (trackG) fillCard(trackG);
           showCard();
         }
       } else if (__soloJobIdx == null) {
@@ -10025,9 +10044,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
       }
     });
     svg.addEventListener("pointerdown", (e) => {
-      const trackG = e.target.closest(".welle-track-group[data-track-job]");
-      if (!trackG) return;
-      const idx = parseInt(trackG.getAttribute("data-track-job"));
+      const hit = e.target.closest(HIT_SEL);
+      if (!hit) return;
+      const idx = parseInt(hit.getAttribute("data-track-job"));
       e.stopPropagation();
       if (__soloJobIdx === idx) {
         exitSolo();
