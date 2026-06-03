@@ -1813,81 +1813,101 @@ header.bar {
   .at-tab .at-tab-meta { display: none; }
 }
 
-/* === v1.99.13 Welle-Stage-Wrap · Card+Banner direkt an der Welle === */
+/* === v1.99.13 Welle-Stage-Wrap === */
 .welle-stage-wrap {
   position: relative;
   width: 100%;
 }
 
-/* === v1.99.7 Auftrags-Solo-Card · Hover/Click in Master-Welle-Cluster === */
+/* === v1.99.14 Auftrags-Solo-Strip · horizontaler Strip ÜBER der Welle ===
+   Vorher überdeckte die Card die Welle (rechts oben). Jetzt: kompakter
+   horizontaler Strip oberhalb welle-svg, blockt nichts. Erscheint
+   nur bei aktivem Hover/Solo. */
 .job-solo-card {
-  position: absolute;
-  top: 8px; right: 8px;
-  max-width: 280px;
+  display: none;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 8px;
+  padding: 8px 14px;
   background: var(--bg-card);
   border: 1.5px solid var(--accent-primary, #00e676);
-  border-radius: 8px;
-  padding: 12px 14px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 16px rgba(0,230,118,0.15);
-  opacity: 0;
-  transition: opacity 140ms ease;
-  pointer-events: none;
-  z-index: 30;
+  border-radius: 6px;
+  box-shadow: 0 0 16px rgba(0,230,118,0.12);
   font-size: 12px;
 }
-.job-solo-card[aria-hidden="false"] { opacity: 1; }
-.job-solo-card .jsc-head {
-  display: flex; justify-content: space-between; align-items: baseline;
-  margin-bottom: 6px;
+.job-solo-card[aria-hidden="false"] { display: flex; }
+.job-solo-card[data-mode="solo"] {
+  border-color: #ffb74d;
+  box-shadow: 0 0 18px rgba(255,180,77,0.18);
 }
-.job-solo-card .jsc-eyebrow {
-  font-size: 9.5px; font-weight: 800; letter-spacing: 0.10em; text-transform: uppercase;
-  color: var(--text-secondary);
+.job-solo-card .jsc-section {
+  display: inline-flex; align-items: center; gap: 8px;
 }
 .job-solo-card .jsc-mode {
-  font-size: 9.5px; font-weight: 700;
+  font-size: 9.5px; font-weight: 800;
   color: var(--accent-primary, #00e676);
   background: rgba(0,230,118,0.10);
-  padding: 1.5px 7px;
+  padding: 2px 8px;
   border-radius: 3px;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 .job-solo-card[data-mode="solo"] .jsc-mode {
   color: #ffb74d;
-  background: rgba(255,180,77,0.12);
+  background: rgba(255,180,77,0.14);
 }
 .job-solo-card .jsc-title {
-  font-size: 16px; font-weight: 800;
-  margin-bottom: 4px;
+  font-size: 14px; font-weight: 800;
   letter-spacing: 0.01em;
+  color: var(--text-primary);
 }
 .job-solo-card .jsc-meta {
   font-size: 11px;
   color: var(--text-secondary);
-  margin-bottom: 10px;
   font-variant-numeric: tabular-nums;
 }
 .job-solo-card .jsc-stats {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 4px 12px;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
   font-variant-numeric: tabular-nums;
   font-size: 11.5px;
-  margin-bottom: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px dashed rgba(255,255,255,0.08);
+  flex: 1;
 }
-.job-solo-card .jsc-stats .jsc-k { color: var(--text-secondary); }
-.job-solo-card .jsc-stats .jsc-v { color: var(--text-primary); font-weight: 700; text-align: right; }
-.job-solo-card .jsc-stats .jsc-v-hi { color: var(--accent-primary, #00e676); font-weight: 800; }
-.job-solo-card .jsc-stats .jsc-v-warn { color: #ffb74d; font-weight: 800; }
+.job-solo-card .jsc-stats .jsc-stat-item {
+  display: inline-flex; align-items: baseline; gap: 4px;
+}
+.job-solo-card .jsc-stats .jsc-k { color: var(--text-secondary); font-size: 10.5px; }
+.job-solo-card .jsc-stats .jsc-v { color: var(--text-primary); font-weight: 800; }
+.job-solo-card .jsc-stats .jsc-v-hi { color: var(--accent-primary, #00e676); }
+.job-solo-card .jsc-stats .jsc-v-warn { color: #ffb74d; }
+.job-solo-card .jsc-section-foot {
+  margin-left: auto;
+}
 .job-solo-card .jsc-foot {
   font-size: 10.5px;
   color: var(--text-secondary);
-  line-height: 1.4;
   font-style: italic;
 }
-.job-solo-card .jsc-foot strong { color: var(--accent-primary, #00e676); font-style: normal; }
+.jsb-close {
+  background: rgba(255,180,77,0.15);
+  border: 1px solid rgba(255,180,77,0.5);
+  color: #ffb74d;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: background 120ms ease;
+}
+.jsb-close:hover { background: rgba(255,180,77,0.25); }
+@media (max-width: 720px) {
+  .job-solo-card .jsc-stats { width: 100%; }
+}
 
 /* Solo-Banner · prominent bei aktivem Click-Solo-Mode */
 .job-solo-banner {
@@ -5724,9 +5744,23 @@ audio.team-player-audio::-webkit-media-controls-panel {
         </div>
       </div>
 
-      <!-- v1.99.13: Wrapper für welle-svg + Solo-Card + Solo-Banner.
-           Position:relative → Card/Banner werden direkt neben der Welle positioniert,
-           nicht weit oben im welle-section-Header. -->
+      <!-- v1.99.14 Auftrags-Solo-Strip · horizontaler Streifen DIREKT ÜBER der Welle.
+           Beim Hover/Click auf einen Track erscheint hier eine kompakte Info-Leiste. -->
+      <div class="job-solo-card" id="jobSoloCard" aria-hidden="true">
+        <div class="jsc-section jsc-section-head">
+          <span class="jsc-mode" id="jscMode">Hover-Vorschau</span>
+          <span class="jsc-title" id="jscTitle">A—</span>
+          <span class="jsc-meta" id="jscMeta">—</span>
+        </div>
+        <div class="jsc-section jsc-stats" id="jscStats"></div>
+        <div class="jsc-section jsc-section-foot">
+          <span class="jsc-foot" id="jscFoot"></span>
+          <button type="button" class="jsb-close" id="jobSoloClose" aria-label="Solo-Mode beenden" hidden>↺ Cluster</button>
+        </div>
+      </div>
+
+      <!-- v1.99.13: Wrapper für welle-svg. Position:relative bleibt für innere
+           absolute-positionierte Hilfs-Elemente (welle-detail-overlay, touch-hint). -->
       <div class="welle-stage-wrap" id="welleStageWrap">
       <svg id="welleSvg" viewBox="0 0 1500 460" preserveAspectRatio="xMidYMid meet" aria-label="Bestückte Welle">
         <defs>
@@ -5829,23 +5863,6 @@ audio.team-player-audio::-webkit-media-controls-panel {
         Hover oder antippen für Bauteil-Details
       </div>
 
-      <!-- v1.99.7 Auftrags-Solo-Card · Hover/Click auf Track in Master-Welle-Cluster
-           v1.99.13: Card+Banner sind INSIDE welle-stage-wrap → direkt an der Welle. -->
-      <div class="job-solo-card" id="jobSoloCard" aria-hidden="true">
-        <div class="jsc-head">
-          <span class="jsc-eyebrow" id="jscEyebrow">Auftrag</span>
-          <span class="jsc-mode" id="jscMode">Hover-Vorschau</span>
-        </div>
-        <div class="jsc-title" id="jscTitle">A—</div>
-        <div class="jsc-meta" id="jscMeta">—</div>
-        <div class="jsc-stats" id="jscStats"></div>
-        <div class="jsc-foot" id="jscFoot"></div>
-      </div>
-      <div class="job-solo-banner" id="jobSoloBanner" aria-hidden="true">
-        <span class="jsb-icon">🔍</span>
-        <span class="jsb-text" id="jobSoloBannerText">Solo-Mode aktiv</span>
-        <button type="button" class="jsb-close" id="jobSoloClose" aria-label="Solo-Mode beenden">↺ Cluster-Ansicht</button>
-      </div>
       </div><!-- /welle-stage-wrap -->
 
 
@@ -9211,17 +9228,34 @@ audio.team-player-audio::-webkit-media-controls-panel {
             toast(`Maximum erreicht: ${MAX_CLUSTER} Folgeaufträge`, "warn");
             return;
           }
-          // Cluster-Section öffnen falls geschlossen — damit User den neuen Auftrag sieht
+          // v1.99.14: Pending Edits committen, dann neuen Job anlegen, dann
+          // AUTOMATISCH zum neuen leeren Auftrag wechseln — Werker erwartet
+          // leere Felder beim Tippen, nicht die vorherigen A1-Werte.
+          if (document.activeElement && typeof document.activeElement.blur === "function") {
+            try { document.activeElement.blur(); } catch(_) {}
+          }
           const ct = document.getElementById("clusterToggle");
           const cs = document.getElementById("clusterSection");
           if (ct) ct.setAttribute("aria-expanded", "true");
           if (cs) cs.setAttribute("aria-hidden", "false");
-          // Neuen leeren Job anlegen
           const newJob = ensureClusterJobShape({});
+          // _fullState explizit leer setzen damit applyMainState bei leerem Job
+          // garantiert alle Felder cleart (Hetero/Asym/etc auch).
+          newJob._fullState = {};
           clusterJobs.push(newJob);
           saveClusterJobs();
           renderClusterJobs();
-          toast(`✓ Neuer Auftrag A${newJob._jobId} angelegt`);
+          const newIdx = clusterJobs.length - 1;
+          // Auto-Swap zum neuen leeren Auftrag — direkt leeres Eingabe-Formular
+          setTimeout(() => {
+            try {
+              swapSlotWithMain(newIdx);
+              toast(`✓ Neuer Auftrag A${newJob._jobId} aktiviert · alle Felder leer`);
+            } catch(e) {
+              console.error("[+ tab] auto-swap failed:", e);
+              toast(`✓ Auftrag A${newJob._jobId} angelegt (Tab klicken zum Wechseln)`);
+            }
+          }, 50);
           return;
         }
         const slotIdx = parseInt(idx);
@@ -10431,21 +10465,18 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const elFoot = document.getElementById("jscFoot");
       const elMode = document.getElementById("jscMode");
       if (elTitle) elTitle.textContent = `Auftrag ${jobIdx + 1}`;
-      if (elMeta) elMeta.textContent = `MR ${mr} mm · Schmal ${haupt} mm` + (versatz ? ` · Δ ${versatz>0?"+":""}${versatz} mm` : "");
+      if (elMeta) elMeta.textContent = `MR ${mr} · Schmal ${haupt}` + (versatz ? ` · Δ ${versatz>0?"+":""}${versatz}` : "");
       if (elStats) {
         elStats.innerHTML = `
-          <span class="jsc-k">Aktive Schnittkanten:</span><span class="jsc-v jsc-v-hi">${cutsActive}</span>
-          <span class="jsc-k">davon mit Cluster geteilt:</span><span class="jsc-v">— *</span>
-          <span class="jsc-k">Geparkte (für andere):</span><span class="jsc-v jsc-v-warn">${cutsParked}</span>
-          <span class="jsc-k">Master-SE-Nutzung:</span><span class="jsc-v">${usagePct} %</span>
+          <span class="jsc-stat-item"><span class="jsc-k">Aktiv:</span><span class="jsc-v jsc-v-hi">${cutsActive}</span></span>
+          <span class="jsc-stat-item"><span class="jsc-k">Geparkt:</span><span class="jsc-v jsc-v-warn">${cutsParked}</span></span>
+          <span class="jsc-stat-item"><span class="jsc-k">SE-Nutzung:</span><span class="jsc-v">${usagePct} %</span></span>
         `;
       }
       if (elFoot) {
-        const allein = `Allein gefahren: ~${cutsActive} eigene SE · 1 zusätzlicher Setup-Wechsel`;
-        const cluster = `Im Cluster: <strong>0 Wechsel</strong>, Setup mit anderen Aufträgen geteilt.`;
-        elFoot.innerHTML = `${allein}<br>${cluster}`;
+        elFoot.innerHTML = `Allein: <strong>+1 Setup-Wechsel</strong> · Cluster: <strong style="color:var(--accent-primary)">0 Wechsel</strong>`;
       }
-      if (elMode) elMode.textContent = __soloJobIdx === jobIdx ? "Solo-Mode (Click)" : "Hover-Vorschau";
+      if (elMode) elMode.textContent = __soloJobIdx === jobIdx ? "🔍 Solo" : "Hover";
     }
 
     function showCard() { if (card) card.setAttribute("aria-hidden", "false"); }
@@ -10457,15 +10488,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const trackG = svg.querySelector(`.welle-track-group[data-track-job="${idx}"]`);
       if (trackG) fillCard(trackG);
       showCard();
-      if (banner && bannerText) {
-        bannerText.textContent = `🔍 Solo-Mode aktiv · Auftrag ${idx + 1} isoliert · Klick nochmal zum Beenden`;
-        banner.setAttribute("aria-hidden", "false");
-      }
+      // Close-Button im Strip einblenden (statt redundantem Banner)
+      if (closeBtn) closeBtn.hidden = false;
     }
     function exitSolo() {
       __soloJobIdx = null;
       setActiveTrack(__hoverJobIdx, "hover");
-      if (banner) banner.setAttribute("aria-hidden", "true");
+      if (closeBtn) closeBtn.hidden = true;
       if (__hoverJobIdx == null) hideCard();
     }
 
