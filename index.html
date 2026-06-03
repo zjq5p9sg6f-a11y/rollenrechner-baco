@@ -1820,24 +1820,32 @@ header.bar {
 }
 
 /* === v1.99.14 Auftrags-Solo-Strip · horizontaler Strip ÜBER der Welle ===
-   Vorher überdeckte die Card die Welle (rechts oben). Jetzt: kompakter
-   horizontaler Strip oberhalb welle-svg, blockt nichts. Erscheint
-   nur bei aktivem Hover/Solo. */
+   v1.99.16 Layout-Stability: Strip hat IMMER reservierte Höhe + display flex.
+   Bei nicht-aktiv = visibility hidden + opacity 0 (no Layout-Sprung beim Hover). */
 .job-solo-card {
-  display: none;
+  display: flex;
   flex-direction: row;
   align-items: center;
   flex-wrap: wrap;
   gap: 16px;
   margin-bottom: 8px;
   padding: 8px 14px;
+  min-height: 42px;
   background: var(--bg-card);
-  border: 1.5px solid var(--accent-primary, #00e676);
+  border: 1.5px solid transparent;
   border-radius: 6px;
-  box-shadow: 0 0 16px rgba(0,230,118,0.12);
+  box-shadow: none;
   font-size: 12px;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
 }
-.job-solo-card[aria-hidden="false"] { display: flex; }
+.job-solo-card[aria-hidden="false"] {
+  visibility: visible;
+  opacity: 1;
+  border-color: var(--accent-primary, #00e676);
+  box-shadow: 0 0 16px rgba(0,230,118,0.12);
+}
 .job-solo-card[data-mode="solo"] {
   border-color: #ffb74d;
   box-shadow: 0 0 18px rgba(255,180,77,0.18);
@@ -9162,13 +9170,26 @@ audio.team-player-audio::-webkit-media-controls-panel {
   // Werker wechselt zwischen Primary (immer A1) und Folgeaufträgen (A2..AN) per Klick.
   // Nutzt existing swapSlotWithMain-Logic — A1 immer im Haupt-Eingabe-Bereich,
   // alle anderen wandern bei Klick rein und zurück.
+  // v1.99.16 Helper: Jobs einer anderen Maschine (read-only aus localStorage)
+  // für Cross-Maschinen-Tab-Anzeige.
+  function loadJobsForMachine(machineId) {
+    try {
+      const raw = localStorage.getItem("rr.clusterJobs." + machineId);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch(_) { return []; }
+  }
+  function loadPrimaryForMachine(machineId) {
+    // Primary für andere Maschine ist hint-only — wir haben das nicht persistiert.
+    // Fallback: nur ein Platzhalter-Label "Primary" der bei Klick die Maschine
+    // wechselt und die persistierten clusterJobs lädt.
+    return null;
+  }
+
   function renderAuftragTabs() {
     const root = document.getElementById("auftragTabs");
     const list = document.getElementById("atList");
     if (!root || !list) return;
-    // v1.99.12: Tab-Bar IMMER sichtbar — auch bei 0 Folgeaufträgen.
-    // Damit ist der "+ Neuer Auftrag"-Button immer findbar, ohne dass der
-    // User erst die Cluster-Section aufklappen muss.
     root.hidden = false;
     list.innerHTML = "";
     // v1.99.11: Tabs nach stabilen Job-IDs rendern, NICHT nach Position.
