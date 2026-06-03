@@ -9279,7 +9279,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   // ============== v1.99.10 · Plan-Export / -Import (JSON-Bridge) ==============
   // Power-User-Feature: kompletter Plan (Maschine + Primary + Folgeaufträge + Settings)
   // als JSON-Datei lokal speichern. Bridge bis ERP-Anbindung.
-  function exportPlanJson() {
+  async function exportPlanJson() {
     try {
       // Pending Input-Edits committen vor dem Capture
       if (document.activeElement && typeof document.activeElement.blur === "function" &&
@@ -9288,10 +9288,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
       }
       const M = getMachine();
       const mainSnap = captureMainState();
-      // Defensive Validation: Main muss mindestens leer-fähiges Object sein
       if (!mainSnap || typeof mainSnap !== "object") throw new Error("captureMainState liefert ungültig");
       const clusterCopy = JSON.parse(JSON.stringify(clusterJobs || []));
-      // Stelle sicher dass alle Jobs eine stabile _jobId haben (sollte schon — defensive)
       clusterCopy.forEach(j => { if (j._jobId == null) j._jobId = assignNextJobId(); });
       const plan = {
         plan_name: `Plan ${new Date().toISOString().slice(0, 16).replace("T", " ")}`,
@@ -9306,29 +9304,58 @@ audio.team-player-audio::-webkit-media-controls-panel {
         cluster: clusterCopy,
         metadata: {
           created: new Date().toISOString(),
-          tool_version: "1.99.11",
+          tool_version: "1.99.15",
           cluster_count: clusterCopy.length,
           max_cluster: MAX_CLUSTER
         }
       };
       const json = JSON.stringify(plan, null, 2);
+      const auftragsNr = (document.getElementById("welleAuftragNr") || {}).value || "ohneNr";
+      const dateTag = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const safeAuftrag = String(auftragsNr).replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 30) || "ohneNr";
+      const filename = `Rollenrechner_${M.id}_${safeAuftrag}_${dateTag}.json`;
+      const count = clusterCopy.length;
+
+      // v1.99.15: File System Access API — Native Save-Dialog mit Ordner-Wahl
+      // (Chrome/Edge/Opera). Browser merken sich automatisch den letzten Ordner.
+      if (typeof window.showSaveFilePicker === "function") {
+        try {
+          const handle = await window.showSaveFilePicker({
+            suggestedName: filename,
+            startIn: "documents",
+            types: [{
+              description: "Rollenrechner-Plan (JSON)",
+              accept: { "application/json": [".json"] }
+            }]
+          });
+          const writable = await handle.createWritable();
+          await writable.write(json);
+          await writable.close();
+          toast(`✓ Plan gespeichert · ${handle.name} · ${count + 1} Aufträge`);
+          return;
+        } catch (err) {
+          if (err.name === "AbortError") {
+            // User-Cancel — kein Fehler, kein Fallback
+            return;
+          }
+          // Anderer Fehler → fallback auf Download-Link
+          console.warn("[exportPlanJson] showSaveFilePicker failed, falling back:", err);
+        }
+      }
+
+      // Fallback: Browser-Download (Firefox, Safari, ältere Browser)
       const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const auftragsNr = (document.getElementById("welleAuftragNr") || {}).value || "ohneNr";
-      const dateTag = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-      const safeAuftrag = String(auftragsNr).replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 30) || "ohneNr";
-      a.download = `Rollenrechner_${M.id}_${safeAuftrag}_${dateTag}.json`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
-      // Cleanup mit Delay damit Download wirklich gestartet hat
       setTimeout(() => {
         try { document.body.removeChild(a); } catch(_) {}
         try { URL.revokeObjectURL(url); } catch(_) {}
       }, 200);
-      const count = clusterCopy.length;
-      toast(`✓ Plan exportiert · ${count + 1} Aufträge · ${blob.size} Bytes`);
+      toast(`✓ Plan heruntergeladen · ${count + 1} Aufträge · ${blob.size} Bytes (Browser-Default-Ordner)`);
     } catch(err) {
       console.error("[exportPlanJson] error:", err);
       toast("Export fehlgeschlagen: " + (err.message || err), "err");
