@@ -7088,21 +7088,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
     let mrBracketCount = 1;
     let _mrGroupsCache = null;
     if (isMaster && d.validJobs) {
-      // Konsolidierung: nur Aufträge mit GLEICHER MR-Breite UND gleicher Position
-      // teilen sich ein Bracket. Verschiedene MR-Werte → IMMER eigene Brackets
-      // (auch wenn Versatz die Positionen ähnlich gemacht hat).
-      const tolMr = 0.5;   // MR-Wert-Toleranz
-      const tolPos = 1.0;  // MR-Center-Toleranz
-      const groups = [];
-      d.validJobs.forEach(jw => {
-        const mrCenter = (jw.mrLeft + jw.mrRight) / 2;
-        const existing = groups.find(g =>
-          Math.abs(g.mr - jw.mr) < tolMr &&
-          Math.abs(g.mrCenter - mrCenter) < tolPos
-        );
-        if (existing) existing.jobs.push(jw);
-        else groups.push({ mrLeft: jw.mrLeft, mrRight: jw.mrRight, mr: jw.mr, mrCenter, jobs: [jw] });
-      });
+      // Pro Auftrag ein eigenes Bracket — keine Konsolidierung mehr.
+      // Werker will alle N Aufträge in der Bemaßung sehen, nicht gemerged.
+      const groups = d.validJobs.map(jw => ({
+        mrLeft: jw.mrLeft, mrRight: jw.mrRight, mr: jw.mr,
+        mrCenter: (jw.mrLeft + jw.mrRight) / 2,
+        jobs: [jw]
+      }));
       mrBracketCount = Math.max(1, groups.length);
       _mrGroupsCache = groups;
     }
