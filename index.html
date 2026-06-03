@@ -1820,31 +1820,41 @@ header.bar {
 }
 
 /* === v1.99.14 Auftrags-Solo-Strip · horizontaler Strip ÜBER der Welle ===
-   v1.99.16 Layout-Stability: Strip hat IMMER reservierte Höhe + display flex.
-   Bei nicht-aktiv = visibility hidden + opacity 0 (no Layout-Sprung beim Hover). */
+   v1.99.17 Vibrations-Fix: FIXED height + nowrap + overflow:hidden.
+   fillCard() ändert Stats-Werte bei jeder Mouse-Bewegung → Card-Inhalt
+   minimal länger/kürzer → bei flex-wrap-Sprung wackelt das Layout vertikal.
+   Lösung: feste Card-Höhe, nowrap, scroll bei Überlauf (sehr selten). */
 .job-solo-card {
   display: flex;
   flex-direction: row;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 16px;
   margin-bottom: 8px;
-  padding: 8px 14px;
-  min-height: 42px;
+  padding: 6px 14px;
+  height: 40px;
+  box-sizing: border-box;
   background: var(--bg-card);
   border: 1.5px solid transparent;
   border-radius: 6px;
   box-shadow: none;
   font-size: 12px;
+  overflow: hidden;
+  white-space: nowrap;
   visibility: hidden;
   opacity: 0;
-  transition: opacity 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  /* transition NUR opacity — kein border/shadow um Compositor-Effekte zu vermeiden */
+  transition: opacity 100ms linear;
 }
 .job-solo-card[aria-hidden="false"] {
   visibility: visible;
   opacity: 1;
   border-color: var(--accent-primary, #00e676);
-  box-shadow: 0 0 16px rgba(0,230,118,0.12);
+  box-shadow: 0 0 14px rgba(0,230,118,0.10);
+}
+.job-solo-card[data-mode="solo"][aria-hidden="false"] {
+  border-color: #ffb74d;
+  box-shadow: 0 0 16px rgba(255,180,77,0.16);
 }
 .job-solo-card[data-mode="solo"] {
   border-color: #ffb74d;
