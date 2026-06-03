@@ -7083,22 +7083,42 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const innerW = W - padX * 2;
     const baseH = 460;  // v1.95: zurück auf 460 (Werker-Banner schlanker, KPI-Hero oben prominent)
     const isMaster = d && d.isMaster && d.validJobs && d.validJobs.length >= 2;
+    // MR-Bracket-Gruppen vorberechnen (für dynamische Höhe der Top-Bemaßung).
+    // Mehrere Aufträge mit gleicher MR-Position teilen sich 1 Bracket (consolidate).
+    let mrBracketCount = 1;
+    let _mrGroupsCache = null;
+    if (isMaster && d.validJobs) {
+      const tolBracket = 1.0;
+      const groups = [];
+      d.validJobs.forEach(jw => {
+        const existing = groups.find(g => Math.abs(g.mrLeft - jw.mrLeft) < tolBracket && Math.abs(g.mrRight - jw.mrRight) < tolBracket);
+        if (existing) existing.jobs.push(jw);
+        else groups.push({ mrLeft: jw.mrLeft, mrRight: jw.mrRight, jobs: [jw] });
+      });
+      mrBracketCount = Math.max(1, groups.length);
+      _mrGroupsCache = groups;
+    }
+    // Extra-Platz für mehr als 3 Brackets: 14 px pro extra-Bracket damit sie nicht
+    // in die Welle ragen. Bei 1-3 Brackets reicht der Default-Platz (104→168 = 64 px).
+    const extraTop = Math.max(0, (mrBracketCount - 3) * 14);
+
     const trackH = 44, trackGap = 6, trackHeader = 28;
     const tracksTotalH = isMaster ? (trackHeader + d.validJobs.length * (trackH + trackGap) + 16) : 0;
-    const H = baseH + tracksTotalH;
+    const H = baseH + extraTop + tracksTotalH;
     svgEl.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
     // Layout-Zonen (v1.95.1: Werker-Bemaßung über Welle (statt unter) für bessere Übersicht)
-    const dimWerkerY = 28;               // Werker-Mass GANZ OBEN (über allen anderen Top-Bemaßungen)
-    const dimTop1Y = 64;                 // Welle-Total (war 50, nach unten geschoben)
-    const dimTop2Y = 104;                // MR-Bracket (war 90)
-    const knifeY = 140;                  // Cut-Position-Labels (war 130)
-    const barTop = 168;                  // Welle-Bar (war 158)
+    // Plus dynamisches extraTop für viele MR-Brackets (v1.99.6).
+    const dimWerkerY = 28;               // Werker-Mass GANZ OBEN
+    const dimTop1Y = 64;                 // Welle-Total
+    const dimTop2Y = 104;                // MR-Bracket Start-Y (wächst nach unten mit i*14)
+    const knifeY = 140 + extraTop;       // Cut-Position-Labels — verschoben mit Brackets
+    const barTop = 168 + extraTop;       // Welle-Bar — verschoben mit Brackets
     const barH = 110;
-    const barBottom = barTop + barH;     // 278 (war 268)
-    const dimBotY = barBottom + 32;      // Park/Bestück
-    const dimBot2Y = barBottom + 62;     // L=R-Sym (kompakter ohne Werker-Bemaßung dazwischen)
-    const scaleY = barBottom + 92;       // Tick-Ruler
+    const barBottom = barTop + barH;
+    const dimBotY = barBottom + 32;
+    const dimBot2Y = barBottom + 62;
+    const scaleY = barBottom + 92;
 
     // Empty-State
     if (!d || !d.ok) {
@@ -7218,15 +7238,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
     if (isMaster) {
       // 11 distinct Farben für MAX_CLUSTER=10 + Primary — Material-Design-Palette
       const jobColors = ["#00e676", "#ffb74d", "#42a5f5", "#ec407a", "#ce93d8", "#80cbc4", "#ffd54f", "#ff8a65", "#aed581", "#4dd0e1", "#f48fb1"];
-      // Konsolidieren: Aufträge mit IDENTISCHER MR-Position (mrLeft+mrRight innerhalb tol) gruppieren
-      // → 1 Bracket statt mehrere übereinander
-      const tolBracket = 1.0;
-      const groups = [];
-      d.validJobs.forEach(jw => {
-        const existing = groups.find(g => Math.abs(g.mrLeft - jw.mrLeft) < tolBracket && Math.abs(g.mrRight - jw.mrRight) < tolBracket);
-        if (existing) existing.jobs.push(jw);
-        else groups.push({ mrLeft: jw.mrLeft, mrRight: jw.mrRight, jobs: [jw] });
-      });
+      // groups bereits oben berechnet (für extraTop) — reuse aus cache
+      const groups = _mrGroupsCache;
       groups.forEach((grp, i) => {
         const yOff = dimTop2Y + i * 14;
         const lX = xAt(grp.mrLeft), rX = xAt(grp.mrRight);
