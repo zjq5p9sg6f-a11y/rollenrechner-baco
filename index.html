@@ -1719,12 +1719,60 @@ header.bar {
   display: flex; gap: 4px; flex-wrap: wrap; flex: 1;
   align-items: center;
 }
-/* Tab-Wrap: hält Tab + Lösch-× nebeneinander */
+/* Tab-Wrap: hält Tab + Lösch-× nebeneinander. v1.99.18 z-index damit × oben liegt. */
 .at-tab-wrap {
   position: relative;
   display: inline-flex;
   align-items: stretch;
+  margin-right: 6px;  /* Abstand zum nächsten Tab/+-Button — verhindert Verdeckung des × */
+  z-index: 1;
 }
+.at-tab-wrap:hover { z-index: 2; }
+
+/* v1.99.18 Maschinen-Gruppen — DCM und Euromac jeweils eigene Gruppe in der Tab-Bar */
+.at-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px 4px 6px;
+  border-radius: 5px;
+  border: 1px dashed transparent;
+  margin-right: 8px;
+}
+.at-group.at-group-active {
+  border-color: rgba(255,154,60,0.30);
+  background: rgba(255,154,60,0.04);
+}
+.at-group.at-group-other {
+  border-color: rgba(255,255,255,0.08);
+  opacity: 0.72;
+}
+.at-group.at-group-other:hover {
+  opacity: 1;
+  border-color: rgba(255,154,60,0.20);
+}
+.at-group-header {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: transparent;
+  border: 0;
+  color: var(--machine-accent, #ff9a3c);
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.at-group-other .at-group-header { color: var(--text-secondary); }
+.at-group-header:hover {
+  background: rgba(255,154,60,0.08);
+  color: var(--machine-accent);
+}
+.at-group-icon { font-size: 11px; }
+.at-group-name { font-weight: 700; }
 /* Lösch-× — klein, nur bei Hover des Wraps sichtbar */
 .at-tab-del {
   display: inline-flex;
@@ -7067,9 +7115,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
   function setActiveMachine(id) {
     if (!MACHINES[id]) return;
     if (id === activeMachineId) return;
-    // v1.99.13: aktuelle clusterJobs unter alter Maschine sichern BEVOR Wechsel
+    // v1.99.13: aktuelle clusterJobs + activeJob unter ALTER Maschine sichern BEVOR Wechsel
     try {
       if (typeof saveClusterJobs === "function") saveClusterJobs();
+      if (typeof saveActiveJob === "function") saveActiveJob();
     } catch(_) {}
     activeMachineId = id;
     try { localStorage.setItem("activeMachine", id); } catch (_) {}
@@ -8748,15 +8797,37 @@ audio.team-player-audio::-webkit-media-controls-panel {
     }, 80);
   }
 
-  const ACTIVE_JOB_KEY = "rr.activeJob";
+  // v1.99.18: ActiveJob auch pro Maschine separat persistiert.
+  // Legacy-Key (rr.activeJob) wird beim ersten Load nach DCM migriert.
+  const ACTIVE_JOB_KEY_LEGACY = "rr.activeJob";
+  function activeJobStorageKey(machineId) { return "rr.activeJob." + (machineId || activeMachineId || "DCM"); }
   function saveActiveJob() {
-    try { localStorage.setItem(ACTIVE_JOB_KEY, JSON.stringify(captureMainState())); } catch(e) {}
+    try { localStorage.setItem(activeJobStorageKey(), JSON.stringify(captureMainState())); } catch(e) {}
   }
   function loadActiveJob() {
-    try { return JSON.parse(localStorage.getItem(ACTIVE_JOB_KEY) || "null"); } catch(e) { return null; }
+    try {
+      const key = activeJobStorageKey();
+      let raw = localStorage.getItem(key);
+      // Legacy-Migration (nur DCM): alter Key → neuer DCM-Key
+      if (!raw && activeMachineId === "DCM") {
+        const legacy = localStorage.getItem(ACTIVE_JOB_KEY_LEGACY);
+        if (legacy) {
+          raw = legacy;
+          try { localStorage.setItem(key, legacy); } catch(_) {}
+          try { localStorage.removeItem(ACTIVE_JOB_KEY_LEGACY); } catch(_) {}
+        }
+      }
+      return JSON.parse(raw || "null");
+    } catch(e) { return null; }
   }
   function clearActiveJob() {
-    try { localStorage.removeItem(ACTIVE_JOB_KEY); } catch(e) {}
+    try { localStorage.removeItem(activeJobStorageKey()); } catch(e) {}
+  }
+  function loadActiveJobForMachine(machineId) {
+    try {
+      const raw = localStorage.getItem("rr.activeJob." + machineId);
+      return raw ? JSON.parse(raw) : null;
+    } catch(_) { return null; }
   }
 
   function applyMainState(snap, opts) {
@@ -9234,102 +9305,185 @@ audio.team-player-audio::-webkit-media-controls-panel {
     if (!root || !list) return;
     root.hidden = false;
     list.innerHTML = "";
-    // v1.99.11: Tabs nach stabilen Job-IDs rendern, NICHT nach Position.
-    // Damit bleibt "A2" immer "A2", auch nach Swap mit Main.
-    const primaryMr = (els.mutter && els.mutter.value) || "—";
-    const primarySchmal = (els.schmal && els.schmal.value) || "—";
-    const allTabs = [];
-    allTabs.push({
-      jobId: __primaryJobId,
-      isPrimary: true,
-      mr: primaryMr,
-      schmal: primarySchmal,
-      slotIdx: null
+    // v1.99.18: Cross-Maschinen-View — beide Gruppen (DCM + Euromac) gezeigt.
+    // Aktive Maschine: voll klickbar, Primary-Tab markiert.
+    // Andere Maschine: Tabs gedimmt, Click → Maschinen-Switch + Job als Primary.
+    const activeM = activeMachineId;
+    const otherM = Object.keys(MACHINES).find(m => m !== activeM);
+    const machineSeq = [activeM, otherM].filter(m => m && MACHINES[m]);
+
+    // Pro Maschine: Primary-Tab + Cluster-Tabs
+    const tabsByMachine = {};
+    machineSeq.forEach(mid => {
+      const isActive = mid === activeM;
+      const jobs = isActive ? clusterJobs : loadJobsForMachine(mid);
+      const tabs = [];
+      // Primary-Tab — aktive Maschine zeigt aktuelle Eingabe, andere Maschine zeigt
+      // den persistierten Active-Job (loadActiveJobForMachine).
+      if (isActive) {
+        const primaryMr = (els.mutter && els.mutter.value) || "—";
+        const primarySchmal = (els.schmal && els.schmal.value) || "—";
+        tabs.push({
+          jobId: __primaryJobId,
+          isPrimary: true,
+          mr: primaryMr,
+          schmal: primarySchmal,
+          slotIdx: null,
+          machine: mid
+        });
+      } else {
+        const otherPrimary = loadActiveJobForMachine(mid);
+        const pjid = parseInt(localStorage.getItem("rr.primaryJobId." + mid) || "0");
+        // Nur zeigen falls Werte da
+        if (otherPrimary && (otherPrimary.mutter || otherPrimary.schmal)) {
+          tabs.push({
+            jobId: pjid || 0,
+            isPrimary: true,
+            mr: otherPrimary.mutter || "—",
+            schmal: otherPrimary.schmal || "—",
+            slotIdx: null,
+            machine: mid
+          });
+        }
+      }
+      // Cluster-Tabs
+      jobs.forEach((job, idx) => {
+        tabs.push({
+          jobId: job._jobId || 0,
+          isPrimary: false,
+          mr: job.mr || "—",
+          schmal: job.haupt || "—",
+          slotIdx: idx,
+          machine: mid
+        });
+      });
+      tabs.sort((a, b) => a.jobId - b.jobId);
+      tabsByMachine[mid] = tabs;
     });
-    clusterJobs.forEach((job, idx) => {
-      allTabs.push({
-        jobId: job._jobId || 999,
-        isPrimary: false,
-        mr: job.mr || "—",
-        schmal: job.haupt || "—",
-        slotIdx: idx
+
+    // Render: pro Maschine eine Gruppe
+    machineSeq.forEach(mid => {
+      const isActive = mid === activeM;
+      const tabs = tabsByMachine[mid] || [];
+      const groupEl = document.createElement("div");
+      groupEl.className = "at-group" + (isActive ? " at-group-active" : " at-group-other");
+      groupEl.dataset.machine = mid;
+      // Header-Pille
+      const header = document.createElement("button");
+      header.type = "button";
+      header.className = "at-group-header";
+      header.title = isActive ? `Aktive Maschine: ${MACHINES[mid].label}` : `Wechseln zu ${MACHINES[mid].label}`;
+      header.dataset.machine = mid;
+      header.tabIndex = -1;
+      header.innerHTML = `<span class="at-group-icon">📍</span><span class="at-group-name">${MACHINES[mid].label}</span>`;
+      groupEl.appendChild(header);
+      // Tabs
+      tabs.forEach(t => {
+        const wrap = document.createElement("div");
+        wrap.className = "at-tab-wrap";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "at-tab" + (isActive && t.isPrimary ? " at-tab-active" : "");
+        btn.setAttribute("aria-pressed", isActive && t.isPrimary ? "true" : "false");
+        btn.setAttribute("role", "tab");
+        btn.tabIndex = -1;
+        btn.dataset.atIdx = t.isPrimary ? "primary" : String(t.slotIdx);
+        btn.dataset.atJobId = String(t.jobId);
+        btn.dataset.atMachine = mid;
+        btn.innerHTML = `<span class="at-tab-id">A${t.jobId}</span><span class="at-tab-meta">MR ${t.mr} · ${t.schmal}</span>`;
+        wrap.appendChild(btn);
+        // Lösch-× nur für Cluster-Tabs (nicht Primary)
+        if (!t.isPrimary && t.slotIdx != null) {
+          const delBtn = document.createElement("button");
+          delBtn.type = "button";
+          delBtn.className = "at-tab-del";
+          delBtn.setAttribute("aria-label", `Auftrag A${t.jobId} löschen`);
+          delBtn.title = `Auftrag A${t.jobId} löschen`;
+          delBtn.tabIndex = -1;
+          delBtn.dataset.delIdx = String(t.slotIdx);
+          delBtn.dataset.delJobId = String(t.jobId);
+          delBtn.dataset.delMachine = mid;
+          delBtn.innerHTML = "×";
+          wrap.appendChild(delBtn);
+        }
+        groupEl.appendChild(wrap);
+      });
+      // "+ Neuer Auftrag"-Button pro Gruppe
+      const addBtn = document.createElement("button");
+      addBtn.type = "button";
+      addBtn.className = "at-tab at-tab-add";
+      addBtn.tabIndex = -1;
+      const otherJobs = isActive ? clusterJobs : loadJobsForMachine(mid);
+      const atMax = otherJobs.length >= MAX_CLUSTER;
+      addBtn.disabled = atMax;
+      addBtn.title = atMax ? `Maximum erreicht (${MAX_CLUSTER} Folgeaufträge)` : `Neuen Auftrag in ${MACHINES[mid].label} anlegen`;
+      addBtn.innerHTML = `<span class="at-tab-add-icon">+</span><span class="at-tab-add-lbl">Neuer Auftrag</span>`;
+      addBtn.dataset.atIdx = "add";
+      addBtn.dataset.atMachine = mid;
+      groupEl.appendChild(addBtn);
+      list.appendChild(groupEl);
+    });
+
+    // ===== Click-Handler — Cross-Maschinen-aware =====
+    // Group-Header: Click → Wechsel zur Maschine (ohne Job-Switch)
+    list.querySelectorAll(".at-group-header").forEach(h => {
+      h.addEventListener("click", () => {
+        const mid = h.dataset.machine;
+        if (!mid || mid === activeMachineId) return;
+        if (document.activeElement && typeof document.activeElement.blur === "function") {
+          try { document.activeElement.blur(); } catch(_) {}
+        }
+        setTimeout(() => setActiveMachine(mid), 30);
       });
     });
-    // Stabile Reihenfolge nach JobId (numerisch aufsteigend)
-    allTabs.sort((a, b) => a.jobId - b.jobId);
-    allTabs.forEach(t => {
-      // Container DIV statt button — damit das ×-Lösch-Icon als Sub-Button funktioniert
-      const wrap = document.createElement("div");
-      wrap.className = "at-tab-wrap";
-      const btn = document.createElement("button");
-      btn.type = "button";
-      btn.className = "at-tab" + (t.isPrimary ? " at-tab-active" : "");
-      btn.setAttribute("aria-pressed", t.isPrimary ? "true" : "false");
-      btn.setAttribute("role", "tab");
-      btn.tabIndex = -1;
-      btn.dataset.atIdx = t.isPrimary ? "primary" : String(t.slotIdx);
-      btn.dataset.atJobId = String(t.jobId);
-      btn.innerHTML = `<span class="at-tab-id">A${t.jobId}</span><span class="at-tab-meta">MR ${t.mr} · ${t.schmal}</span>`;
-      wrap.appendChild(btn);
-      // Lösch-Icon (×) — NICHT für Primary (sonst hat man keinen Auftrag mehr)
-      if (!t.isPrimary && t.slotIdx != null) {
-        const delBtn = document.createElement("button");
-        delBtn.type = "button";
-        delBtn.className = "at-tab-del";
-        delBtn.setAttribute("aria-label", `Auftrag A${t.jobId} löschen`);
-        delBtn.title = `Auftrag A${t.jobId} löschen`;
-        delBtn.tabIndex = -1;
-        delBtn.dataset.delIdx = String(t.slotIdx);
-        delBtn.dataset.delJobId = String(t.jobId);
-        delBtn.innerHTML = "×";
-        wrap.appendChild(delBtn);
-      }
-      list.appendChild(wrap);
-    });
-    // "+ Neuer Auftrag"-Tab am Ende (deaktiviert wenn MAX_CLUSTER erreicht)
-    const addTab = document.createElement("button");
-    addTab.type = "button";
-    addTab.className = "at-tab at-tab-add";
-    addTab.tabIndex = -1;
-    addTab.disabled = clusterJobs.length >= MAX_CLUSTER;
-    addTab.title = addTab.disabled
-      ? `Maximum erreicht (${MAX_CLUSTER} Folgeaufträge)`
-      : "Neuen Folgeauftrag anlegen";
-    addTab.innerHTML = `<span class="at-tab-add-icon">+</span><span class="at-tab-add-lbl">Neuer Auftrag</span>`;
-    addTab.dataset.atIdx = "add";
-    list.appendChild(addTab);
-
-    // Lösch-Button-Handler — mit Confirm vor Aktion
+    // Lösch-Button — auch für andere Maschine (löscht aus localStorage)
     list.querySelectorAll(".at-tab-del").forEach(d => {
       d.addEventListener("click", (e) => {
         e.stopPropagation();
         const slotIdx = parseInt(d.dataset.delIdx);
         const jobId = d.dataset.delJobId;
-        if (isNaN(slotIdx) || !clusterJobs[slotIdx]) return;
-        const j = clusterJobs[slotIdx];
+        const delMachine = d.dataset.delMachine || activeMachineId;
+        if (isNaN(slotIdx)) return;
+        const targetJobs = delMachine === activeMachineId
+          ? clusterJobs
+          : loadJobsForMachine(delMachine);
+        const j = targetJobs[slotIdx];
+        if (!j) return;
         const mr = j.mr || "—";
         const schmal = j.haupt || "—";
         const auftragsNr = j.auftragsNr ? ` (${j.auftragsNr})` : "";
-        const msg = `Auftrag A${jobId}${auftragsNr} · MR ${mr} mm · Schmal ${schmal} mm\n\nWirklich löschen?\n\nDie Eingaben gehen verloren und können nicht wiederhergestellt werden.`;
+        const machineLbl = MACHINES[delMachine] ? MACHINES[delMachine].label : delMachine;
+        const msg = `Auftrag A${jobId}${auftragsNr} · ${machineLbl} · MR ${mr} mm · Schmal ${schmal} mm\n\nWirklich löschen?\n\nDie Eingaben gehen verloren und können nicht wiederhergestellt werden.`;
         if (!confirm(msg)) return;
-        clusterJobs.splice(slotIdx, 1);
-        saveClusterJobs();
-        renderClusterJobs();
-        toast(`✓ Auftrag A${jobId} gelöscht`);
+        if (delMachine === activeMachineId) {
+          clusterJobs.splice(slotIdx, 1);
+          saveClusterJobs();
+          renderClusterJobs();
+        } else {
+          // Andere Maschine: direkt in localStorage modifizieren
+          targetJobs.splice(slotIdx, 1);
+          try { localStorage.setItem("rr.clusterJobs." + delMachine, JSON.stringify(targetJobs)); } catch(_) {}
+          renderAuftragTabs();
+        }
+        toast(`✓ Auftrag A${jobId} (${machineLbl}) gelöscht`);
       });
     });
+    // Tab-Click + Add-Tab-Click
     list.querySelectorAll(".at-tab").forEach(t => {
       t.addEventListener("click", () => {
         const idx = t.dataset.atIdx;
-        if (idx === "primary") return;
+        const tabMachine = t.dataset.atMachine || activeMachineId;
+        // "+ Neuer Auftrag" — pro Maschine
         if (idx === "add") {
+          // Falls Add für andere Maschine: erst Maschine wechseln
+          if (tabMachine !== activeMachineId) {
+            setActiveMachine(tabMachine);
+            // setActiveMachine ist sync — clusterJobs ist jetzt für tabMachine geladen
+          }
           if (clusterJobs.length >= MAX_CLUSTER) {
             toast(`Maximum erreicht: ${MAX_CLUSTER} Folgeaufträge`, "warn");
             return;
           }
-          // v1.99.14: Pending Edits committen, dann neuen Job anlegen, dann
-          // AUTOMATISCH zum neuen leeren Auftrag wechseln — Werker erwartet
-          // leere Felder beim Tippen, nicht die vorherigen A1-Werte.
           if (document.activeElement && typeof document.activeElement.blur === "function") {
             try { document.activeElement.blur(); } catch(_) {}
           }
@@ -9338,29 +9492,48 @@ audio.team-player-audio::-webkit-media-controls-panel {
           if (ct) ct.setAttribute("aria-expanded", "true");
           if (cs) cs.setAttribute("aria-hidden", "false");
           const newJob = ensureClusterJobShape({});
-          // _fullState explizit leer setzen damit applyMainState bei leerem Job
-          // garantiert alle Felder cleart (Hetero/Asym/etc auch).
           newJob._fullState = {};
           clusterJobs.push(newJob);
           saveClusterJobs();
           renderClusterJobs();
           const newIdx = clusterJobs.length - 1;
-          // Auto-Swap zum neuen leeren Auftrag — direkt leeres Eingabe-Formular
           setTimeout(() => {
             try {
               swapSlotWithMain(newIdx);
-              toast(`✓ Neuer Auftrag A${newJob._jobId} aktiviert · alle Felder leer`);
+              toast(`✓ Neuer Auftrag A${newJob._jobId} (${getMachine().label}) · alle Felder leer`);
             } catch(e) {
               console.error("[+ tab] auto-swap failed:", e);
-              toast(`✓ Auftrag A${newJob._jobId} angelegt (Tab klicken zum Wechseln)`);
+              toast(`✓ Auftrag A${newJob._jobId} angelegt`);
             }
           }, 50);
           return;
         }
+        // Primary-Tab Click — innerhalb gleicher Maschine: kein Wechsel.
+        // Bei anderer Maschine: einfach Maschinen-Switch.
+        if (idx === "primary") {
+          if (tabMachine !== activeMachineId) {
+            if (document.activeElement && typeof document.activeElement.blur === "function") {
+              try { document.activeElement.blur(); } catch(_) {}
+            }
+            setTimeout(() => setActiveMachine(tabMachine), 30);
+          }
+          return;
+        }
+        // Cluster-Tab Click
         const slotIdx = parseInt(idx);
-        if (isNaN(slotIdx) || !clusterJobs[slotIdx]) return;
+        if (isNaN(slotIdx)) return;
         if (document.activeElement && typeof document.activeElement.blur === "function") {
           try { document.activeElement.blur(); } catch(_) {}
+        }
+        if (tabMachine !== activeMachineId) {
+          // Andere Maschine: erst wechseln, dann swap
+          setActiveMachine(tabMachine);
+          setTimeout(() => {
+            if (!clusterJobs[slotIdx]) return;
+            try { swapSlotWithMain(slotIdx); }
+            catch (err) { console.error("[at-tab] cross-machine swap error:", err); }
+          }, 80);
+          return;
         }
         setTimeout(() => {
           if (!clusterJobs[slotIdx]) return;
@@ -12495,11 +12668,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
     updateMachineInfoUI();
     if (typeof syncBahnOffsetUI === "function") syncBahnOffsetUI();
     if (typeof syncTrimModeUI === "function") syncTrimModeUI();
-    // v1.99.13: clusterJobs neu laden — pro Maschine separater Speicher.
-    // Werker switcht Maschine → seine Aufträge der anderen Maschine bleiben
-    // erhalten, kommen beim Zurückschalten wieder.
+    // v1.99.13/18: clusterJobs + activeJob für neue Maschine laden + applyen
     if (typeof loadClusterJobs === "function") loadClusterJobs();
-    if (typeof calc === "function") calc();
+    const newPrimary = (typeof loadActiveJob === "function") ? loadActiveJob() : null;
+    if (newPrimary && typeof applyMainState === "function") {
+      try { applyMainState(newPrimary, { calc: true }); }
+      catch(e) { console.error("[onMachineChanged] applyMainState failed:", e); }
+    } else if (typeof calc === "function") {
+      calc();
+    }
     if (typeof renderClusterJobs === "function") renderClusterJobs();
     toast(`Maschine: ${getMachine().label} · ${clusterJobs.length} Folgeauftrag${clusterJobs.length === 1 ? "" : "äge"}`);
   }
