@@ -7216,8 +7216,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     // ============ TOP-Bemaßung 2: MR-Bereich ============
     if (isMaster) {
-      // 8 distinct Farben für MAX_CLUSTER=8 — vorher nur 4, ab Job-5 wurden Farben wrapped
-      const jobColors = ["#00e676", "#ffb74d", "#42a5f5", "#ec407a", "#ce93d8", "#80cbc4", "#ffd54f", "#ff8a65"];
+      // 11 distinct Farben für MAX_CLUSTER=10 + Primary — Material-Design-Palette
+      const jobColors = ["#00e676", "#ffb74d", "#42a5f5", "#ec407a", "#ce93d8", "#80cbc4", "#ffd54f", "#ff8a65", "#aed581", "#4dd0e1", "#f48fb1"];
       // Konsolidieren: Aufträge mit IDENTISCHER MR-Position (mrLeft+mrRight innerhalb tol) gruppieren
       // → 1 Bracket statt mehrere übereinander
       const tolBracket = 1.0;
@@ -7621,8 +7621,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // ========================================================================
     if (isMaster) {
       const tracksY0 = baseH + 6;
-      // 8 distinct Farben für MAX_CLUSTER=8 — vorher nur 4, ab Job-5 wurden Farben wrapped
-      const jobColors = ["#00e676", "#ffb74d", "#42a5f5", "#ec407a", "#ce93d8", "#80cbc4", "#ffd54f", "#ff8a65"];
+      // 11 distinct Farben für MAX_CLUSTER=10 + Primary — Material-Design-Palette
+      const jobColors = ["#00e676", "#ffb74d", "#42a5f5", "#ec407a", "#ce93d8", "#80cbc4", "#ffd54f", "#ff8a65", "#aed581", "#4dd0e1", "#f48fb1"];
       const tol = 0.5;
       const tracksBottom = tracksY0 + trackHeader + d.validJobs.length * (trackH + trackGap);
 
@@ -8111,7 +8111,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
   // ============== Cluster-State (Folgeaufträge) ==============
   const CLUSTER_KEY = "rr.clusterJobs";
-  const MAX_CLUSTER = 8; // physisch limitiert durch DCM-Welle 1000mm Bestückungsbereich
+  const MAX_CLUSTER = 10; // bis 10 Folge-Aufträge + Primary = 11 Aufträge max auf Master-Welle
   // Felder pro Cluster-Slot:
   //   Geometrie: mr, haupt, nebenBreite, nebenAnz
   //   Mengen:    flaeche (qm), lfm (LFM/Schmalrolle)
