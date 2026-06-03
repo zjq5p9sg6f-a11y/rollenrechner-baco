@@ -1747,6 +1747,36 @@ header.bar {
 }
 .at-tab[aria-pressed="true"] .at-tab-meta,
 .at-tab.at-tab-active .at-tab-meta { color: rgba(6,43,20,0.78) !important; opacity: 1 !important; }
+/* "+ Neuer Auftrag"-Tab — gestrichelte Border als Einladung */
+.at-tab.at-tab-add {
+  border-style: dashed;
+  border-color: rgba(0,230,118,0.35);
+  color: var(--accent-primary, #00e676);
+  font-weight: 700;
+}
+.at-tab.at-tab-add:hover:not(:disabled) {
+  border-style: solid;
+  border-color: var(--accent-primary);
+  background: rgba(0,230,118,0.06);
+}
+.at-tab.at-tab-add:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+.at-tab.at-tab-add .at-tab-add-icon {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+}
+.at-tab.at-tab-add .at-tab-add-lbl {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+@media (max-width: 720px) {
+  .at-tab.at-tab-add .at-tab-add-lbl { display: none; }
+}
 .at-tab .at-tab-id { font-weight: 800; }
 .at-tab .at-tab-meta {
   font-size: 10px; opacity: 0.72; font-weight: 600;
@@ -9078,10 +9108,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const root = document.getElementById("auftragTabs");
     const list = document.getElementById("atList");
     if (!root || !list) return;
-    if (!Array.isArray(clusterJobs) || clusterJobs.length === 0) {
-      root.hidden = true;
-      return;
-    }
+    // v1.99.12: Tab-Bar IMMER sichtbar — auch bei 0 Folgeaufträgen.
+    // Damit ist der "+ Neuer Auftrag"-Button immer findbar, ohne dass der
+    // User erst die Cluster-Section aufklappen muss.
     root.hidden = false;
     list.innerHTML = "";
     // v1.99.11: Tabs nach stabilen Job-IDs rendern, NICHT nach Position.
@@ -9119,17 +9148,46 @@ audio.team-player-audio::-webkit-media-controls-panel {
       btn.innerHTML = `<span class="at-tab-id">A${t.jobId}</span><span class="at-tab-meta">MR ${t.mr} · ${t.schmal}</span>`;
       list.appendChild(btn);
     });
+    // "+ Neuer Auftrag"-Tab am Ende (deaktiviert wenn MAX_CLUSTER erreicht)
+    const addTab = document.createElement("button");
+    addTab.type = "button";
+    addTab.className = "at-tab at-tab-add";
+    addTab.tabIndex = -1;
+    addTab.disabled = clusterJobs.length >= MAX_CLUSTER;
+    addTab.title = addTab.disabled
+      ? `Maximum erreicht (${MAX_CLUSTER} Folgeaufträge)`
+      : "Neuen Folgeauftrag anlegen";
+    addTab.innerHTML = `<span class="at-tab-add-icon">+</span><span class="at-tab-add-lbl">Neuer Auftrag</span>`;
+    addTab.dataset.atIdx = "add";
+    list.appendChild(addTab);
+
     list.querySelectorAll(".at-tab").forEach(t => {
       t.addEventListener("click", () => {
         const idx = t.dataset.atIdx;
         if (idx === "primary") return;
+        if (idx === "add") {
+          if (clusterJobs.length >= MAX_CLUSTER) {
+            toast(`Maximum erreicht: ${MAX_CLUSTER} Folgeaufträge`, "warn");
+            return;
+          }
+          // Cluster-Section öffnen falls geschlossen — damit User den neuen Auftrag sieht
+          const ct = document.getElementById("clusterToggle");
+          const cs = document.getElementById("clusterSection");
+          if (ct) ct.setAttribute("aria-expanded", "true");
+          if (cs) cs.setAttribute("aria-hidden", "false");
+          // Neuen leeren Job anlegen
+          const newJob = ensureClusterJobShape({});
+          clusterJobs.push(newJob);
+          saveClusterJobs();
+          renderClusterJobs();
+          toast(`✓ Neuer Auftrag A${newJob._jobId} angelegt`);
+          return;
+        }
         const slotIdx = parseInt(idx);
         if (isNaN(slotIdx) || !clusterJobs[slotIdx]) return;
-        // Pending input-edits committen (blur triggert change-Event)
         if (document.activeElement && typeof document.activeElement.blur === "function") {
           try { document.activeElement.blur(); } catch(_) {}
         }
-        // Mini-Delay damit DOM-Events (input/change/blur) durch sind, dann swap
         setTimeout(() => {
           if (!clusterJobs[slotIdx]) return;
           try {
