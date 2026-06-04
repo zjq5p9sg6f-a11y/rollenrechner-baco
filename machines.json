@@ -45,7 +45,11 @@
         "werker_regeln": {
           "schmal_grenze_mm": 60,
           "fall_a_anti_teleskop": "Bei mind. einer Rolle ≤ 60 mm: schmale Rollen mittig, breite außen (gegen Verlaufen)",
-          "fall_b_stabilitaet": "Bei NUR Großrollen (> 60 mm): schwerste/breiteste Rolle mittig (Material-Last zentral, Stabilität)"
+          "fall_b_stabilitaet": "Bei NUR Großrollen (> 60 mm): schwerste/breiteste Rolle mittig (Material-Last zentral, Stabilität)",
+          "park_reduktion": {
+            "mr_ab_1180_mm": "2 Parkringe pro Seite (statt 4) — Bestückungsbereich wächst auf 1236 mm",
+            "mr_ab_1240_mm": "1 Parkring pro Seite (statt 4) — Bestückungsbereich wächst auf 1354 mm"
+          }
         },
         "cases": [
           { "mr": 1000, "schmal": 122, "expected_werker_mass": 245.0, "note": "asymm-SE 3-mm-Versatz" }

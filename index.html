@@ -7144,6 +7144,30 @@ audio.team-player-audio::-webkit-media-controls-panel {
         });
       }
     }
+    // v1.99.23 DCM-Panther: Park-Reduzierung bei großen MR (Werker-Praxis 04.06.):
+    //   MR ≥ 1180 mm → 2 Park/Seite (statt 4) — Bestückungsbereich wächst auf 1236 mm
+    //   MR ≥ 1240 mm → 1 Park/Seite (statt 4) — Bestückungsbereich wächst auf 1354 mm
+    if (base.id === "DCM") {
+      let override = base.PARK_PRO_SEITE;  // default 4
+      if (currentMrMm != null) {
+        if (currentMrMm >= 1240 - 0.001)      override = 1;
+        else if (currentMrMm >= 1180 - 0.001) override = 2;
+      }
+      // Manueller Override aus localStorage (falls Werker explizit setzen will)
+      try {
+        const v = localStorage.getItem("rr.parkPerSide.DCM");
+        if (v === "0" || v === "1" || v === "2" || v === "3" || v === "4") override = parseInt(v, 10);
+      } catch (_) {}
+      if (override !== base.PARK_PRO_SEITE) {
+        const total = override * base.PARK_RING;
+        return Object.assign({}, base, {
+          PARK_PRO_SEITE: override,
+          PARK_TOTAL: total,
+          BESTUECKUNGS_BREITE: base.WELLE - 2 * total,
+          MAX_MR_MM: base.WELLE - 2 * total,
+        });
+      }
+    }
     return base;
   }
   function getEuroParkPerSide() {
@@ -12731,7 +12755,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
         `<strong>Wussten Sie?</strong> Die DCM-Schneideeinheit ist <strong>asymmetrisch</strong>: ` +
         `Schnittkante sitzt <strong>13 mm v. links · 7 mm v. rechts</strong> der SE (3 mm Versatz von Mitte). ` +
         `Das Tool berücksichtigt das automatisch in allen Maßen + Print. ` +
-        `Bestückungsbereich: 1000 mm zwischen 2× 4 Parkringen (Welle gesamt 1472 mm).`;
+        `Bestückungsbereich: 1000 mm zwischen 2× 4 Parkringen (Welle gesamt 1472 mm). ` +
+        `<br><strong>Park-Auto-Reduzierung bei großer MR:</strong> ab 1180 mm → 2 Ringe/Seite (1236 mm Bestückung), ab 1240 mm → 1 Ring/Seite (1354 mm).`;
       tipEl.hidden = false;
     } else if (m === "EUROMAC") {
       txtEl.innerHTML =
