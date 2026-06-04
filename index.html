@@ -7926,26 +7926,65 @@ audio.team-player-audio::-webkit-media-controls-panel {
             fill: "var(--accent-primary)", opacity: "0.7" });
         }
       } else if (seg.kind === "schneid" || seg.kind === "neben") {
-        // Schneideeinheit: links Schneidring (rot), rechts Nutmesser (gelb)
+        // v1.99.28 Echte Schneideeinheit-Geometrie pro Maschine
+        // DCM (asymm): 10 Schneidring + 3 Übergang + 7 Nutmesser, Cut bei 13 mm v.l.
+        // Euromac (symm): 10 Distanzhülse + 1 Messerscheibe + 9 Gegenstück, Cut bei 10 mm v.l.
         const isNeben = seg.kind === "neben";
-        const ringFill = isNeben ? "url(#gNeben)" : "url(#gSchneid)";
+        const isDcm = M.id === "DCM";
+        // Drei-Komponenten-Aufbau pro SE (Maße in mm)
+        const SE_LEN = M.SCHNEIDEEINHEIT;
+        const partA = isDcm ? 10 : 10;  // Links: Schneidring / Distanzhülse
+        const partB = isDcm ? 3  : 1;   // Mitte: Übergang / Messerscheibe (Cut-Träger)
+        const partC = isDcm ? 7  : 9;   // Rechts: Nutmesser / Gegenstück
+        const aPx = (partA / SE_LEN) * w;
+        const bPx = (partB / SE_LEN) * w;
+        const cPx = (partC / SE_LEN) * w;
+        const innerY = barTop + 4;
+        const innerH = barH - 8;
+        // Farb-Palette
+        const ringFill   = isNeben ? "url(#gNeben)" : "url(#gSchneid)";
         const ringStroke = isNeben ? "rgba(255,180,0,0.7)" : "rgba(255,94,87,0.7)";
-        const halfW = w / 2;
-        svgW(g, "rect", { x: x + 0.3, y: barTop + 4, width: Math.max(0, halfW - 0.3), height: barH - 8, rx: 2,
-          fill: ringFill, stroke: ringStroke, "stroke-width": "0.7" });
-        const nutFill = isNeben ? "#ffe082" : "#ffd54f";
-        const nutStroke = isNeben ? "#ffeaa3" : "#ffe066";
-        svgW(g, "rect", { x: x + halfW, y: barTop + 4, width: Math.max(0, halfW - 0.3), height: barH - 8, rx: 2,
-          fill: nutFill, stroke: nutStroke, "stroke-width": "0.6" });
-        svgW(g, "line", { x1: x + halfW, y1: barTop + 4, x2: x + halfW, y2: barTop + barH - 4,
-          stroke: "rgba(0,0,0,0.6)", "stroke-width": "0.8" });
-        const stegW = (3 / M.SCHNEIDEEINHEIT) * w;
-        svgW(g, "rect", { x: x + halfW, y: barTop + 4 + (barH - 8) * 0.3,
-          width: stegW, height: (barH - 8) * 0.4,
-          fill: "rgba(0,0,0,0.18)" });
-        const cutOffsetPx = (M.SCHNITT_OFFSET / M.SCHNEIDEEINHEIT) * w;
-        svgW(g, "line", { x1: x + cutOffsetPx, y1: barTop + 2, x2: x + cutOffsetPx, y2: barTop + barH - 2,
-          stroke: "white", "stroke-width": "0.9", opacity: "0.85" });
+        const messerFill   = isDcm ? (isNeben ? "#ffe082" : "#ffd54f") : "#7a8aa0";
+        const messerStroke = isDcm ? (isNeben ? "#ffeaa3" : "#ffe066") : "rgba(160,180,210,0.7)";
+        const transitionFill = isDcm
+          ? "rgba(30,30,30,0.92)"   // dunkler 3-mm-Übergang DCM
+          : "rgba(40,40,60,0.92)";  // dunkle 1-mm-Messerscheibe Euromac
+        // A · Schneidring/Distanzhülse (links, breit)
+        svgW(g, "rect", {
+          x: x + 0.3, y: innerY, width: Math.max(0, aPx - 0.5), height: innerH, rx: 2,
+          fill: ringFill, stroke: ringStroke, "stroke-width": "0.7"
+        });
+        // B · Übergang/Messerscheibe (schmaler Cut-Träger)
+        svgW(g, "rect", {
+          x: x + aPx, y: innerY, width: Math.max(0.5, bPx), height: innerH, rx: 0.5,
+          fill: transitionFill, stroke: "rgba(0,0,0,0.45)", "stroke-width": "0.5"
+        });
+        // C · Nutmesser/Gegenstück (rechts)
+        svgW(g, "rect", {
+          x: x + aPx + bPx, y: innerY, width: Math.max(0, cPx - 0.3), height: innerH, rx: 2,
+          fill: messerFill, stroke: messerStroke, "stroke-width": "0.6"
+        });
+        // Nut-Detail im Nutmesser (kleine schwarze Linie wo das Messer einschneidet) — nur DCM
+        if (isDcm && cPx > 4) {
+          svgW(g, "rect", {
+            x: x + aPx + bPx + 0.3, y: innerY + innerH * 0.32,
+            width: Math.max(1, cPx * 0.18), height: innerH * 0.36,
+            fill: "rgba(0,0,0,0.35)"
+          });
+        }
+        // Cut-Marker (weiße Linie bei exakter SCHNITT_OFFSET-Position)
+        // DCM: Cut sitzt an Übergang-Nutmesser-Grenze (13 mm = aPx+bPx)
+        // Euromac: Cut sitzt an Distanzhülse-Messerscheibe-Grenze (10 mm = aPx)
+        const cutOffsetPx = (M.SCHNITT_OFFSET / SE_LEN) * w;
+        svgW(g, "line", {
+          x1: x + cutOffsetPx, y1: barTop + 1, x2: x + cutOffsetPx, y2: barTop + barH - 1,
+          stroke: "white", "stroke-width": "1.1", opacity: "0.92"
+        });
+        // Tiny Cut-Pfeil oben (zeigt exakte Schnittposition an)
+        svgW(g, "path", {
+          d: `M${x + cutOffsetPx} ${barTop - 1} L${x + cutOffsetPx - 2} ${barTop - 5} L${x + cutOffsetPx + 2} ${barTop - 5} Z`,
+          fill: "white", opacity: "0.85"
+        });
       } else if (seg.kind === "buchse") {
         // Schneidbuchse · Multi-Cut-Block (30 mm) · Cutter-Ticks alle 5 mm
         // Visuell abgesetzt von Standard-SE: cyan-Akzent + dunkle Stahl-Optik
