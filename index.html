@@ -1602,19 +1602,20 @@ header.bar {
 .welle-detail-overlay[aria-hidden="false"] { opacity: 1; }
 
 .welle-detail-card {
-  /* v1.99.21 Solid-Background-Fix: vorher rgba(12,12,12,0.96) + backdrop-filter
-     blur — Firefox/Windows hat das transparent gerendert (Werker konnte die
-     Stats nicht lesen). Jetzt voll opak + Highlight-Gradient als reine Overlay-
-     Schicht ohne alpha am base-color. */
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 60%),
-    #121212;
-  border: 1px solid var(--wdo-accent, var(--accent-primary));
+  /* v1.99.22 Radikal-Solid-Fix: alle alpha + gradient + filter raus. Nur EIN
+     einziger solid background-color. Vorher: rgba(12,12,12,0.96) + linear-gradient
+     mit alpha + backdrop-filter — diverse Browser haben das semi-transparent
+     gerendert. Jetzt: PURE solid Hintergrund, garantiert opak. */
+  background-color: #1a1a1a !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1.5px solid var(--wdo-accent, var(--accent-primary));
   border-radius: 10px;
   padding: 14px 18px 16px;
   box-shadow:
     0 18px 48px -16px rgba(0,0,0,0.7),
-    0 0 0 1px rgba(255,255,255,0.04),
+    0 0 0 1px rgba(255,255,255,0.06),
     0 0 28px -8px var(--wdo-glow, rgba(0,230,118,0.30));
   color: var(--text-primary);
   transform: translateY(-6px);
