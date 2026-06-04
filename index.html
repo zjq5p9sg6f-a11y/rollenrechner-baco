@@ -10730,6 +10730,16 @@ audio.team-player-audio::-webkit-media-controls-panel {
       renderSegDetail(segEl);
       positionOverlay(segEl, e);
       overlay.setAttribute("aria-hidden", "false");
+      // v1.99.24: Card-Background DIREKT als inline-style — höchste CSS-
+      // Specificity, schlägt jede Style-Override. Garantiert opak in JEDEM
+      // Browser (Firefox/Safari können CSS-Variablen-Cascade unzuverlässig).
+      const _card = overlay.querySelector(".welle-detail-card");
+      if (_card) {
+        _card.style.backgroundColor = "#1a1a1a";
+        _card.style.backgroundImage = "none";
+        _card.style.backdropFilter = "none";
+        _card.style.opacity = "1";
+      }
       // Highlight-Outline
       clearOutline();
       const segX = parseFloat(segEl.getAttribute("x")) || 0;
