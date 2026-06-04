@@ -8013,17 +8013,19 @@ audio.team-player-audio::-webkit-media-controls-panel {
         drawLeftBlock(topMatY, matH, ringPaint, ringStroke);
         drawRightBlock(topMatY, matH, messerPaint, messerStroke);
 
-        // MITTE: Welle-Körper als horizontaler dunkler Streifen mit Strich-Punkt-Achse
+        // MITTE: KEIN Block — die Welle-Bar darunter (gWelleBody-Gradient) scheint
+        // hier durch. Visuell sieht es aus wie ein Ring der die Welle umschließt,
+        // ohne dass die Mitte als "Lücke" wirkt. Plus subtile Schraffur als
+        // Stahl-Material-Hinweis im Übergangs-Bereich.
+        // Mini-Stahl-Schatten nur DIREKT unter Top-Ring + Über Bottom-Ring für
+        // 3D-Tiefe (zeigt: Material sitzt AUF der Welle).
         svgW(g, "rect", {
-          x: x + 0.3, y: midY, width: Math.max(0, w - 0.6), height: midH,
-          fill: "rgba(28,28,32,0.96)", stroke: "rgba(120,120,140,0.35)", "stroke-width": "0.4"
+          x: x + 0.3, y: midY, width: Math.max(0, w - 0.6), height: 1.5,
+          fill: "rgba(0,0,0,0.45)"
         });
-        // Strich-Punkt-Achse (Welle-Mittellinie wie in CAD)
-        svgW(g, "line", {
-          x1: x + 0.3, y1: midY + midH / 2,
-          x2: x + w - 0.3, y2: midY + midH / 2,
-          stroke: "rgba(150,200,170,0.55)", "stroke-width": "0.55",
-          "stroke-dasharray": "6 2 1 2"
+        svgW(g, "rect", {
+          x: x + 0.3, y: botMatY - 1.5, width: Math.max(0, w - 0.6), height: 1.5,
+          fill: "rgba(0,0,0,0.45)"
         });
 
         // UNTEN: Material-Ring gespiegelt (Schneidring + Nutmesser unten)
