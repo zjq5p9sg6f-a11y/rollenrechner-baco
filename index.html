@@ -1284,6 +1284,13 @@ header.bar {
   z-index: 0;
 }
 .welle-section > * { position: relative; z-index: 1; }
+/* v1.99.26 STACKING-CONTEXT-FIX: welle-stage-wrap darf KEINEN eigenen
+   stacking-context erzeugen, sonst ist welle-detail-overlay's z-index:30
+   nur innerhalb stage-wrap effektiv — welle-holliste/sequenz (im DOM
+   später) rendern visuell ÜBER der Card. z-index: auto lässt overlay
+   im welle-section-Kontext rendern → liegt korrekt oben. */
+.welle-section > .welle-stage-wrap { z-index: auto; }
+.welle-detail-overlay { z-index: 100; }  /* doppelt sicher übergeordnet */
 .welle-head {
   display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
   flex-wrap: wrap;
