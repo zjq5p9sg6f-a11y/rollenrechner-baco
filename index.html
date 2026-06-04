@@ -10600,10 +10600,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const { left, top, sw } = svgPxToSection(seg, e);
       const ovW = overlay.offsetWidth || 360;
       const ovH = overlay.offsetHeight || 180;
-      // Default: oberhalb des Cursors, x-zentriert; bei nicht genug Platz nach unten flippen.
+      // v1.99.27: Card NÄHER an Welle — 4px Abstand (vorher 16/24). Reicht
+      // damit die Card die Welle nicht überdeckt, ist aber nicht mehr unnötig
+      // weit entfernt. Werker liest Card und Welle simultan.
+      const GAP = 4;
       let x = left - ovW / 2;
-      let y = top - ovH - 16;
-      if (y < 8) y = top + 24;
+      let y = top - ovH - GAP;  // oberhalb segment
+      if (y < 8) y = top + GAP + 8;  // unterhalb wenn oben kein Platz
       x = Math.max(8, Math.min(sw - ovW - 8, x));
       overlay.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
     }
