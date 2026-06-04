@@ -34,8 +34,19 @@
       "BESAEUMUNG_MIN_SOFT": 2.5,
       "BESAEUMUNG_MAX": 20,
       "_verified": {
-        "date": "2026-06-02",
-        "by": "Jan + Werker (CAD-Zeichnung)",
+        "date": "2026-06-04",
+        "by": "Jan + Werker (CAD-Zeichnung + Praxis-Messung 2026-06-04)",
+        "geometrie": {
+          "welle_gesamt_mm": 1472,
+          "bestueckungsbereich_zw_parkringen_mm": 1000,
+          "parkring_je_seite_4x_59_mm": 236,
+          "schneideeinheit_asymmetrie": "Schnittkante 13 mm v. links · 7 mm v. rechts (3 mm Versatz von SE-Mitte)"
+        },
+        "werker_regeln": {
+          "schmal_grenze_mm": 60,
+          "fall_a_anti_teleskop": "Bei mind. einer Rolle ≤ 60 mm: schmale Rollen mittig, breite außen (gegen Verlaufen)",
+          "fall_b_stabilitaet": "Bei NUR Großrollen (> 60 mm): schwerste/breiteste Rolle mittig (Material-Last zentral, Stabilität)"
+        },
         "cases": [
           { "mr": 1000, "schmal": 122, "expected_werker_mass": 245.0, "note": "asymm-SE 3-mm-Versatz" }
         ]

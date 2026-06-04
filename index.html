@@ -403,6 +403,26 @@ header.bar {
 }
 .history-clear:hover { color: var(--danger-color, #ff5252); }
 
+/* Werker-Wissens-Hinweis pro Maschine (v1.99.20) */
+.machine-info-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-top: 8px;
+  border-radius: var(--r-2);
+  background: linear-gradient(135deg, rgba(255,154,60,0.06) 0%, rgba(255,154,60,0.02) 100%);
+  border: 1px solid rgba(255,154,60,0.22);
+  border-left: 3px solid var(--machine-accent, #ff9a3c);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-primary);
+}
+.machine-info-tip[hidden] { display: none; }
+.mit-icon { font-size: 16px; line-height: 1.2; flex-shrink: 0; }
+.mit-text { color: var(--text-secondary); }
+.mit-text strong { color: var(--machine-accent, #ff9a3c); font-weight: 800; }
+
 /* Maschinen-Konfig-Zone — Orange-Akzent semantisch getrennt von Action-/Output-Grün.
    Werker erkennt sofort: "hier ist Maschinen-Konfiguration", nicht "hier ist
    Output". v1.99.4 Color-Refactor. */
@@ -5628,6 +5648,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
       </div>
     </section>
 
+    <!-- v1.99.20 Werker-Wissens-Hinweis pro Maschine (DCM-Asymmetrie etc.) -->
+    <div class="machine-info-tip" id="machineInfoTip" hidden>
+      <span class="mit-icon" aria-hidden="true">💡</span>
+      <span class="mit-text" id="mitText"></span>
+    </div>
+
     <!-- ============== VIZ STAGE (full width) ============== -->
     <section class="panel glass viz-stage fade-up fade-up-3" aria-labelledby="viz-title">
       <div class="viz-head">
@@ -7063,9 +7089,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
   };
 
   // Maschinen-übergreifende Operator-Regeln (gelten für ALLE Maschinen,
-  // damit Werte nicht pro Maschine driften)
+  // damit Werte nicht pro Maschine driften).
+  // v1.99.20: Werker-Praxis bestätigt — zwei verschiedene Regeln:
+  //   Schmalrollen-Welle (mind. eine Rolle ≤ 60 mm): schmal mittig (Anti-Teleskop)
+  //   Großrollen-Welle  (ALLE Rollen > 60 mm):       schwer mittig (Stabilität)
   const OPERATOR_RULES = {
-    teleskopThresholdMm: 50           // < 50 mm Schmalrolle = Teleskop-Risiko außen
+    schmalrollenGrenzeMm: 60,         // ≤ 60 mm = "schmal" (Werker-Konvention)
+    teleskopThresholdMm: 60           // legacy-alias, gleich Schmal-Grenze
   };
 
   // Aktive Maschine — wird vom UI-Toggle gesetzt, persistiert in localStorage
@@ -7156,14 +7186,19 @@ audio.team-player-audio::-webkit-media-controls-panel {
   // Backward-Compat-Alias für alte Aufrufe (default = aktive Maschine)
   function distanzringeForDCM(ziel) { return distanzringeForMachine(ziel, getMachine()); }
 
-  // Werker-Regel: schmale Streifen mittig, breite aussen.
-  // Anti-Teleskop — schmale Rollen kippen am Aussenrand weg, brauchen
-  // breitere Nachbarn als seitlichen Halt. Aktivierung nur bei mind. 2
-  // verschiedenen Breiten UND mind. einer Breite >= teleskopThresholdMm.
-  // Sonst Standard-Reihenfolge (Haupt zuerst, dann Neben-Slots in Eingabe-Reihenfolge).
-  // Algorithmus: alle Streifen flach sortieren absteigend nach Breite,
-  // zickzack-verteilen (links/rechts wechselnd) — breitester landet aussen,
-  // schmalster automatisch in der Mitte.
+  // v1.99.20 Werker-Regel · ZWEI Fälle (basiert auf Werker-Praxis 2026-06-04):
+  //
+  //   Fall A · Schmalrollen-Welle (mind. eine Rolle ≤ 60 mm):
+  //     → schmal mittig (Anti-Teleskop, gegen Verlaufen)
+  //     → sortDesc + zigzag: breit außen, schmal in der Mitte
+  //
+  //   Fall B · Großrollen-Welle (ALLE Rollen > 60 mm):
+  //     → schwer (= breiteste) mittig (Stabilität, Material-Last in Welle-Mitte)
+  //     → sortAsc + zigzag: schmal außen, breit in der Mitte
+  //
+  //   Sonst (alle gleich oder nur 1 Streifen): Standard-Reihenfolge.
+  //
+  // Returns: { ordered, ruleApplied: "anti-teleskop" | "stabilitaet" | "none" }
   function applyWerkerRule(haupt, nutzen, slots) {
     const stripes = [];
     for (let i = 0; i < nutzen; i++) stripes.push({ breite: haupt, kind: "haupt", anzIdx: i + 1, anzTotal: nutzen });
@@ -7173,18 +7208,23 @@ audio.team-player-audio::-webkit-media-controls-panel {
       }
     }
     const uniqueBreiten = [...new Set(stripes.map(s => s.breite))];
-    const teleSchwelle = OPERATOR_RULES.teleskopThresholdMm;
-    const werkerRegelAktiv = (uniqueBreiten.length >= 2)
-      && stripes.some(s => s.breite >= teleSchwelle);
-    if (!werkerRegelAktiv) return stripes;
+    if (uniqueBreiten.length < 2) { stripes.ruleApplied = "none"; return stripes; }
 
-    const sortedDesc = stripes.slice().sort((a, b) => b.breite - a.breite);
+    const SCHMAL = OPERATOR_RULES.schmalrollenGrenzeMm;
+    const hatSchmale = stripes.some(s => s.breite <= SCHMAL);
+
+    // Sortier-Reihenfolge wählen je nach Fall
+    const sorted = stripes.slice().sort(hatSchmale
+      ? (a, b) => b.breite - a.breite   // Fall A: desc → schmal landet zentral
+      : (a, b) => a.breite - b.breite   // Fall B: asc → breit landet zentral
+    );
     const ordered = new Array(stripes.length);
     let lI = 0, rI = stripes.length - 1, side = "L";
-    for (const s of sortedDesc) {
+    for (const s of sorted) {
       if (side === "L") { ordered[lI++] = s; side = "R"; }
       else              { ordered[rI--] = s; side = "L"; }
     }
+    ordered.ruleApplied = hatSchmale ? "anti-teleskop" : "stabilitaet";
     return ordered;
   }
 
@@ -12675,9 +12715,34 @@ audio.team-player-audio::-webkit-media-controls-panel {
   }
 
   // Wird vom setActiveMachine() aufgerufen (forward-declared via Function-Ref)
+  // v1.99.20: Werker-Wissens-Hinweis aktualisieren je nach Maschine
+  function updateMachineInfoTip() {
+    const tipEl = document.getElementById("machineInfoTip");
+    const txtEl = document.getElementById("mitText");
+    if (!tipEl || !txtEl) return;
+    const m = activeMachineId;
+    if (m === "DCM") {
+      txtEl.innerHTML =
+        `<strong>Wussten Sie?</strong> Die DCM-Schneideeinheit ist <strong>asymmetrisch</strong>: ` +
+        `Schnittkante sitzt <strong>13 mm v. links · 7 mm v. rechts</strong> der SE (3 mm Versatz von Mitte). ` +
+        `Das Tool berücksichtigt das automatisch in allen Maßen + Print. ` +
+        `Bestückungsbereich: 1000 mm zwischen 2× 4 Parkringen (Welle gesamt 1472 mm).`;
+      tipEl.hidden = false;
+    } else if (m === "EUROMAC") {
+      txtEl.innerHTML =
+        `<strong>Wussten Sie?</strong> Die Euromac-Welle ist <strong>asymmetrisch geteilt</strong>: ` +
+        `650 mm links · 670 mm rechts der geometrischen Mitte. Bahn-Mitte muss bei Bedarf manuell geeicht werden ` +
+        `(siehe Feld oben). Bestückungsbereich: 1120 mm zwischen 2× 2 Parkringen.`;
+      tipEl.hidden = false;
+    } else {
+      tipEl.hidden = true;
+    }
+  }
+
   function onMachineChanged() {
     updateMachineToggleUI();
     updateMachineInfoUI();
+    updateMachineInfoTip();
     if (typeof syncBahnOffsetUI === "function") syncBahnOffsetUI();
     if (typeof syncTrimModeUI === "function") syncTrimModeUI();
     // v1.99.13/18: clusterJobs + activeJob für neue Maschine laden + applyen
@@ -12875,9 +12940,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
     });
   }
   syncFlaecheModeUI();
-  // Initial-State aus localStorage spiegeln (Toggle + Info-Box)
+  // Initial-State aus localStorage spiegeln (Toggle + Info-Box + Werker-Tip)
   updateMachineToggleUI();
   updateMachineInfoUI();
+  if (typeof updateMachineInfoTip === "function") updateMachineInfoTip();
 
   // ---------- Recent-History: letzte 5 Berechnungen ----------
   const HISTORY_KEY = "rr.history";
