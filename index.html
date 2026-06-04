@@ -7991,8 +7991,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
           const xStufe = x + aPx;
           const xMain = x + aPx + bPx;
           const xR = x + w;
-          // Stufe-Höhe: zentriert vertikal, 50% von innerH
-          const stufeH = innerH * 0.50;
+          // v1.99.35: Stufe-Höhe FAST voll (94%) → Welle wird komplett überdeckt,
+          // L-Form ist noch ganz dezent sichtbar als Andeutung (3% oben + unten frei).
+          const stufeH = innerH * 0.94;
           const stufeY = innerY + (innerH - stufeH) / 2;
           // L-Form path: erst entlang oben des Hauptteils (xMain → xR), runde Ecke
           // rechts oben, runter, runde Ecke rechts unten, zurück zu xMain unten,
