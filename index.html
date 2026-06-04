@@ -7984,61 +7984,50 @@ audio.team-player-audio::-webkit-media-controls-panel {
             fill: "rgba(255,255,255,0.32)", rx: 1
           });
         }
-        // C · Nutmesser (rechts, voll-Höhe, INNEN gerade gegen Spalt, AUSSEN gerundet)
-        if (cPx > 0.5) {
-          const xL = x + aPx + bPx;
-          const xRr = x + w;
+        // B+C · Nutmesser als L-FORM (3mm Stufe + 7mm Vollhöhe) — eine zusammen-
+        // hängende gelbe Form. Stufe gehört zum Nutmesser, ist niedriger.
+        // Geometrie (DCM): 10mm Schneidring | 3mm Stufe (50% Höhe, Nutmesser) | 7mm Vollhöhe
+        if ((bPx + cPx) > 0.5) {
+          const xStufe = x + aPx;
+          const xMain = x + aPx + bPx;
+          const xR = x + w;
+          // Stufe-Höhe: zentriert vertikal, 50% von innerH
+          const stufeH = innerH * 0.50;
+          const stufeY = innerY + (innerH - stufeH) / 2;
+          // L-Form path: erst entlang oben des Hauptteils (xMain → xR), runde Ecke
+          // rechts oben, runter, runde Ecke rechts unten, zurück zu xMain unten,
+          // hoch bis Stufe-unten, links bis xStufe (Stufe-unten), hoch bis Stufe-oben,
+          // rechts zurück zu xMain.
+          const r = Math.min(rr, cPx * 0.20);
           svgW(g, "path", {
-            d: `M${xL},${innerY}
-                L${xRr - rr},${innerY}
-                Q${xRr},${innerY} ${xRr},${innerY + rr}
-                L${xRr},${innerY + innerH - rr}
-                Q${xRr},${innerY + innerH} ${xRr - rr},${innerY + innerH}
-                L${xL},${innerY + innerH}
+            d: `M${xMain},${innerY}
+                L${xR - r},${innerY}
+                Q${xR},${innerY} ${xR},${innerY + r}
+                L${xR},${innerY + innerH - r}
+                Q${xR},${innerY + innerH} ${xR - r},${innerY + innerH}
+                L${xMain},${innerY + innerH}
+                L${xMain},${stufeY + stufeH}
+                L${xStufe},${stufeY + stufeH}
+                L${xStufe},${stufeY}
+                L${xMain},${stufeY}
                 Z`,
             fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7",
             "stroke-linejoin": "miter"
           });
-          // Top-Highlight Nutmesser
+          // Top-Highlight nur über Nutmesser-Hauptteil
           svgW(g, "rect", {
-            x: xL + 0.5, y: innerY + 1, width: Math.max(0, cPx - rr - 1), height: innerH * 0.12,
+            x: xMain + 0.5, y: innerY + 1, width: Math.max(0, cPx - r - 1), height: innerH * 0.12,
             fill: "rgba(255,255,255,0.32)", rx: 1
           });
-          // Nut-Detail (kleine Kerbe an der inneren-linken Kante) — DCM
-          if (isDcm && cPx > 4) {
-            const nutW = Math.min(2.2, cPx * 0.22);
-            svgW(g, "rect", {
-              x: xL, y: innerY + innerH * 0.30,
-              width: nutW, height: innerH * 0.40,
-              fill: "rgba(0,0,0,0.40)"
+          // Nut-Detail · innere Kante am Stufen-Übergang (zeigt Schnittposition strukturell)
+          if (isDcm) {
+            // dünne dunkle Linie an der Stufen-Innenkante
+            svgW(g, "line", {
+              x1: xMain + 0.2, y1: stufeY + 0.2,
+              x2: xMain + 0.2, y2: stufeY + stufeH - 0.2,
+              stroke: "rgba(0,0,0,0.45)", "stroke-width": "0.5"
             });
           }
-        }
-
-        // B · SPALT (3 mm DCM / 1 mm Euromac) — Stahl-Welle SICHTBAR zwischen Blöcken
-        // (CAD-realistisch: hier ist das Material zurückgesprungen auf Welle-Ø,
-        // also sieht man durch den Spalt den Stahl-Kern der Welle)
-        if (bPx > 0.3) {
-          // Stahl-Gradient wie Welle-Body — sieht aus wie die Welle in der Lücke
-          svgW(g, "rect", {
-            x: x + aPx, y: innerY + 1, width: bPx, height: innerH - 2,
-            fill: "url(#gWelleBody)",
-            stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.4"
-          });
-          // Top-Stahl-Highlight im Spalt (3D-Tiefe)
-          svgW(g, "rect", {
-            x: x + aPx, y: innerY + 1, width: bPx, height: (innerH - 2) * 0.20,
-            fill: "rgba(255,255,255,0.10)"
-          });
-          // Mini-Schatten links + rechts (zeigt: Schneidring/Nutmesser stehen vor)
-          svgW(g, "line", {
-            x1: x + aPx + 0.3, y1: innerY + 1, x2: x + aPx + 0.3, y2: innerY + innerH - 1,
-            stroke: "rgba(0,0,0,0.5)", "stroke-width": "0.6"
-          });
-          svgW(g, "line", {
-            x1: x + aPx + bPx - 0.3, y1: innerY + 1, x2: x + aPx + bPx - 0.3, y2: innerY + innerH - 1,
-            stroke: "rgba(0,0,0,0.5)", "stroke-width": "0.6"
-          });
         }
 
         // CUT-Marker: weiße Linie in der Spalt-Mitte (= SCHNITT_OFFSET)
