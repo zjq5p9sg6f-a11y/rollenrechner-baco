@@ -8015,13 +8015,29 @@ audio.team-player-audio::-webkit-media-controls-panel {
           }
         }
 
-        // B · SPALT (3 mm DCM / 1 mm Euromac) — schmaler dunkler Streifen zwischen Blöcken
-        // zeigt strukturell: hier wird geschnitten, kein Material
+        // B · SPALT (3 mm DCM / 1 mm Euromac) — Stahl-Welle SICHTBAR zwischen Blöcken
+        // (CAD-realistisch: hier ist das Material zurückgesprungen auf Welle-Ø,
+        // also sieht man durch den Spalt den Stahl-Kern der Welle)
         if (bPx > 0.3) {
+          // Stahl-Gradient wie Welle-Body — sieht aus wie die Welle in der Lücke
           svgW(g, "rect", {
             x: x + aPx, y: innerY + 1, width: bPx, height: innerH - 2,
-            fill: "rgba(15,15,18,0.95)",
-            stroke: "rgba(0,0,0,0.7)", "stroke-width": "0.3"
+            fill: "url(#gWelleBody)",
+            stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.4"
+          });
+          // Top-Stahl-Highlight im Spalt (3D-Tiefe)
+          svgW(g, "rect", {
+            x: x + aPx, y: innerY + 1, width: bPx, height: (innerH - 2) * 0.20,
+            fill: "rgba(255,255,255,0.10)"
+          });
+          // Mini-Schatten links + rechts (zeigt: Schneidring/Nutmesser stehen vor)
+          svgW(g, "line", {
+            x1: x + aPx + 0.3, y1: innerY + 1, x2: x + aPx + 0.3, y2: innerY + innerH - 1,
+            stroke: "rgba(0,0,0,0.5)", "stroke-width": "0.6"
+          });
+          svgW(g, "line", {
+            x1: x + aPx + bPx - 0.3, y1: innerY + 1, x2: x + aPx + bPx - 0.3, y2: innerY + innerH - 1,
+            stroke: "rgba(0,0,0,0.5)", "stroke-width": "0.6"
           });
         }
 
