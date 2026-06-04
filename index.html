@@ -1602,11 +1602,13 @@ header.bar {
 .welle-detail-overlay[aria-hidden="false"] { opacity: 1; }
 
 .welle-detail-card {
+  /* v1.99.21 Solid-Background-Fix: vorher rgba(12,12,12,0.96) + backdrop-filter
+     blur — Firefox/Windows hat das transparent gerendert (Werker konnte die
+     Stats nicht lesen). Jetzt voll opak + Highlight-Gradient als reine Overlay-
+     Schicht ohne alpha am base-color. */
   background:
     linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 60%),
-    rgba(12,12,12,0.96);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+    #121212;
   border: 1px solid var(--wdo-accent, var(--accent-primary));
   border-radius: 10px;
   padding: 14px 18px 16px;
@@ -1946,21 +1948,23 @@ header.bar {
   padding: 6px 14px;
   height: 40px;
   box-sizing: border-box;
-  background: var(--bg-card);
+  /* v1.99.21 Firefox-Fix: solid opaque background statt CSS-Variable
+     (Firefox/Windows konnte var(--bg-card) bei opacity-Animation transparent
+     rendern). Direkter Hex-Wert macht das Element zuverlässig opak. */
+  background: #161616;
   border: 1.5px solid transparent;
   border-radius: 6px;
   box-shadow: none;
   font-size: 12px;
   overflow: hidden;
   white-space: nowrap;
+  /* v1.99.21: visibility hidden statt opacity:0 für sauberen Hide.
+     opacity:0 plus background opacity ist Firefox-Problem. Nur visibility
+     toggeln — Card ist entweder vollständig sichtbar oder weg. */
   visibility: hidden;
-  opacity: 0;
-  /* transition NUR opacity — kein border/shadow um Compositor-Effekte zu vermeiden */
-  transition: opacity 100ms linear;
 }
 .job-solo-card[aria-hidden="false"] {
   visibility: visible;
-  opacity: 1;
   border-color: var(--accent-primary, #00e676);
   box-shadow: 0 0 14px rgba(0,230,118,0.10);
 }
