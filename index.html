@@ -7926,94 +7926,137 @@ audio.team-player-audio::-webkit-media-controls-panel {
             fill: "var(--accent-primary)", opacity: "0.7" });
         }
       } else if (seg.kind === "schneid" || seg.kind === "neben") {
-        // v1.99.29 CAD-getreue SE-Visualisierung nach Original-Längsschnitt-Zeichnung:
-        //   DCM: 10 Schneidring (Ø 91) + 3 Übergang (= nur Welle Ø 79.7) + 7 Nutmesser (Ø 91)
-        //   Schneidring/Nutmesser ragen ÜBER die Welle hinaus → volle Höhe in Bar
-        //   Übergang: nur Welle, also NIEDRIGER (schmaler Block in Welle-Achse-Höhe)
-        //   Ecken AUSSEN gerundet, INNEN gerade (gegen Übergang)
+        // v1.99.30 PREMIUM CAD-Render · Original-Längsschnitt 1:1:
+        //   - Ring umschließt Welle → Material OBEN + UNTEN (Längsschnitt-Look)
+        //   - Welle-Achse als Strich-Punkt-Linie horizontal in der Mitte
+        //   - Schneidring (rot, Ø 91) + Nutmesser (gelb, Ø 91) ragen über Welle (Ø 79,7)
+        //   - Übergang (3 mm): nur Welle-Stahl sichtbar (kein Aufsatz-Material)
+        //   - Stahl-Gradient (3D-Look), Außen-Ecken gerundet
+        //   - Cut prominent (weiß durch ganze Höhe + Pfeile oben & unten)
         const isNeben = seg.kind === "neben";
         const isDcm = M.id === "DCM";
         const SE_LEN = M.SCHNEIDEEINHEIT;
-        const partA = 10;                       // Schneidring/Distanzhülse links
-        const partB = isDcm ? 3 : 1;            // Übergang (DCM 3 / Euromac 1 = Messerscheibe)
-        const partC = isDcm ? 7 : 9;            // Nutmesser/Gegenstück rechts
+        const partA = 10;
+        const partB = isDcm ? 3 : 1;
+        const partC = isDcm ? 7 : 9;
         const aPx = (partA / SE_LEN) * w;
         const bPx = (partB / SE_LEN) * w;
         const cPx = (partC / SE_LEN) * w;
         const innerY = barTop + 4;
         const innerH = barH - 8;
-        // Welle-Achse (für niedrigen Übergangs-Block)
-        const wellY = innerY + innerH * 0.30;
-        const wellH = innerH * 0.40;
-        // Farb-Palette
-        const ringFill   = isNeben ? "url(#gNeben)" : "url(#gSchneid)";
-        const ringStroke = isNeben ? "rgba(255,180,0,0.75)" : "rgba(255,94,87,0.75)";
-        const messerFill   = isDcm ? (isNeben ? "#ffe082" : "#ffd54f") : "#9099a8";
-        const messerStroke = isDcm ? (isNeben ? "#ffeaa3" : "#ffe066") : "rgba(180,200,225,0.75)";
-        const wellFill = "rgba(60,60,60,0.95)";        // Welle-Achse durch Übergang
-        const wellStroke = "rgba(0,0,0,0.5)";
-        const rr = Math.min(3, aPx * 0.18, cPx * 0.18);  // Außen-Border-Radius
+        // Welle-Achse-Layout: Material oben 36%, Welle-Mitte 28%, Material unten 36%
+        const matH = innerH * 0.36;
+        const topMatY = innerY;
+        const midY = innerY + matH;
+        const midH = innerH * 0.28;
+        const botMatY = innerY + matH + midH;
+        // Farb-Palette (CAD-getreu satt + leichter Schatten-Gradient)
+        const ringTop = isNeben ? "#ffc14d" : "#e54a4a";
+        const ringBot = isNeben ? "#a76a00" : "#7a1d1d";
+        const ringStroke = isNeben ? "#3a2400" : "#2a0a0a";
+        const messerTop = isDcm ? (isNeben ? "#ffe082" : "#fde047") : "#cdd6e0";
+        const messerBot = isDcm ? (isNeben ? "#b8862d" : "#a87a00") : "#5d6a7d";
+        const messerStroke = isDcm ? (isNeben ? "#3a2400" : "#3a2a00") : "#1a2030";
+        const rr = Math.min(2.5, aPx * 0.22, cPx * 0.22);
+        const xR_full = x + w;
 
-        // A · Schneidring (links, AUSSEN gerundet links, INNEN gerade rechts)
-        if (aPx > 0.5) {
+        // Eindeutige Gradient-IDs pro Segment damit nicht alle SEs dieselbe Definition teilen
+        const gradId = `seGrad-${segIdx}-${isNeben ? "n" : "s"}`;
+        const gradMsrId = `seMsr-${segIdx}-${isNeben ? "n" : "s"}`;
+        // Inline-defs (svgW gibt das g zurück, wir hängen <defs> als sibling)
+        const localDefs = svgW(g, "defs", {});
+        const grad1 = svgW(localDefs, "linearGradient", { id: gradId, x1: "0", y1: "0", x2: "0", y2: "1" });
+        svgW(grad1, "stop", { offset: "0%", "stop-color": ringTop });
+        svgW(grad1, "stop", { offset: "55%", "stop-color": ringTop, "stop-opacity": "0.92" });
+        svgW(grad1, "stop", { offset: "100%", "stop-color": ringBot });
+        const grad2 = svgW(localDefs, "linearGradient", { id: gradMsrId, x1: "0", y1: "0", x2: "0", y2: "1" });
+        svgW(grad2, "stop", { offset: "0%", "stop-color": messerTop });
+        svgW(grad2, "stop", { offset: "55%", "stop-color": messerTop, "stop-opacity": "0.92" });
+        svgW(grad2, "stop", { offset: "100%", "stop-color": messerBot });
+        const ringPaint = `url(#${gradId})`;
+        const messerPaint = `url(#${gradMsrId})`;
+
+        // Helper: gerundete LINKE-Außen-Form (A · Schneidring/Distanzhülse)
+        const drawLeftBlock = (yTop, hBlock, paint, stroke) => {
+          if (aPx < 0.5) return;
           const xL = x;
-          const xR = x + aPx;
+          const xRr = x + aPx;
           svgW(g, "path", {
-            d: `M${xR},${innerY}
-                L${xL + rr},${innerY}
-                Q${xL},${innerY} ${xL},${innerY + rr}
-                L${xL},${innerY + innerH - rr}
-                Q${xL},${innerY + innerH} ${xL + rr},${innerY + innerH}
-                L${xR},${innerY + innerH}
+            d: `M${xRr},${yTop}
+                L${xL + rr},${yTop}
+                Q${xL},${yTop} ${xL},${yTop + rr}
+                L${xL},${yTop + hBlock - rr}
+                Q${xL},${yTop + hBlock} ${xL + rr},${yTop + hBlock}
+                L${xRr},${yTop + hBlock}
                 Z`,
-            fill: ringFill, stroke: ringStroke, "stroke-width": "0.8",
-            "stroke-linejoin": "miter"
+            fill: paint, stroke, "stroke-width": "0.7", "stroke-linejoin": "miter"
           });
-        }
-        // B · Übergang — NIEDRIG: nur Welle-Achse (CAD-realistisch: hier ragt
-        // kein Material über die Welle hinaus, also wird nur die Welle selbst sichtbar)
-        if (bPx > 0.3) {
-          svgW(g, "rect", {
-            x: x + aPx, y: wellY, width: bPx, height: wellH,
-            fill: wellFill, stroke: wellStroke, "stroke-width": "0.4"
-          });
-        }
-        // C · Nutmesser (rechts, INNEN gerade links, AUSSEN gerundet rechts)
-        if (cPx > 0.5) {
+        };
+        // Helper: gerundete RECHTE-Außen-Form (C · Nutmesser/Gegenstück)
+        const drawRightBlock = (yTop, hBlock, paint, stroke) => {
+          if (cPx < 0.5) return;
           const xL = x + aPx + bPx;
-          const xR = x + w;
+          const xRr = xR_full;
           svgW(g, "path", {
-            d: `M${xL},${innerY}
-                L${xR - rr},${innerY}
-                Q${xR},${innerY} ${xR},${innerY + rr}
-                L${xR},${innerY + innerH - rr}
-                Q${xR},${innerY + innerH} ${xR - rr},${innerY + innerH}
-                L${xL},${innerY + innerH}
+            d: `M${xL},${yTop}
+                L${xRr - rr},${yTop}
+                Q${xRr},${yTop} ${xRr},${yTop + rr}
+                L${xRr},${yTop + hBlock - rr}
+                Q${xRr},${yTop + hBlock} ${xRr - rr},${yTop + hBlock}
+                L${xL},${yTop + hBlock}
                 Z`,
-            fill: messerFill, stroke: messerStroke, "stroke-width": "0.7",
-            "stroke-linejoin": "miter"
+            fill: paint, stroke, "stroke-width": "0.7", "stroke-linejoin": "miter"
           });
-          // Nut-Detail im Nutmesser (zeigt strukturell wo das Messer schneidet) — DCM
-          if (isDcm && cPx > 5) {
-            const nutX = xL + 0.5;
-            const nutW = Math.min(1.8, cPx * 0.22);
-            svgW(g, "rect", {
-              x: nutX, y: innerY + innerH * 0.35,
-              width: nutW, height: innerH * 0.30,
-              fill: "rgba(0,0,0,0.42)"
-            });
-          }
-        }
-        // Cut-Marker (weiße Linie bei SCHNITT_OFFSET = Übergang-Nutmesser-Grenze bei DCM)
-        const cutOffsetPx = (M.SCHNITT_OFFSET / SE_LEN) * w;
-        svgW(g, "line", {
-          x1: x + cutOffsetPx, y1: barTop + 1, x2: x + cutOffsetPx, y2: barTop + barH - 1,
-          stroke: "white", "stroke-width": "1.1", opacity: "0.95"
+        };
+
+        // OBEN: Material-Ring (Schneidring + Nutmesser ragen über Welle)
+        drawLeftBlock(topMatY, matH, ringPaint, ringStroke);
+        drawRightBlock(topMatY, matH, messerPaint, messerStroke);
+
+        // MITTE: Welle-Körper als horizontaler dunkler Streifen mit Strich-Punkt-Achse
+        svgW(g, "rect", {
+          x: x + 0.3, y: midY, width: Math.max(0, w - 0.6), height: midH,
+          fill: "rgba(28,28,32,0.96)", stroke: "rgba(120,120,140,0.35)", "stroke-width": "0.4"
         });
-        // Cut-Pfeil-Spitze oben
+        // Strich-Punkt-Achse (Welle-Mittellinie wie in CAD)
+        svgW(g, "line", {
+          x1: x + 0.3, y1: midY + midH / 2,
+          x2: x + w - 0.3, y2: midY + midH / 2,
+          stroke: "rgba(150,200,170,0.55)", "stroke-width": "0.55",
+          "stroke-dasharray": "6 2 1 2"
+        });
+
+        // UNTEN: Material-Ring gespiegelt (Schneidring + Nutmesser unten)
+        drawLeftBlock(botMatY, matH, ringPaint, ringStroke);
+        drawRightBlock(botMatY, matH, messerPaint, messerStroke);
+
+        // Nut-Detail innen am Nutmesser (das L-Profil aus dem CAD) — DCM
+        if (isDcm && cPx > 3.5) {
+          const xL = x + aPx + bPx;
+          const nutW = Math.min(2.2, cPx * 0.30);
+          // Innenkerbe oben: kleine Aussparung am Nutmesser unten-links → oben gespiegelt
+          svgW(g, "rect", { x: xL, y: topMatY + matH * 0.55, width: nutW, height: matH * 0.45,
+            fill: "rgba(0,0,0,0.42)" });
+          svgW(g, "rect", { x: xL, y: botMatY, width: nutW, height: matH * 0.45,
+            fill: "rgba(0,0,0,0.42)" });
+        }
+
+        // CUT-Marker (durchgehende weiße Linie + Pfeile oben & unten)
+        const cutOffsetPx = (M.SCHNITT_OFFSET / SE_LEN) * w;
+        const cutX = x + cutOffsetPx;
+        svgW(g, "line", {
+          x1: cutX, y1: barTop, x2: cutX, y2: barTop + barH,
+          stroke: "#ffffff", "stroke-width": "1.3", opacity: "0.95"
+        });
+        // Pfeil oben
         svgW(g, "path", {
-          d: `M${x + cutOffsetPx} ${barTop - 1} L${x + cutOffsetPx - 2.2} ${barTop - 5} L${x + cutOffsetPx + 2.2} ${barTop - 5} Z`,
-          fill: "white", opacity: "0.92"
+          d: `M${cutX} ${barTop - 1} L${cutX - 2.6} ${barTop - 6} L${cutX + 2.6} ${barTop - 6} Z`,
+          fill: "#ffffff", opacity: "0.95"
+        });
+        // Pfeil unten (gespiegelt)
+        svgW(g, "path", {
+          d: `M${cutX} ${barTop + barH + 1} L${cutX - 2.6} ${barTop + barH + 6} L${cutX + 2.6} ${barTop + barH + 6} Z`,
+          fill: "#ffffff", opacity: "0.85"
         });
       } else if (seg.kind === "buchse") {
         // Schneidbuchse · Multi-Cut-Block (30 mm) · Cutter-Ticks alle 5 mm
