@@ -10730,15 +10730,30 @@ audio.team-player-audio::-webkit-media-controls-panel {
       renderSegDetail(segEl);
       positionOverlay(segEl, e);
       overlay.setAttribute("aria-hidden", "false");
-      // v1.99.24: Card-Background DIREKT als inline-style — höchste CSS-
-      // Specificity, schlägt jede Style-Override. Garantiert opak in JEDEM
-      // Browser (Firefox/Safari können CSS-Variablen-Cascade unzuverlässig).
+      // v1.99.25 NUCLEAR ALL: overlay UND card mit inline-Style alle
+      // transparency-Quellen killen + Diagnose-Log in Console.
+      overlay.style.backgroundColor = "#1a1a1a";
+      overlay.style.opacity = "1";
+      overlay.style.filter = "none";
+      overlay.style.mixBlendMode = "normal";
       const _card = overlay.querySelector(".welle-detail-card");
       if (_card) {
         _card.style.backgroundColor = "#1a1a1a";
+        _card.style.background = "#1a1a1a";        // shorthand fallback
         _card.style.backgroundImage = "none";
         _card.style.backdropFilter = "none";
+        _card.style.webkitBackdropFilter = "none";
         _card.style.opacity = "1";
+        _card.style.filter = "none";
+        _card.style.mixBlendMode = "normal";
+        // Diagnose: was sieht Browser tatsächlich (Console-Output)
+        const cs = getComputedStyle(_card);
+        console.log("[card-debug] bg-color:", cs.backgroundColor,
+                    "| bg-image:", cs.backgroundImage,
+                    "| opacity:", cs.opacity,
+                    "| backdrop:", cs.backdropFilter,
+                    "| filter:", cs.filter,
+                    "| mix-blend:", cs.mixBlendMode);
       }
       // Highlight-Outline
       clearOutline();
