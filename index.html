@@ -8384,16 +8384,20 @@ audio.team-player-audio::-webkit-media-controls-panel {
         fill: "rgba(140,140,140,0.7)", "font-size": "9", "font-weight": "500", "font-family": "inherit" },
         "durchgängige Linien zeigen Projektion auf Master-SE");
 
-      // v1.99.42: Reihenfolge umgekehrt — PHASE 1 zeichnet jetzt nur Track-BGs
-      // (Hit-Area + Park-Zonen + MR-Bereich), PHASE 2 die Verbindungs-Linien
-      // ON TOP der BGs durchgängig, PHASE 3 die Cut-Markers.
-      // Vorher: Linien wurden von BGs (rgba(0,0,0,0.4)) überdeckt → 'projektion
-      // nicht durchgängig' (User-Report 2026-06-05). Plus: dim 'geparkt'-Circles
-      // entfernt — verwirrend wenn ein Cut auf Track 1 aktiv ist aber auf Track 2
-      // als 'Kreis ohne Linie nach oben' erscheint.
+      // v1.99.55: Master-Rail-Visualisierung — EINE neutrale grau-Linie pro
+      // Master-Cut von barBottom durch ALLE Tracks. Track-spezifische Marker
+      // werden in PHASE 3 nur dort gezeichnet wo der Track diesen Cut aktiv
+      // nutzt. Geparkte Positionen = leerer Rail-Abschnitt im Track-Bereich.
+      //
+      // 5-Why-Audit (User 2026-06-05 12:27): pro-Track-eigene Linien zogen
+      // durch fremde Track-Rows hindurch — sah aus wie 'Geister-Punkte in
+      // fremder Farbe', verwirrte Werker. Egoistische Visualisierung →
+      // gemeinschaftliche Rail-Visualisierung.
+      const tracksBottomY = tracksY0 + trackHeader + d.validJobs.length * (trackH + trackGap);
 
-      // PHASE 1: Track-BG-Layer (alles was UNTER den Linien liegt)
+      // PHASE 1: Track-BG-Layer
       const trackGroups = [];
+      const trackBGsFirst = []; // erst BG-Rects sammeln
       d.validJobs.forEach((jw, i) => {
         const ty = tracksY0 + trackHeader + i * (trackH + trackGap);
         const tmidY = ty + trackH / 2;
@@ -8410,18 +8414,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
           "data-job-cuts-total": String(d.cuts.length),
           style: "cursor: pointer;"
         });
-        // Track-BG transparent (rgba 0.18 statt 0.4) damit Linien durchscheinen
         svgW(g, "rect", { x: padX, y: ty, width: innerW, height: trackH,
           class: "welle-track-bg",
           fill: "rgba(0,0,0,0.18)", stroke: "rgba(255,255,255,0.07)", "stroke-width": "0.7", rx: "5" });
-        // Park-Zonen
         const parkLEndPx = xAt(getMachine().PARK_TOTAL);
         const parkRStartPx = xAt(getMachine().PARK_TOTAL + getMachine().BESTUECKUNGS_BREITE);
         svgW(g, "rect", { x: padX, y: ty + 6, width: parkLEndPx - padX, height: trackH - 12,
           fill: "rgba(50,50,50,0.35)", stroke: "rgba(255,255,255,0.05)", "stroke-width": "0.4", rx: "3" });
         svgW(g, "rect", { x: parkRStartPx, y: ty + 6, width: (W - padX) - parkRStartPx, height: trackH - 12,
           fill: "rgba(50,50,50,0.35)", stroke: "rgba(255,255,255,0.05)", "stroke-width": "0.4", rx: "3" });
-        // MR-Bereich farbig (dezent)
         const mrL = xAt(jw.mrLeft), mrR = xAt(jw.mrRight);
         svgW(g, "rect", { x: mrL, y: ty + 4, width: mrR - mrL, height: trackH - 8,
           fill: color, opacity: "0.08", stroke: color, "stroke-width": "0.7", "stroke-dasharray": "4 3", rx: "2" });
@@ -8429,18 +8430,23 @@ audio.team-player-audio::-webkit-media-controls-panel {
         trackGroups.push({ jw, i, g, tmidY, ty, color });
       });
 
-      // PHASE 2: Verbindungs-Linien ÜBER den BGs (jetzt durchgängig sichtbar)
-      trackGroups.forEach(({ jw, i, tmidY, color }) => {
-        const connG = svgW(g, "g", {
-          class: "welle-track-connections",
-          "data-track-job": String(i)
+      // PHASE 2: Master-Rails — ÜBER Track-BGs gezeichnet (svgEl append-order).
+      // Phase-3-Markers werden INNERHALB der Track-g's eingefügt — die wurden
+      // VOR railsG erzeugt, also liegen Markers visually ÜBER railsG. So:
+      //   Untergrund: Track-BG (grau)
+      //   Mitte: Master-Rails (neutrale graue Vertikal-Linien)
+      //   Oben: farbige Cut-Markers (überdecken die Rails wo aktiv)
+      const railsG = svgW(svgEl, "g", { class: "welle-master-rails" });
+      for (const c of d.cuts) {
+        const x = xAt(c);
+        svgW(railsG, "line", {
+          x1: x, y1: barBottom, x2: x, y2: tracksBottomY,
+          stroke: "rgba(200,200,200,0.22)", "stroke-width": "1",
+          "pointer-events": "none"
         });
-        for (const c of jw.cuts) {
-          const x = xAt(c);
-          svgW(connG, "line", { x1: x, y1: barBottom, x2: x, y2: tmidY,
-            stroke: color, "stroke-width": "1.5", opacity: "0.6" });
-        }
-      });
+      }
+      // Track-g's nach railsG verschieben damit deren Markers OBEN liegen
+      trackGroups.forEach(({ g }) => svgEl.appendChild(g));
 
       // PHASE 3: Cut-Markers + Labels + Stats (oberste Layer)
       trackGroups.forEach(({ jw, i, g, tmidY, ty, color }) => {
