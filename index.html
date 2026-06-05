@@ -8382,34 +8382,21 @@ audio.team-player-audio::-webkit-media-controls-panel {
         fill: "rgba(140,140,140,0.7)", "font-size": "9", "font-weight": "500", "font-family": "inherit" },
         "durchgängige Linien zeigen Projektion auf Master-SE");
 
-      // PHASE 1: Verbindungs-Linien ZUERST rendern (damit Markers oben drauf liegen)
-      // Pro aktiven Cut pro Job: vertikale farbige Linie von Track-Mittelpunkt UP bis barBottom (Master-Welle Bottom-Kante)
-      d.validJobs.forEach((jw, i) => {
-        const ty = tracksY0 + trackHeader + i * (trackH + trackGap);
-        const tmidY = ty + trackH / 2;
-        const color = jobColors[i % jobColors.length];
-        // Connection-Lines auch in einem Group mit data-track-job, damit Solo-Mode/Hover
-        // sie mit-dimmen kann.
-        const connG = svgW(g, "g", {
-          class: "welle-track-connections",
-          "data-track-job": String(i)
-        });
-        for (const c of jw.cuts) {
-          const x = xAt(c);
-          // Durchgehende farbige Linie von Track-Mittelpunkt bis Master-Bar-Boden
-          svgW(connG, "line", { x1: x, y1: barBottom, x2: x, y2: tmidY,
-            stroke: color, "stroke-width": "1.4", opacity: "0.45" });
-        }
-      });
+      // v1.99.42: Reihenfolge umgekehrt — PHASE 1 zeichnet jetzt nur Track-BGs
+      // (Hit-Area + Park-Zonen + MR-Bereich), PHASE 2 die Verbindungs-Linien
+      // ON TOP der BGs durchgängig, PHASE 3 die Cut-Markers.
+      // Vorher: Linien wurden von BGs (rgba(0,0,0,0.4)) überdeckt → 'projektion
+      // nicht durchgängig' (User-Report 2026-06-05). Plus: dim 'geparkt'-Circles
+      // entfernt — verwirrend wenn ein Cut auf Track 1 aktiv ist aber auf Track 2
+      // als 'Kreis ohne Linie nach oben' erscheint.
 
-      // PHASE 2: Pro Job Track + Markers — wrap in <g> für Solo/Hover-Interaktion
+      // PHASE 1: Track-BG-Layer (alles was UNTER den Linien liegt)
+      const trackGroups = [];
       d.validJobs.forEach((jw, i) => {
         const ty = tracksY0 + trackHeader + i * (trackH + trackGap);
         const tmidY = ty + trackH / 2;
         const color = jobColors[i % jobColors.length];
 
-        // Track-Group: ein <g> pro Track. Hover/Click setzt CSS-Class auf SVG-Root,
-        // welche dann via attribute-Selector die anderen Tracks dimmt.
         const g = svgW(svgEl, "g", {
           class: "welle-track-group",
           "data-track-job": String(i),
@@ -8421,33 +8408,40 @@ audio.team-player-audio::-webkit-media-controls-panel {
           "data-job-cuts-total": String(d.cuts.length),
           style: "cursor: pointer;"
         });
-
-        // Track-Background (hit-area für Hover/Click)
+        // Track-BG transparent (rgba 0.18 statt 0.4) damit Linien durchscheinen
         svgW(g, "rect", { x: padX, y: ty, width: innerW, height: trackH,
           class: "welle-track-bg",
-          fill: "rgba(0,0,0,0.4)", stroke: "rgba(255,255,255,0.07)", "stroke-width": "0.7", rx: "5" });
-
-        // Park-Zonen dezent
+          fill: "rgba(0,0,0,0.18)", stroke: "rgba(255,255,255,0.07)", "stroke-width": "0.7", rx: "5" });
+        // Park-Zonen
         const parkLEndPx = xAt(getMachine().PARK_TOTAL);
         const parkRStartPx = xAt(getMachine().PARK_TOTAL + getMachine().BESTUECKUNGS_BREITE);
         svgW(g, "rect", { x: padX, y: ty + 6, width: parkLEndPx - padX, height: trackH - 12,
-          fill: "rgba(50,50,50,0.5)", stroke: "rgba(255,255,255,0.05)", "stroke-width": "0.4", rx: "3" });
+          fill: "rgba(50,50,50,0.35)", stroke: "rgba(255,255,255,0.05)", "stroke-width": "0.4", rx: "3" });
         svgW(g, "rect", { x: parkRStartPx, y: ty + 6, width: (W - padX) - parkRStartPx, height: trackH - 12,
-          fill: "rgba(50,50,50,0.5)", stroke: "rgba(255,255,255,0.05)", "stroke-width": "0.4", rx: "3" });
-
-        // MR-Bereich farbig
+          fill: "rgba(50,50,50,0.35)", stroke: "rgba(255,255,255,0.05)", "stroke-width": "0.4", rx: "3" });
+        // MR-Bereich farbig (dezent)
         const mrL = xAt(jw.mrLeft), mrR = xAt(jw.mrRight);
         svgW(g, "rect", { x: mrL, y: ty + 4, width: mrR - mrL, height: trackH - 8,
-          fill: color, opacity: "0.10", stroke: color, "stroke-width": "0.7", "stroke-dasharray": "4 3", rx: "2" });
+          fill: color, opacity: "0.08", stroke: color, "stroke-width": "0.7", "stroke-dasharray": "4 3", rx: "2" });
 
-        // Master-Cuts die diesem Job NICHT zugeordnet sind = inaktive (geparkt) — dezent kleinere Kreise
-        for (const c of d.cuts) {
-          if (jw.cuts.some(x => Math.abs(x - c) < tol)) continue;
+        trackGroups.push({ jw, i, g, tmidY, ty, color });
+      });
+
+      // PHASE 2: Verbindungs-Linien ÜBER den BGs (jetzt durchgängig sichtbar)
+      trackGroups.forEach(({ jw, i, tmidY, color }) => {
+        const connG = svgW(g, "g", {
+          class: "welle-track-connections",
+          "data-track-job": String(i)
+        });
+        for (const c of jw.cuts) {
           const x = xAt(c);
-          svgW(g, "circle", { cx: x, cy: tmidY, r: "2.5",
-            fill: "transparent", stroke: "rgba(110,110,110,0.5)",
-            "stroke-width": "0.8", "stroke-dasharray": "1.5 1.5" });
+          svgW(connG, "line", { x1: x, y1: barBottom, x2: x, y2: tmidY,
+            stroke: color, "stroke-width": "1.5", opacity: "0.6" });
         }
+      });
+
+      // PHASE 3: Cut-Markers + Labels + Stats (oberste Layer)
+      trackGroups.forEach(({ jw, i, g, tmidY, ty, color }) => {
 
         // Aktive Cuts in REIHENFOLGE sortieren für Perlenkette-Linie
         const activeCutsX = jw.cuts.map(c => xAt(c)).sort((a, b) => a - b);
