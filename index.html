@@ -7555,7 +7555,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       });
     }
     if (M.PARK_PRO_SEITE > 0) {
-      holliste.push({ name: "Parkplatz-Ring", spec: `${M.PARK_RING} mm`, anz: M.PARK_PRO_SEITE * 2 });
+      holliste.push({ name: "Parkplatz-Ring", spec: `${M.PARK_RING} mm · Stahl · außerhalb Bestückung (Anti-Teleskop)`, anz: M.PARK_PRO_SEITE * 2 });
     }
     const distMap = {};
     for (const seg of innerSegs) {
@@ -14505,8 +14505,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
                 <col>
                 <col style="width:18mm">
                 <col style="width:22mm">
-                <col style="width:10mm">
-                <col style="width:40mm">
+                <col style="width:14mm">
+                <col style="width:42mm">
               </colgroup>
               <thead>
                 <tr>
@@ -14540,8 +14540,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
         if (reachedCount > 1) {
           cluHtml += `<div class="pm-cluster-footnote">
             <strong>Werker-Hinweis:</strong> Bestückung (Stückliste + Sequenz unten) ist für alle
-            ${reachedCount} erreichten Aufträge identisch. Pro Auftrag variieren nur MR-Bandbreite
-            und ggf. asymmetrischer Trim — Schneideeinheiten + Distanzringe bleiben gleich.
+            ${reachedCount} erreichten Aufträge identisch. Pro Auftrag variieren nur die
+            <span style="white-space:nowrap">MR-Bandbreite</span> und ggf. asymmetrischer Trim
+            — Schneideeinheiten + Distanzringe bleiben gleich.
           </div>`;
         }
         cluHtml += `</div>`;
