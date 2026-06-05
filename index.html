@@ -6312,6 +6312,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let state = {};
   let animationFrames = new WeakMap();
   let lastValid = null;
+  // v1.99.57: lastMaster speichert das Master-Welle-Object (welleData-konform)
+  // bei aktivem Cluster — Print nutzt es statt Primary-only-Daten.
+  let lastMaster = null;
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -11716,6 +11719,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           ? `△ TEIL-CLUSTER (${master.validJobs.length}/${allJobs.length} Aufträge)`
           : `✓ MEHRFACH-BESTÜCKUNG MÖGLICH`;
         if (sub) sub.innerHTML = `<strong style="color:${headlineColor}">${headlineText}</strong> · Master-Welle für ${master.validJobs.length} Aufträge · ${master.cuts.length} SE total · innen ${master.innerLen.toFixed(0)} mm${versatzTxt ? " · MR-Versatz: " + versatzTxt : ""}${asymTxt}${mergeTxt}${excludedTxt}`;
+        lastMaster = master;  // v1.99.57: für Print-Export
         renderWelleSvg(master);
         renderWelleSequenz(master);
         renderWelleHolliste(master);
@@ -11748,6 +11752,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       }
       // Cluster komplett unauflösbar — Primary alleine zeigen, Folgeaufträge alle als conflict markiert
       // (durch resolveCluster bereits geschehen). Nur fallback-Visualisierung.
+      lastMaster = null;  // v1.99.57: kein gültiger Master mehr
       const excludedAll = resolved.excluded || [];
       const singleResult = calcWelleJob(out);
       const excludedListTxt = excludedAll.length > 0
@@ -11783,6 +11788,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     // ============== Single-Auftrag-Mode (Default) ==============
     if (tracksSvg) { tracksSvg.style.display = "none"; tracksSvg.innerHTML = ""; }
+    lastMaster = null;  // v1.99.57: Single-Mode → kein Master mehr aktiv
     const result = calcWelleJob(out);
     if (!result.ok) {
       if (sub) sub.innerHTML = `<span style="color:var(--danger-color)">${(result.alerts[0] && result.alerts[0].msg) || 'Bestückung nicht möglich'}</span>`;
@@ -14304,9 +14310,18 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     const out = (typeof lastValid !== "undefined" && lastValid) ? lastValid : null;
     if (!out) return null;
-    // Welle-Daten neu berechnen für aktuelle Print-Sicht
-    const welleData = (typeof calcWelleJob === "function") ? calcWelleJob(out) : null;
+    // v1.99.57: bei aktivem Cluster (lastMaster gesetzt) → Master-Welle-Daten
+    // als welleData verwenden. Sonst Single-Mode Primary-Daten.
+    // Master-Welle hat alle Master-Cuts (Union) + Holliste mit Total-SE-Count
+    // + layoutLR/innerSegs/holliste konform mit welleData-Format.
+    let welleData;
+    if (typeof lastMaster !== "undefined" && lastMaster && lastMaster.ok) {
+      welleData = lastMaster;
+    } else {
+      welleData = (typeof calcWelleJob === "function") ? calcWelleJob(out) : null;
+    }
     if (!welleData || !welleData.ok) return null;
+    const isMasterPrint = !!welleData.isMaster;
     const M = (typeof getMachine === "function") ? getMachine() : { id: "DCM", label: "—", WELLE_MITTE: 0, SCHNEIDEEINHEIT: 20, SCHNITT_OFFSET: 10 };
     const isEuro = (M.id === "EUROMAC");
 
@@ -14326,7 +14341,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
       else if (v === "asym-r") trimLbl = "Asymmetrisch rechts";
     } catch (_) {}
 
-    const N = welleData.N + (out.nebenAnzTotal || 0);
+    // v1.99.57: bei Master-Print Primary's N aus validJobs[0] holen,
+    // sonst welleData.N (Single-Job-Welt). N ist Primary-relativ für Header/KPI;
+    // Folgeaufträge stehen mit eigenem N in der Cluster-Tabelle.
+    const primaryN = isMasterPrint && welleData.validJobs && welleData.validJobs[0]
+      ? welleData.validJobs[0].N
+      : (welleData.N || 0);
+    const N = primaryN + (out.nebenAnzTotal || 0);
     const machineLine = isEuro
       ? `${M.label} · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.BESTUECKUNGS_BREITE} mm Bestückung zwischen ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Messer-Park pro Seite`
       : `${M.label} · Welle ${M.WELLE} mm · Bestückungsbereich ${M.BESTUECKUNGS_BREITE} mm`;
@@ -14337,7 +14358,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.56";
+    const PRINT_VERSION = "v1.99.57";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
@@ -14372,7 +14393,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (rightmost != null) pmWerkerMass = M.WELLE - rightmost;
     }
     const pmMr = out.mutter || 0;
-    const pmUsed = welleData.N * out.schmal + (out.nebenSlots || []).reduce((s, x) => s + x.breite * x.anz, 0);
+    const pmUsed = primaryN * out.schmal + (out.nebenSlots || []).reduce((s, x) => s + x.breite * x.anz, 0);
     const pmYield = pmMr > 0 ? (pmUsed / pmMr) * 100 : 0;
     const pmTrim = pmMr - pmUsed;
 
@@ -14394,7 +14415,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           </tr>
           <tr>
             <td class="lbl">Mutterrolle</td><td class="val">${out.mutter} mm</td>
-            <td class="lbl">Schmalrolle(n)</td><td class="val">${welleData.N}× ${out.schmal} mm${out.nebenSlots && out.nebenSlots.length ? " + " + out.nebenSlots.map(s => s.anz + "× " + s.breite + " mm").join(" + ") : ""}</td>
+            <td class="lbl">Schmalrolle(n)</td><td class="val">${primaryN}× ${out.schmal} mm${out.nebenSlots && out.nebenSlots.length ? " + " + out.nebenSlots.map(s => s.anz + "× " + s.breite + " mm").join(" + ") : ""}</td>
           </tr>
           <tr>
             <td class="lbl">Nutzen pro MR</td><td class="val">${N}</td>
@@ -14473,7 +14494,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           mr: out.mutter,
           haupt: out.schmal,
           neben: (out.nebenSlots || []).map(s => `${s.anz}×${s.breite}`).join(" + "),
-          N: welleData.N + (out.nebenAnzTotal || 0),
+          N: primaryN + (out.nebenAnzTotal || 0),
           note: "Primärer Hauptauftrag · Bestückung wie unten"
         });
         followers.forEach((f, i) => {
@@ -14852,29 +14873,49 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // Hauptschnitt-Stack-Komposition + Rest-Stack VOR der flat-Tabelle (gleiche Logik
     // wie in der UI, gibt Werker präzise Pick-Anleitung)
     let stackHtml = "";
-    const hauptDistSegsPm = (welleData.innerSegs || []).filter(s =>
-      s.kind === "distanz" && s.name === "Distanzring Hauptschnitt"
-    );
-    if (hauptDistSegsPm.length > 0 && hauptDistSegsPm[0].breite > 0.001) {
-      const stackMm = hauptDistSegsPm[0].breite;
-      const stackCount = hauptDistSegsPm.length;
-      const breakdown = stackBreakdown(stackMm);
-      const oneStack = distanzringeForMachine(stackMm, M).rings;
-      const sumDetail = Object.entries(oneStack)
-        .sort((a,b) => parseFloat(b[0]) - parseFloat(a[0]))
-        .map(([k,v]) => `${v * stackCount}× ${k} mm`)
-        .join(" + ");
-      const stackMmStr = stackMm.toFixed(stackMm % 1 ? 1 : 0);
+    if (isMasterPrint) {
+      // v1.99.57: Bei Master-Welle sind Distanzringe heterogen (verschiedene
+      // Breiten zwischen Cuts). Statt 'identisch X× bauen' zeigen wir einen
+      // Master-spezifischen Hinweis. Die genauen Positionen + Stack-Breiten
+      // stehen in der Sequenz-Tabelle weiter unten.
+      const masterDistCount = (welleData.innerSegs || []).filter(s => s.kind === "distanz").length;
+      const totalSE = (welleData.cuts || []).length;
       stackHtml += `
         <div class="pm-stack-block pm-stack-haupt">
-          <div class="pm-stack-head">● Hauptschnitt-Distanzring · zwischen den Schmalrollen</div>
+          <div class="pm-stack-head">● Master-Welle · Cluster-Bestückung</div>
           <table class="pm-stack-table">
-            <tr><td class="pm-stack-k">Pro Stack:</td><td class="pm-stack-v"><strong>${escape(breakdown)} = ${stackMmStr} mm</strong></td></tr>
-            <tr><td class="pm-stack-k">Anzahl Stacks:</td><td class="pm-stack-v"><strong>${stackCount}×</strong> identisch bauen</td></tr>
-            <tr><td class="pm-stack-k">Ring-Bedarf (Summe):</td><td class="pm-stack-v">${escape(sumDetail)}</td></tr>
+            <tr><td class="pm-stack-k">SE-Positionen (Total):</td><td class="pm-stack-v"><strong>${totalSE}×</strong> Schneideeinheiten · Union aller ${welleData.validJobs.length} Aufträge</td></tr>
+            <tr><td class="pm-stack-k">Distanzring-Stacks:</td><td class="pm-stack-v"><strong>${masterDistCount}×</strong> heterogen · Werte variieren · siehe Sequenz unten</td></tr>
+            <tr><td class="pm-stack-k">Werker-Hinweis:</td><td class="pm-stack-v">SE-Positionen sind FIX über alle Aufträge. Pro Auftrag wird MR mit unterschiedlichem Versatz + Trim aufgelegt — die nicht-aktiven SEs schneiden 'in die Luft'.</td></tr>
           </table>
         </div>
       `;
+    } else {
+      // Single-Job: bisheriger 'Stacks identisch bauen' Block
+      const hauptDistSegsPm = (welleData.innerSegs || []).filter(s =>
+        s.kind === "distanz" && s.name === "Distanzring Hauptschnitt"
+      );
+      if (hauptDistSegsPm.length > 0 && hauptDistSegsPm[0].breite > 0.001) {
+        const stackMm = hauptDistSegsPm[0].breite;
+        const stackCount = hauptDistSegsPm.length;
+        const breakdown = stackBreakdown(stackMm);
+        const oneStack = distanzringeForMachine(stackMm, M).rings;
+        const sumDetail = Object.entries(oneStack)
+          .sort((a,b) => parseFloat(b[0]) - parseFloat(a[0]))
+          .map(([k,v]) => `${v * stackCount}× ${k} mm`)
+          .join(" + ");
+        const stackMmStr = stackMm.toFixed(stackMm % 1 ? 1 : 0);
+        stackHtml += `
+          <div class="pm-stack-block pm-stack-haupt">
+            <div class="pm-stack-head">● Hauptschnitt-Distanzring · zwischen den Schmalrollen</div>
+            <table class="pm-stack-table">
+              <tr><td class="pm-stack-k">Pro Stack:</td><td class="pm-stack-v"><strong>${escape(breakdown)} = ${stackMmStr} mm</strong></td></tr>
+              <tr><td class="pm-stack-k">Anzahl Stacks:</td><td class="pm-stack-v"><strong>${stackCount}×</strong> identisch bauen</td></tr>
+              <tr><td class="pm-stack-k">Ring-Bedarf (Summe):</td><td class="pm-stack-v">${escape(sumDetail)}</td></tr>
+            </table>
+          </div>
+        `;
+      }
     }
     const restLpm = welleData.restL || 0;
     const restRpm = welleData.restR || 0;
