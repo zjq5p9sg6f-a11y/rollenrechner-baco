@@ -8335,6 +8335,55 @@ audio.team-player-audio::-webkit-media-controls-panel {
       }
     }
 
+    // ============ MR-Bahn-rechts: rechter Wellenrand → rechte MR-Kante ============
+    // v1.99.58: Werker-Anlege-Maß BEVOR der erste Schnitt — Werker prüft ob die
+    // Mutterrolle korrekt aufgelegt ist (rechte MR-Kante muss bei Y mm v. Welle-
+    // Ende sitzen). Wichtig bei MR-Versatz oder asymm. Trim.
+    // Bei Cluster: nur Primary's MR-Bahn (validJobs[0]) — andere Aufträge stehen
+    // separat in der Cluster-Tabelle.
+    {
+      let mrEndMm = null;
+      if (d.isMaster && d.validJobs && d.validJobs.length > 0) {
+        mrEndMm = d.validJobs[0].mrRight;
+      } else if (d.mrEnd != null) {
+        mrEndMm = d.mrEnd;
+      } else if (d.innerEnd != null) {
+        mrEndMm = d.innerEnd;
+      } else if (d.mr) {
+        mrEndMm = M.WELLE_MITTE + (d.mr / 2);
+      }
+      if (mrEndMm != null && mrEndMm > 0 && mrEndMm < M.WELLE) {
+        const xMr = xAt(mrEndMm);
+        const xRight = W - padX;
+        const distMrMm = M.WELLE - mrEndMm;
+        const mrCol = "#00e676";  // Grün — MR-Auflege-Maß (unterscheidet von Cut-Orange)
+        const dimMrY = dimWerkerY + 18;  // Unter der Schneidkante-Bracket
+
+        // Vertikale Guides (kurze Striche von Bracket zu Bar-Top)
+        svgW(g, "line", { x1: xMr, y1: dimMrY + 5, x2: xMr, y2: barTop - 2,
+          stroke: mrCol, "stroke-width": "1", "stroke-dasharray": "2 3", opacity: "0.55" });
+        // Bemaßungs-Linie + Pfeilköpfe
+        svgW(g, "line", { x1: xMr + 1, y1: dimMrY, x2: xRight - 1, y2: dimMrY,
+          stroke: mrCol, "stroke-width": "1.2", opacity: "0.85" });
+        svgW(g, "path", { d: `M${xMr} ${dimMrY} L${xMr + 7} ${dimMrY - 4} L${xMr + 7} ${dimMrY + 4} Z`,
+          fill: mrCol });
+        svgW(g, "path", { d: `M${xRight} ${dimMrY} L${xRight - 7} ${dimMrY - 4} L${xRight - 7} ${dimMrY + 4} Z`,
+          fill: mrCol });
+        // Label (kleiner als Schneidkante-Bracket damit Hierarchie klar)
+        const lblTxt = d.isMaster
+          ? `${fmtW(distMrMm, 1)} mm · MR-Bahn rechts (A1)`
+          : `${fmtW(distMrMm, 1)} mm · MR-Bahn rechts`;
+        const lblW = lblTxt.length * 5.4 + 16;
+        let lblCx = (xMr + xRight) / 2;
+        lblCx = Math.max(padX + lblW / 2 + 4, Math.min(W - padX - lblW / 2 - 4, lblCx));
+        svgW(g, "rect", { x: lblCx - lblW / 2, y: dimMrY - 8, width: lblW, height: 16, rx: 3,
+          fill: "var(--bg-base)", stroke: mrCol, "stroke-width": "1" });
+        svgW(g, "text", { x: lblCx, y: dimMrY + 4, "text-anchor": "middle",
+          fill: mrCol, "font-size": "9.5", "font-weight": "800", "letter-spacing": "0.04em",
+          "font-family": "inherit" }, lblTxt);
+      }
+    }
+
     // ============ Mass-Skala alle 100 mm ============
     svgW(g, "line", { x1: padX, y1: scaleY, x2: W - padX, y2: scaleY,
       stroke: "rgba(255,255,255,0.15)", "stroke-width": "0.5" });
@@ -14358,7 +14407,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.57";
+    const PRINT_VERSION = "v1.99.58";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
