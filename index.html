@@ -14249,7 +14249,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.95";
+    const PRINT_VERSION = "v1.99.38";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
@@ -14321,6 +14321,151 @@ audio.team-player-audio::-webkit-media-controls-panel {
       </div>
     `;
     root.insertAdjacentHTML("beforeend", headerHtml);
+
+    // Escape-Helper (v1.99.38 vorgezogen — wird in Cluster-Section + späteren Sektionen benötigt)
+    const escape = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    // === v1.99.38: Cluster-Auftrags-Sicht — welche Aufträge deckt diese Welle ab? ===
+    // Wenn Folgeaufträge in clusterJobs konfiguriert + resolveCluster eine
+    // Master-Welle findet → Tabelle mit Primary + alle reached + excluded.
+    // Werker-Value: "EINE Bestückung baue ich, 4 Aufträge erledigt".
+    if (typeof clusterJobs !== "undefined" && Array.isArray(clusterJobs) && clusterJobs.length > 0
+        && typeof resolveCluster === "function") {
+      const parseN = (v) => { const n = parseFloat(String(v||"").replace(",",".")); return isFinite(n) ? n : 0; };
+      const parseI = (v) => { const n = parseInt(String(v||""), 10); return isFinite(n) ? n : 0; };
+      const followers = [];
+      clusterJobs.forEach((j, slotIdx) => {
+        const mr = parseN(j.mr);
+        const haupt = parseN(j.haupt);
+        if (mr > 0 && haupt > 0) {
+          const nebenB = parseN(j.nebenBreite);
+          const nebenA = parseI(j.nebenAnz);
+          const nebenSlots = (nebenB > 0 && nebenA > 0) ? [{ breite: nebenB, anz: nebenA }] : [];
+          followers.push({
+            slotIdx, mr, haupt, nebenSlots,
+            auftragsNr: (j.auftragsNr || "").trim() || `A${slotIdx + 2}`,
+            kunde: (j.kunde || "").trim() || "—",
+            material: (j.material || "").trim() || "",
+            bemerkung: (j.bemerkung || "").trim() || ""
+          });
+        }
+      });
+      if (followers.length > 0) {
+        const primaryJobC = {
+          mr: out.mutter, haupt: out.schmal,
+          nebenSlots: (out.nebenSlots || []).map(s => ({ breite: s.breite, anz: s.anz }))
+        };
+        const allJobsC = [primaryJobC, ...followers.map(f => ({ mr: f.mr, haupt: f.haupt, nebenSlots: f.nebenSlots }))];
+        const resolvedC = resolveCluster(allJobsC);
+        const reachedSet = new Set(resolvedC.reached || []);
+        const excludedMap = new Map((resolvedC.excluded || []).map(e => [e.origIdx, e]));
+        const reachedCount = reachedSet.size;
+        const excludedCount = excludedMap.size;
+        const masterValidJobs = (resolvedC.master && resolvedC.master.validJobs) || [];
+
+        const rows = [];
+        rows.push({
+          status: 'primary',
+          icon: '★',
+          auftragsNr: auftragNr,
+          kunde: kunde,
+          material: material === "(ohne Material)" ? "" : material,
+          mr: out.mutter,
+          haupt: out.schmal,
+          neben: (out.nebenSlots || []).map(s => `${s.anz}×${s.breite}`).join(" + "),
+          N: welleData.N + (out.nebenAnzTotal || 0),
+          note: "Primärer Hauptauftrag · Bestückung wie unten"
+        });
+        followers.forEach((f, i) => {
+          const origIdx = i + 1;
+          const isReached = reachedSet.has(origIdx);
+          const isExcluded = excludedMap.has(origIdx);
+          const nebenStr = f.nebenSlots.map(s => `${s.anz}×${s.breite}`).join(" + ");
+          let N = "—", note = "";
+          if (isReached) {
+            const vj = masterValidJobs.find(v => v.origIdx === origIdx);
+            if (vj) {
+              N = vj.N + (vj.nebenSpec || []).reduce((s,x)=>s+x.anz, 0);
+              const noteParts = [];
+              if (vj.asymmetric) noteParts.push(`Asymm. Trim ${vj.besaeumungL.toFixed(1)}/${vj.besaeumungR.toFixed(1)} mm`);
+              if (Math.abs(vj.versatz || 0) > 0.5) noteParts.push(`MR-Versatz ${vj.versatz > 0 ? "+" : ""}${Math.round(vj.versatz)} mm`);
+              note = noteParts.length ? noteParts.join(" · ") : "Cuts deckungsgleich mit Primary";
+            } else {
+              note = "Auf Master-Welle erreichbar";
+            }
+          } else if (isExcluded) {
+            const ex = excludedMap.get(origIdx);
+            note = `Nicht erreichbar (${ex.conflictCount} Cut-Konflikt${ex.conflictCount === 1 ? "" : "e"})`;
+          } else {
+            note = "Engine: nicht auflösbar";
+          }
+          rows.push({
+            status: isReached ? 'reached' : (isExcluded ? 'excluded' : 'unknown'),
+            icon: isReached ? '✓' : '⚠',
+            auftragsNr: f.auftragsNr,
+            kunde: f.kunde,
+            material: f.material,
+            mr: f.mr, haupt: f.haupt, neben: nebenStr,
+            N, note
+          });
+        });
+
+        const titleSuffix = excludedCount > 0
+          ? ` · <span class="pm-cluster-warn">${excludedCount} ausgeschlossen</span>`
+          : "";
+        let cluHtml = `
+          <div class="pm-section pm-cluster">
+            <h3 class="pm-section-title">Diese Bestückung erledigt ${reachedCount} ${reachedCount === 1 ? "Auftrag" : "Aufträge"}${titleSuffix}</h3>
+            <table class="pm-cluster-table">
+              <colgroup>
+                <col style="width:6mm">
+                <col style="width:22mm">
+                <col>
+                <col style="width:18mm">
+                <col style="width:22mm">
+                <col style="width:10mm">
+                <col style="width:40mm">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th></th><th>Auftrag</th><th>Kunde · Material</th>
+                  <th>MR</th><th>Schmal</th><th>Nutzen</th><th>Hinweis</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        for (const r of rows) {
+          const cls = r.status === 'primary' ? 'pm-clu-primary'
+                    : r.status === 'reached' ? 'pm-clu-reached'
+                    : 'pm-clu-excluded';
+          const kmText = escape(r.kunde) + (r.material ? ` <span class="pm-clu-mat">· ${escape(r.material)}</span>` : "");
+          const schmalText = r.status === 'excluded'
+            ? "—"
+            : (escape(String(r.haupt)) + " mm" + (r.neben ? ` + ${escape(r.neben)}` : ""));
+          const mrText = r.status === 'excluded' ? "—" : escape(String(r.mr)) + " mm";
+          const nText = r.N === "—" ? "—" : `${r.N} Stk`;
+          cluHtml += `<tr class="${cls}" style="page-break-inside:avoid;break-inside:avoid;">
+            <td class="pm-clu-icon">${r.icon}</td>
+            <td class="pm-clu-nr"><strong>${escape(r.auftragsNr)}</strong></td>
+            <td class="pm-clu-kunde">${kmText}</td>
+            <td class="pm-clu-mr">${mrText}</td>
+            <td class="pm-clu-schmal">${schmalText}</td>
+            <td class="pm-clu-N">${nText}</td>
+            <td class="pm-clu-note">${escape(r.note)}</td>
+          </tr>`;
+        }
+        cluHtml += `</tbody></table>`;
+        if (reachedCount > 1) {
+          cluHtml += `<div class="pm-cluster-footnote">
+            <strong>Werker-Hinweis:</strong> Bestückung (Stückliste + Sequenz unten) ist für alle
+            ${reachedCount} erreichten Aufträge identisch. Pro Auftrag variieren nur MR-Bandbreite
+            und ggf. asymmetrischer Trim — Schneideeinheiten + Distanzringe bleiben gleich.
+          </div>`;
+        }
+        cluHtml += `</div>`;
+        root.insertAdjacentHTML("beforeend", cluHtml);
+      }
+    }
 
     // === Welle-SVG Clone — Print-tauglich umstylen ===
     const svgOrig = document.getElementById("welleSvg");
@@ -14492,8 +14637,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       root.appendChild(svgWrap);
     }
 
-    // Escape-Helper für alle folgenden Sections
-    const escape = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    // Escape-Helper für alle folgenden Sections (v1.99.38: bereits oben definiert)
 
     // === Werker-Rechenweg · So entsteht der Wert ===
     // Werte aus dem UI-Werker-Formel-Block lesen (updateWerkerFormel wurde schon
@@ -14800,6 +14944,29 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-dir { display: inline-block; margin-left: 4mm; padding: 0.8mm 2.5mm; font-size: 7.5pt; background: #fff; border: 1.2px solid #000; border-radius: 1.5mm; color: #000; text-transform: none; letter-spacing: 0.04em; vertical-align: middle; font-weight: 700; }
       .pm-sequenz { page-break-before: always !important; break-before: page !important; }
       .pm-section-title + table { page-break-before: avoid; break-before: avoid; }
+      /* === v1.99.38: Cluster-Auftrags-Tabelle (Multi-Auftrags-Sicht) === */
+      .pm-cluster { page-break-inside: avoid !important; break-inside: avoid !important; margin-bottom: 3mm; }
+      .pm-cluster-table { width: 100%; border-collapse: collapse; font-size: 9pt; table-layout: fixed; }
+      .pm-cluster-table thead th { background: #f0f0f0; border-bottom: 1.4px solid #000; padding: 1.4mm 1.8mm; text-align: left; font-size: 7.5pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #000; }
+      .pm-cluster-table tbody td { padding: 1.6mm 1.8mm; border-bottom: 0.4px solid #bbb; vertical-align: middle; }
+      .pm-cluster-table tbody tr:last-child td { border-bottom: 1px solid #000; }
+      .pm-cluster-table td.pm-clu-icon { text-align: center; font-size: 12pt; font-weight: 800; color: #000; line-height: 1; }
+      .pm-cluster-table td.pm-clu-nr { font-weight: 800; font-variant-numeric: tabular-nums; }
+      .pm-cluster-table td.pm-clu-kunde { color: #000; }
+      .pm-cluster-table td.pm-clu-mr { font-variant-numeric: tabular-nums; font-weight: 700; }
+      .pm-cluster-table td.pm-clu-schmal { font-variant-numeric: tabular-nums; }
+      .pm-cluster-table td.pm-clu-N { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+      .pm-cluster-table td.pm-clu-note { font-size: 7.5pt; color: #444; font-style: italic; }
+      .pm-cluster-table .pm-clu-mat { color: #555; font-size: 8pt; }
+      .pm-cluster-table tr.pm-clu-primary { background: #f6f0e4; border-left: 2.5mm solid #000; }
+      .pm-cluster-table tr.pm-clu-primary td:first-child { border-left: 1.6mm solid #000; }
+      .pm-cluster-table tr.pm-clu-reached td:first-child { border-left: 1.6mm solid #555; }
+      .pm-cluster-table tr.pm-clu-excluded { background: #f6f6f6; color: #777; }
+      .pm-cluster-table tr.pm-clu-excluded td:first-child { border-left: 1.6mm dashed #999; }
+      .pm-cluster-table tr.pm-clu-excluded .pm-clu-note { color: #b00; font-style: normal; font-weight: 700; }
+      .pm-cluster-warn { color: #b00; font-weight: 700; }
+      .pm-cluster-footnote { margin-top: 2mm; padding: 1.6mm 2.5mm; font-size: 8pt; color: #222; background: #f8f8f8; border-left: 1mm solid #555; line-height: 1.45; page-break-inside: avoid !important; break-inside: avoid !important; }
+      .pm-cluster-footnote strong { color: #000; font-weight: 800; }
       /* === Stack-Komposition-Blöcke (Hauptschnitt + Rest) === */
       .pm-stack-block { margin: 0 0 2mm 0; padding: 1.8mm 2.5mm; border: 1.3px solid #000; border-radius: 1mm; background: #fff; page-break-inside: avoid !important; break-inside: avoid !important; }
       .pm-stack-haupt { border-left-width: 3.5mm; }
