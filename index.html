@@ -7745,11 +7745,23 @@ audio.team-player-audio::-webkit-media-controls-panel {
           fill: "rgba(180,180,180,0.85)", "font-size": "7", "font-weight": "700",
           "letter-spacing": "0.04em", "font-family": "inherit" }, "GEW.");
       }
+      // v1.99.40: data-seg-* Attribute damit Hover/Tooltip-System den Klemm-Ring kennt
       svgW(g, "rect", { x: klemmX, y: barTop + 8, width: klemmW, height: barH - 16, rx: 2,
-        fill: "url(#gDistanz)", stroke: "rgba(0,255,138,0.7)", "stroke-width": "0.8" });
+        fill: "url(#gDistanz)", stroke: "rgba(0,255,138,0.7)", "stroke-width": "0.8",
+        style: "cursor: pointer;",
+        "data-seg-kind": "klemm",
+        "data-seg-name": "Klemm-Distanzring",
+        "data-seg-breite": String(klemmMm),
+        "data-seg-pos": "-1",
+        "data-seg-role": "klemm-gewinde",
+        "data-seg-klemm-min": String(klemmMm),
+        "data-seg-klemm-max": String(klemmMax)
+      });
       if (klemmW > 14) {
+        // pointer-events:none damit der Text nicht den darunterliegenden Klemm-Hit blockiert
         svgW(g, "text", { x: klemmX + klemmW / 2, y: barTop + barH / 2 + 4, "text-anchor": "middle",
-          fill: "rgba(6,43,20,0.85)", "font-size": "9", "font-weight": "700", "font-family": "inherit" },
+          fill: "rgba(6,43,20,0.85)", "font-size": "9", "font-weight": "700", "font-family": "inherit",
+          style: "pointer-events: none;" },
           String(klemmMm));
       }
       // Beschriftung über dem Klemm-Ring
@@ -10859,6 +10871,22 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <dt>Position</dt><dd>${posTxt}</dd>
           <dt>Lage</dt><dd>${fromMitteTxt}</dd>
           <dt>Stack-Auflösung</dt><dd>${fillTxt}</dd>
+        `;
+      } else if (kind === "klemm") {
+        // v1.99.40: Klemm-Distanzring auf dem Gewinde (links der Bestückung)
+        eyebrow = "Klemm-Distanzring";
+        const klMin = parseFloat(segEl.getAttribute("data-seg-klemm-min")) || breite;
+        const klMax = parseFloat(segEl.getAttribute("data-seg-klemm-max")) || 20;
+        titleNum = `${klMin}–${klMax}`; unit = "mm";
+        meta = `<strong>Werker-Wahl vor Ort.</strong> Sitzt LINKS auf dem Gewinde, ` +
+               `<em>außerhalb</em> der ${M.BESTUECKUNGS_BREITE}-mm-Bestückung. ` +
+               `Ragt vom Bestückungs-Ende in den Gewindebereich, damit die ` +
+               `Gewindemutter alles fest verklemmen kann. Stahl-Hülse.`;
+        extras = `
+          <dt>Position</dt><dd>Links auf Gewinde · außerhalb Bestückung</dd>
+          <dt>Breite</dt><dd><em>${klMin}–${klMax} mm</em> · je nach Gewindelänge</dd>
+          <dt>Funktion</dt><dd>Klemmt Bestückung gegen Gewindemutter</dd>
+          <dt>Empfehlung</dt><dd>Meist ${klMin} mm — größer nur bei langem Gewinde-Überstand</dd>
         `;
       } else if (kind === "buchse") {
         eyebrow = "Schneidbuchse · Multi-Cut";
