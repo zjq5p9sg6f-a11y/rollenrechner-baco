@@ -14616,15 +14616,60 @@ audio.team-player-audio::-webkit-media-controls-panel {
       }
       // Glow-Filter raus (Print braucht keinen Web-Glow)
       svgClone.querySelectorAll('[filter]').forEach(el => el.removeAttribute("filter"));
-      // Helle Texte (z.B. weiße Bemaßungen auf Web-dunklem-BG) auf schwarz forcen
+      // v1.99.50: ALLE Texte auf druckbaren Kontrast forcen — vorher matchte
+      // der Color-Check nur weiße/var-Fills, hellgraue rgba(180,180,180,0.5)
+      // Texte (Park-Labels, X-Skala, Tracks-Header) blieben unverändert →
+      // im SW-Druck unlesbar (Screenshot Jan 2026-06-05 12:00).
+      // Heuristik: helle/transparente Texte → mittelschwarz #444 (sekundär,
+      // aber klar lesbar). Default → #000 (primär). Plus opacity:1 forciert.
       svgClone.querySelectorAll("text, tspan").forEach(t => {
-        const fill = (t.getAttribute("fill") || "").toLowerCase();
-        const isLight = !fill || fill === "white" || fill === "#fff" || fill === "#ffffff"
-          || fill.includes("rgba(255") || fill.includes("opacity")
-          || fill.includes("--text") || fill.includes("text-primary")
-          || fill.startsWith("var(--");
-        if (isLight) t.setAttribute("fill", "#111");
+        const fill = (t.getAttribute("fill") || "").toLowerCase().replace(/\s+/g, "");
         t.removeAttribute("filter");
+        t.removeAttribute("opacity");
+        // 1. Weiß / sehr hell / var(--text-*) → primär schwarz
+        if (!fill || fill === "white" || fill === "#fff" || fill === "#ffffff"
+            || fill.includes("rgba(255") || fill.includes("--text") || fill.startsWith("var(--")) {
+          t.setAttribute("fill", "#000");
+          return;
+        }
+        // 2. Hellgraue rgba()-Texte (sekundäre Bemaßungen) → mittelschwarz
+        const rgbaMatch = fill.match(/^rgba?\((\d+),(\d+),(\d+)/);
+        if (rgbaMatch) {
+          const r = parseInt(rgbaMatch[1]), g = parseInt(rgbaMatch[2]), b = parseInt(rgbaMatch[3]);
+          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+          // Helle Töne (lum >120) → sekundär-grau #555, dunkle → schwarz
+          t.setAttribute("fill", lum > 120 ? "#555" : "#000");
+          return;
+        }
+        // 3. Hex-Hellgrau (#ccc, #aaa) → mittelschwarz
+        const hexMatch = fill.match(/^#([0-9a-f]{6})$/i);
+        if (hexMatch) {
+          const r = parseInt(hexMatch[1].substring(0,2), 16);
+          const g = parseInt(hexMatch[1].substring(2,4), 16);
+          const b = parseInt(hexMatch[1].substring(4,6), 16);
+          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+          if (lum > 120) t.setAttribute("fill", "#555");
+          else if (lum > 60) t.setAttribute("fill", "#222");
+          else t.setAttribute("fill", "#000");
+          return;
+        }
+        // 4. Sonst (currentColor, named colors) → primär schwarz
+        t.setAttribute("fill", "#000");
+      });
+      // Plus: Inline-style opacity auf Text-Elementen killen
+      svgClone.querySelectorAll("text[style], tspan[style]").forEach(t => {
+        let st = (t.getAttribute("style") || "");
+        st = st.replace(/opacity\s*:\s*[0-9.]+\s*;?/gi, "")
+               .replace(/fill-opacity\s*:\s*[0-9.]+\s*;?/gi, "");
+        t.setAttribute("style", st);
+      });
+      // Minimum-Font-Size 7pt: kleinere Cut-Position-Labels etc. werden auf 7
+      // hochgezogen damit sie im Print lesbar bleiben.
+      svgClone.querySelectorAll("text[font-size]").forEach(t => {
+        const fs = parseFloat(t.getAttribute("font-size"));
+        if (isFinite(fs) && fs > 0 && fs < 7) {
+          t.setAttribute("font-size", "7");
+        }
       });
       // v1.86: SW-Druck-Optimierung. Alle Farben → schwarz/grau-Skala.
       // Hierarchie via Border-Dicke + Texture (gestrichelt vs solid).
@@ -15007,7 +15052,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-kpi-sub { font-size: 7.5pt; color: #666; margin-top: 0.5mm; }
       /* === SVG === */
       .pm-svg-wrap { margin: 0 0 3mm 0; page-break-inside: avoid; }
-      .pm-svg-wrap svg { display: block; width: 194mm; height: 58mm; border: 1px solid #999; border-radius: 2mm; background: #fff; }
+      /* v1.99.50: height:auto + max-height — SVG-aspect respektieren statt auf fixe
+         58mm zu quetschen. Bei Cluster (4+ jobs) wäre fix-58mm → preserveAspectRatio
+         hätte Breite auf ~120mm geshrinkt. max-height 120mm cappt Mega-Cluster (10+). */
+      .pm-svg-wrap svg { display: block; width: 194mm; height: auto; max-height: 120mm; border: 1px solid #999; border-radius: 2mm; background: #fff; }
       /* === Werker-Rechenweg · kompakte Card === */
       .pm-werker-formel { margin: 0 0 3mm 0; padding: 2mm 3mm; border: 1.3px solid #000; border-radius: 1mm; background: #fff; page-break-inside: avoid !important; break-inside: avoid !important; }
       .pm-wf-head { font-size: 8pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #000; margin-bottom: 1.5mm; }
@@ -15123,8 +15171,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const datumSafe = (inp("welleDatum") || new Date().toISOString().slice(0, 10)).replace(/"/g, '\\"');
     return `
       @page {
+        /* v1.99.50: konsistent mit Web-CSS @page (8/10/12mm) → volle 194mm
+           nutzbar. Linke Margin 25mm war Legacy-Werker-Ordner-Lochung — wird
+           jetzt nicht mehr gebraucht da Werker das PDF gedruckt ablegt. */
         size: A4;
-        margin: 12mm 12mm 18mm 25mm;
+        margin: 10mm 8mm 14mm 8mm;
         @bottom-right {
           content: "Auftrag ${auftragNrSafe} · Seite " counter(page) " / " counter(pages);
           font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
