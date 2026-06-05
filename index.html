@@ -3753,13 +3753,13 @@ header.bar {
   position: absolute;
   left: -10000px;
   top: -10000px;
-  width: 194mm;
+  width: 190mm;
 }
 
 @media print {
   @page {
     /* v1.99.49: enge Margins (8mm) damit Welle-Zeichnung volle A4-Breite nutzt
-       (210mm - 8mm - 8mm = 194mm). User-Wunsch: 'nutze das volle a4 potential
+       (210mm - 8mm - 8mm = 190mm). User-Wunsch: 'nutze das volle a4 potential
        in der breite'. */
     size: A4;
     margin: 10mm 8mm 12mm 8mm;
@@ -3783,8 +3783,8 @@ header.bar {
     position: static !important;
     left: auto !important;
     top: auto !important;
-    width: 194mm !important;
-    max-width: 194mm !important;
+    width: 190mm !important;
+    max-width: 190mm !important;
     margin: 0 auto !important;
     padding: 0 !important;
     background: white !important;
@@ -4016,7 +4016,7 @@ header.bar {
     border: 1px solid #bbb !important;
     border-radius: 3px;
     display: block !important;
-    width: 194mm !important;
+    width: 190mm !important;
     height: 56mm !important;
     page-break-inside: avoid !important;
     margin: 0 auto 5mm auto !important;
@@ -14331,7 +14331,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.53";
+    const PRINT_VERSION = "v1.99.54";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
@@ -14759,25 +14759,19 @@ audio.team-player-audio::-webkit-media-controls-panel {
                .replace(/var\(--warn-color\)/g, "#000");
         el.setAttribute("style", st);
       });
-      // v1.99.53: Print-SVG-Größe EXPLIZIT in mm setzen aus viewBox (statt CSS
-      // height:auto auf Browser-Print-Engine zu vertrauen — Chrome/Safari/Firefox
-      // verhalten sich da unterschiedlich, einige kollabierten auf ~58mm Höhe →
-      // SVG-Breite shrunk dann via preserveAspectRatio auf ~150mm statt der
-      // verfügbaren 194mm). Mit expliziten width+height mm-Attributen rendert
-      // jede Engine identisch.
+      // v1.99.54: SVG-Größe explizit in mm setzen (Browser-Engine-Konsistenz).
+      // Width auf 190mm — User-Feedback: 190mm hat Kästen rechts abgeschnitten,
+      // Drucker brauchen ~2mm Buffer. viewBox bleibt unverändert (padX im
+      // viewBox ist Welle-Atmung — sieht im finalen Print gut aus).
       try {
         const vb = (svgClone.getAttribute("viewBox") || "").trim().split(/\s+/);
         if (vb.length === 4) {
           const vbW = parseFloat(vb[2]), vbH = parseFloat(vb[3]);
           if (isFinite(vbW) && isFinite(vbH) && vbW > 0 && vbH > 0) {
-            const targetWmm = 194;     // Volle nutzbare A4-Breite
+            const targetWmm = 190;     // Sicher unter A4-Druck-Bereich (194 schnitt rechts ab)
             const maxHmm = 120;        // Cap bei Mega-Cluster
             const aspect = vbW / vbH;
-            const computedH = targetWmm / aspect;
-            const heightMm = Math.min(maxHmm, computedH);
-            // Wenn cap greift: Breite proportional shrinkenswert? Nein —
-            // bei Cap (Mega-Cluster) lieber Breite voll lassen + Höhe geclippt
-            // damit Welle immer ganz lesbar bleibt.
+            const heightMm = Math.min(maxHmm, targetWmm / aspect);
             svgClone.setAttribute("width", `${targetWmm}mm`);
             svgClone.setAttribute("height", `${heightMm}mm`);
           }
@@ -15055,7 +15049,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
          Hierarchie via FETT / BORDER-DICKE / GROESSE, nicht via FARBE. */
       * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       html, body { margin: 0; padding: 0; background: #fff; color: #000; font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 9.5pt; line-height: 1.4; }
-      #printMaster { width: 194mm; max-width: 194mm; margin: 0 auto; padding: 0; }
+      #printMaster { width: 190mm; max-width: 190mm; margin: 0 auto; padding: 0; }
       /* === Header === */
       .pm-header { margin: 0 0 6mm 0; padding: 0 0 4mm 0; border-bottom: 2.5px solid #000; page-break-inside: avoid; }
       .pm-brand-row { display: flex; align-items: baseline; justify-content: space-between; gap: 4mm; margin-bottom: 2mm; flex-wrap: nowrap; }
@@ -15082,7 +15076,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       /* v1.99.50: height:auto + max-height — SVG-aspect respektieren statt auf fixe
          58mm zu quetschen. Bei Cluster (4+ jobs) wäre fix-58mm → preserveAspectRatio
          hätte Breite auf ~120mm geshrinkt. max-height 120mm cappt Mega-Cluster (10+). */
-      .pm-svg-wrap svg { display: block; width: 194mm; height: auto; max-height: 120mm; border: 1px solid #999; border-radius: 2mm; background: #fff; }
+      .pm-svg-wrap svg { display: block; width: 190mm; height: auto; max-height: 120mm; border: 1px solid #999; border-radius: 2mm; background: #fff; }
       /* === Werker-Rechenweg · kompakte Card === */
       .pm-werker-formel { margin: 0 0 3mm 0; padding: 2mm 3mm; border: 1.3px solid #000; border-radius: 1mm; background: #fff; page-break-inside: avoid !important; break-inside: avoid !important; }
       .pm-wf-head { font-size: 8pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #000; margin-bottom: 1.5mm; }
@@ -15198,7 +15192,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const datumSafe = (inp("welleDatum") || new Date().toISOString().slice(0, 10)).replace(/"/g, '\\"');
     return `
       @page {
-        /* v1.99.50: konsistent mit Web-CSS @page (8/10/12mm) → volle 194mm
+        /* v1.99.50: konsistent mit Web-CSS @page (8/10/12mm) → volle 190mm
            nutzbar. Linke Margin 25mm war Legacy-Werker-Ordner-Lochung — wird
            jetzt nicht mehr gebraucht da Werker das PDF gedruckt ablegt. */
         size: A4;
@@ -15272,7 +15266,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     inlineCssEl.textContent = `@media print {
 ${styleSheet}
 body > *:not(#printMaster) { display: none !important; }
-#printMaster { display: block !important; position: static !important; left: auto !important; top: auto !important; width: 194mm !important; max-width: 194mm !important; margin: 0 auto !important; }
+#printMaster { display: block !important; position: static !important; left: auto !important; top: auto !important; width: 190mm !important; max-width: 190mm !important; margin: 0 auto !important; }
 }`;
     document.head.appendChild(inlineCssEl);
     function cleanupPrint() {
