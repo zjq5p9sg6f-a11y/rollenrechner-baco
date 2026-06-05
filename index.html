@@ -2677,51 +2677,89 @@ header.bar {
   min-height: 140px;
 }
 
-/* ============== Cluster (Folgeauftrag) Toggle + Section ============== */
+/* ============== v1.99.41 Cluster (Folgeauftrag) Toggle + Section · prominenter ============== */
+/* Vorher: 1px dashed, subtiler Hover-Glow → ging in der langen Welle-Section unter.
+   Neu: 2.5px solid Border, saturierter Background, soft Pulse, prominenter "STAFFEL"-Badge. */
+@keyframes cluster-toggle-pulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(66,165,245,0), inset 0 0 0 rgba(66,165,245,0); }
+  50%      { box-shadow: 0 0 22px rgba(66,165,245,0.32), inset 0 1px 0 rgba(66,165,245,0.15); }
+}
 .cluster-toggle {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 12px;
   width: 100%;
-  margin-top: 14px;
-  padding: 12px 18px;
-  background: linear-gradient(90deg, rgba(66,165,245,0.06), transparent);
-  border: 1px dashed rgba(66,165,245,0.4);
+  margin-top: 18px;
+  padding: 14px 20px;
+  background: linear-gradient(90deg, rgba(66,165,245,0.16), rgba(66,165,245,0.06) 60%, rgba(66,165,245,0.02));
+  border: 2.5px solid rgba(66,165,245,0.55);
   border-radius: var(--r-2);
-  color: #42a5f5;
+  color: #5eb8ff;
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 14.5px;
+  font-weight: 800;
   letter-spacing: 0.05em;
   cursor: pointer;
   transition: all var(--t-fast);
   text-transform: uppercase;
+  text-shadow: 0 0 12px rgba(66,165,245,0.30);
+  animation: cluster-toggle-pulse 3.6s ease-in-out infinite;
 }
 .cluster-toggle:hover {
-  border-style: solid;
-  background: linear-gradient(90deg, rgba(66,165,245,0.10), rgba(66,165,245,0.02));
-  box-shadow: 0 0 18px rgba(66,165,245,0.18);
+  background: linear-gradient(90deg, rgba(66,165,245,0.28), rgba(66,165,245,0.12) 60%, rgba(66,165,245,0.04));
+  border-color: #5eb8ff;
+  color: #ffffff;
+  box-shadow: 0 0 28px rgba(66,165,245,0.45), inset 0 1px 0 rgba(255,255,255,0.10);
+  animation: none;
+  transform: translateY(-1px);
 }
 .cluster-toggle-icon {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 22px; height: 22px;
+  width: 26px; height: 26px;
   border-radius: 50%;
-  border: 1.5px solid currentColor;
+  border: 2px solid currentColor;
+  background: rgba(66,165,245,0.10);
   flex-shrink: 0;
   transition: transform var(--t-fast);
 }
-.cluster-toggle-icon svg { width: 12px; height: 12px; }
+.cluster-toggle-icon svg { width: 14px; height: 14px; stroke-width: 2.8; }
 .cluster-toggle[aria-expanded="true"] .cluster-toggle-icon {
   transform: rotate(45deg);
-  background: #42a5f5;
+  background: #5eb8ff;
   color: var(--bg-base);
+  border-color: #5eb8ff;
 }
 .cluster-toggle[aria-expanded="true"] {
-  border-style: solid;
-  border-color: #42a5f5;
+  border-color: #5eb8ff;
+  background: linear-gradient(90deg, rgba(66,165,245,0.20), rgba(66,165,245,0.08));
+  animation: none;
+  box-shadow: 0 0 18px rgba(66,165,245,0.30);
 }
 .cluster-toggle-hint {
   margin-left: auto;
-  font-size: 10px; opacity: 0.7; font-style: italic;
-  letter-spacing: 0.02em; text-transform: none;
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 10.5px; opacity: 0.85; font-style: normal;
+  letter-spacing: 0.04em; text-transform: none;
+  font-weight: 600;
+}
+/* v1.99.41: prominentes "STAFFEL"-Badge rechts vom Hint — Werker erkennt sofort "Mehrfach-Auftrag" */
+.cluster-toggle::after {
+  content: "STAFFEL";
+  display: inline-block;
+  margin-left: 4px;
+  padding: 4px 9px;
+  background: linear-gradient(135deg, #5eb8ff, #42a5f5);
+  color: #06283c;
+  font-size: 9.5px; font-weight: 900;
+  letter-spacing: 0.12em;
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(66,165,245,0.5), inset 0 1px 0 rgba(255,255,255,0.4);
+  flex-shrink: 0;
+  order: 99;  /* immer ganz rechts */
+}
+.cluster-toggle[aria-expanded="true"]::after {
+  content: "AKTIV";
+  background: linear-gradient(135deg, #00e676, #00c853);
+  color: #06281a;
+  box-shadow: 0 0 14px rgba(0,230,118,0.55), inset 0 1px 0 rgba(255,255,255,0.4);
 }
 
 .cluster-section {
@@ -10029,19 +10067,29 @@ audio.team-player-audio::-webkit-media-controls-panel {
     function scoreLayout(common, d, bL, totalRest) {
       return common * 1e6 - Math.abs(d) * 100 - Math.abs(bL - totalRest/2);
     }
+    // v1.99.41: Engine respektiert BESAEUMUNG_MIN_SOFT — wenn die 2D-Grid-Search
+    // freigelassen wird (besL = 0), produziert sie unsichere Layouts (Trim einseitig
+    // = 0 mm = keine Außenkante = Schmalrollen-Rand-Schwingen). Werker-Soft-Min
+    // erzwingt mindestens minBes auf beiden Seiten — fällt unter Symmetrie zurück
+    // wenn totalRest < 2 × minBes.
+    const minBes = getMachine().BESAEUMUNG_MIN_SOFT || 0;
     for (let i = 1; i < validJobs.length; i++) {
       const job = validJobs[i];
+      // Sicherer Search-Range: besL ∈ [minBes, totalRest - minBes].
+      // Wenn totalRest < 2 × minBes: kein asymm möglich → besL fix = totalRest/2 (Symmetrie).
+      const canAsym = job.totalRest >= 2 * minBes;
+      const besLMin = canAsym ? minBes : job.totalRest / 2;
+      const besLMax = canAsym ? Math.min(job.totalRest - minBes, 60) : job.totalRest / 2;
       // Initial: symmetrische Besäumung, kein Versatz, common gegen ref zählen
-      const initCuts = rebuildCutsWithAsym(job, 0, job.totalRest/2).cuts;
+      const initBesL = job.totalRest / 2;
+      const initCuts = rebuildCutsWithAsym(job, 0, initBesL).cuts;
       let initCommon = 0;
       for (const c of initCuts) if (ref.cuts.some(r => Math.abs(c-r) < tol)) initCommon++;
-      let bestDelta = 0, bestBesL = job.totalRest / 2;
-      let bestScore = scoreLayout(initCommon, 0, job.totalRest/2, job.totalRest);
-      // 2D-Grid-Search · 0.5mm Auflösung in besL · 1mm in δ
-      // Cap totalRest auf 60mm um Search-Space bei extrem-asymmetrischen Aufträgen zu begrenzen
-      const restMax = Math.min(job.totalRest, 60);
+      let bestDelta = 0, bestBesL = initBesL;
+      let bestScore = scoreLayout(initCommon, 0, initBesL, job.totalRest);
+      // 2D-Grid-Search innerhalb sicherer Soft-Min-Range
       for (let d = -50; d <= 50; d += 1) {
-        for (let bL = 0; bL <= restMax; bL += 0.5) {
+        for (let bL = besLMin; bL <= besLMax + 0.0001; bL += 0.5) {
           const test = rebuildCutsWithAsym(job, d, bL);
           let common = 0;
           for (const c of test.cuts) {
