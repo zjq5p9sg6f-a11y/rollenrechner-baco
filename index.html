@@ -1785,50 +1785,66 @@ header.bar {
 }
 .at-tab-wrap:hover { z-index: 2; }
 
-/* v1.99.18 Maschinen-Gruppen — DCM und Euromac jeweils eigene Gruppe in der Tab-Bar */
+/* v1.99.37 Maschinen-Gruppen prominenter — Header als gut lesbare Pille */
 .at-group {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 8px 4px 6px;
-  border-radius: 5px;
-  border: 1px dashed transparent;
-  margin-right: 8px;
+  gap: 6px;
+  padding: 6px 10px 6px 8px;
+  border-radius: 6px;
+  border: 1.5px dashed transparent;
+  margin-right: 10px;
 }
 .at-group.at-group-active {
-  border-color: rgba(255,154,60,0.30);
-  background: rgba(255,154,60,0.04);
+  border-color: rgba(255,154,60,0.55);
+  background: rgba(255,154,60,0.08);
+  box-shadow: 0 0 12px rgba(255,154,60,0.10);
 }
 .at-group.at-group-other {
-  border-color: rgba(255,255,255,0.08);
-  opacity: 0.72;
+  border-color: rgba(255,255,255,0.12);
+  opacity: 0.85;
 }
 .at-group.at-group-other:hover {
   opacity: 1;
-  border-color: rgba(255,154,60,0.20);
+  border-color: rgba(255,154,60,0.45);
+  background: rgba(255,154,60,0.05);
 }
 .at-group-header {
-  display: inline-flex; align-items: center; gap: 4px;
-  background: transparent;
-  border: 0;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,154,60,0.18);
+  border: 1px solid rgba(255,154,60,0.55);
   color: var(--machine-accent, #ff9a3c);
   font-family: inherit;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 4px 8px;
+  padding: 6px 12px;
   cursor: pointer;
-  border-radius: 3px;
+  border-radius: 5px;
   white-space: nowrap;
+  text-shadow: 0 0 8px rgba(255,154,60,0.25);
+  transition: all 120ms ease;
 }
-.at-group-other .at-group-header { color: var(--text-secondary); }
-.at-group-header:hover {
-  background: rgba(255,154,60,0.08);
+.at-group.at-group-active .at-group-header {
+  background: linear-gradient(135deg, rgba(255,154,60,0.30), rgba(255,154,60,0.15));
+  color: #fff;
+  border-color: var(--machine-accent, #ff9a3c);
+  box-shadow: 0 0 14px rgba(255,154,60,0.30), inset 0 1px 0 rgba(255,255,255,0.10);
+}
+.at-group.at-group-other .at-group-header {
+  background: rgba(255,255,255,0.04);
+  color: var(--text-secondary);
+  border-color: rgba(255,255,255,0.18);
+  text-shadow: none;
+}
+.at-group.at-group-other .at-group-header:hover {
+  background: rgba(255,154,60,0.10);
   color: var(--machine-accent);
+  border-color: rgba(255,154,60,0.5);
 }
-.at-group-icon { font-size: 11px; }
-.at-group-name { font-weight: 700; }
+.at-group-icon { font-size: 14px; line-height: 1; }
+.at-group-name { font-weight: 800; letter-spacing: 0.04em; }
 /* Lösch-× — position absolute Overlay in der Ecke (Browser-Tab-Pattern).
    Vorher inline-flex → bei Nachbar-+ flackerte Hover-Status. Jetzt absolut
    positioniert, höher z-index als + Button, klar separater Hit-Bereich. */
