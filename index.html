@@ -14337,13 +14337,25 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.55";
+    const PRINT_VERSION = "v1.99.56";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
-    // direkt nach dem Header — Werker sieht die wichtigsten Zahlen sofort.
+    // v1.99.56: Bei Cluster ('Master · ... Aufträge' in wfTermBSub) → Master-
+    // Werke-Wert nehmen (wfTermResult), nicht Primary-only. PDF-Audit
+    // 2026-06-05 zeigte Inkonsistenz: KPI 433mm (Primary) vs Werker-Card
+    // 300mm (Master) → Werker-Verwirrung.
     let pmWerkerMass = null;
-    if (welleData.layoutLR) {
+    const wfRText = (document.getElementById("wfTermResult") || {}).textContent || "";
+    const wfBSubText = (document.getElementById("wfTermBSub") || {}).textContent || "";
+    const isClusterMode = wfBSubText.toLowerCase().includes("master");
+    if (isClusterMode) {
+      // Cluster aktiv: Master-Welle-Wert aus UI-Werker-Card nehmen
+      const parsed = parseFloat(wfRText.replace(/\./g, "").replace(",", "."));
+      if (isFinite(parsed)) pmWerkerMass = parsed;
+    }
+    if (pmWerkerMass == null && welleData.layoutLR) {
+      // Single-Job-Fallback: Primary aus Layout berechnen
       let cur = 0, rightmost = null;
       for (const seg of welleData.layoutLR) {
         if (seg.kind === "schneid" || seg.kind === "neben") {
@@ -14394,17 +14406,17 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <div class="pm-kpi pm-kpi-mass">
           <div class="pm-kpi-val">${pmWerkerMass != null ? fmtHalf(pmWerkerMass, 1) : "—"}<span class="pm-kpi-unit">mm</span></div>
           <div class="pm-kpi-lbl">1. Schneidkante v. rechts</div>
-          <div class="pm-kpi-sub">vom rechten Wellenrand · inkl. Park-R</div>
+          <div class="pm-kpi-sub">${isClusterMode ? "Master-Welle · rechteste Cut über alle Aufträge" : "vom rechten Wellenrand · inkl. Park-R"}</div>
         </div>
         <div class="pm-kpi">
           <div class="pm-kpi-val">${pmYield > 0 ? fmtHalf(pmYield, 1) : "—"}<span class="pm-kpi-unit">%</span></div>
           <div class="pm-kpi-lbl">Material-Ausnutzung</div>
-          <div class="pm-kpi-sub">${fmtHalf(pmTrim, 1)} mm Trim/Rest von ${pmMr} mm MR</div>
+          <div class="pm-kpi-sub">${isClusterMode ? `Primary · ${fmtHalf(pmTrim, 1)} mm Trim/Rest · andere Aufträge variieren` : `${fmtHalf(pmTrim, 1)} mm Trim/Rest von ${pmMr} mm MR`}</div>
         </div>
         <div class="pm-kpi">
           <div class="pm-kpi-val">${N}<span class="pm-kpi-unit">Stk.</span></div>
           <div class="pm-kpi-lbl">Schmalrollen pro MR</div>
-          <div class="pm-kpi-sub">je ${out.schmal} mm Haupt-Schmal</div>
+          <div class="pm-kpi-sub">${isClusterMode ? `Primary · andere Aufträge siehe Cluster-Tabelle` : `je ${out.schmal} mm Haupt-Schmal`}</div>
         </div>
       </div>
     `;
@@ -14802,6 +14814,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const wfASub = (document.getElementById("wfTermASub") || {}).textContent || "";
       const wfB    = (document.getElementById("wfTermB") || {}).textContent || "—";
       const wfBSub = (document.getElementById("wfTermBSub") || {}).textContent || "";
+      // v1.99.56: Mid-Label semantisch korrekt — '½ Stack' nur bei Single-Job,
+      // 'Master-Cut' bei Cluster (wfBSub enthält 'Master · ...').
+      const wfBLbl = wfBSub.toLowerCase().includes("master") ? "Master-Cut" : "½ Stack";
       const werkerFormelHtml = `
         <div class="pm-werker-formel">
           <div class="pm-wf-head">● Werker-Rechenweg · So entsteht der Wert</div>
@@ -14815,7 +14830,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
               <td class="pm-wf-op">−</td>
               <td class="pm-wf-term">
                 <div class="pm-wf-val"><strong>${escape(wfB)}</strong> mm</div>
-                <div class="pm-wf-lbl">½ Stack</div>
+                <div class="pm-wf-lbl">${wfBLbl}</div>
                 <div class="pm-wf-sub">${escape(wfBSub)}</div>
               </td>
               <td class="pm-wf-op">=</td>
