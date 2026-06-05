@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Rollenrechner">
 <meta name="theme-color" content="#0a0a0a">
-<title>Rollenrechner · Ballerstaedt</title>
+<title>Rollenrechner · Längsschneidemaschinen-Operator</title>
 <script>
   // Pre-render unlock check — no flash on reload if already unlocked
   if (typeof localStorage !== "undefined" && localStorage.getItem("rr.unlocked") === "1") {
@@ -5242,7 +5242,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       </svg>
     </div>
     <div class="pw-title">Rollenrechner</div>
-    <div class="pw-sub">Internes Tool · Ballerstaedt</div>
+    <div class="pw-sub">Internes Tool · Längsschneidemaschinen-Operator</div>
     <form id="pwForm" autocomplete="off" novalidate>
       <input id="pwInput" type="password" placeholder="Passwort" autocomplete="off" autofocus inputmode="text" aria-label="Passwort">
       <button type="submit" id="pwSubmit">Öffnen</button>
@@ -5269,7 +5269,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       </div>
       <div class="brand-text">
         <div class="brand-title">Rollenrechner</div>
-        <div class="brand-sub">Längsschneider · Ballerstaedt</div>
+        <div class="brand-sub">Längsschneidemaschinen-Operator by Jan Rohwedder</div>
       </div>
     </div>
     <div class="bar-actions">
@@ -5879,7 +5879,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         </div>
         <div class="meta-row">
           <label>Material</label>
-          <input id="welleMaterial" type="text" placeholder="z. B. BaCo Seal HSL-PP 4.6 · 25 µm" autocomplete="off">
+          <input id="welleMaterial" type="text" placeholder="z. B. PE-Folie HD · 25 µm" autocomplete="off">
         </div>
         <div class="meta-row meta-row-full">
           <label>Bemerkung</label>
@@ -5890,7 +5890,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       <!-- Print-Only Header (versteckt in Web, sichtbar im Druck) -->
       <div class="print-header" id="printHeader" aria-hidden="true">
         <div class="ph-brand">
-          <strong>Ballerstaedt</strong> · Bestückungs-Anweisung
+          <strong>Bestückungs-Anweisung</strong> · Jan Rohwedder
         </div>
         <div class="ph-machine" id="phMachine">DCM Untermesserwelle · 1472 mm · Bestückungsbereich 1000 mm</div>
         <table class="ph-meta-table">
@@ -6317,7 +6317,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     unit:   (k) => `rr.unit.${k}`,
   };
 
-  // ---------- machine limits (BaCo-Basics) ----------
+  // ---------- machine limits ----------
   // Maschinen-Limits sind jetzt in MACHINES[id].MAX_MR_MM / MAX_SPEED_MMIN
   // (siehe Konstanten-Block weiter unten). Alte Top-Level-Konstanten entfernt v1.38.
 
@@ -12012,7 +12012,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     }
 
     // Plausibilitäts-Hinweise (soft — Werker entscheidet, blockt nicht).
-    // Typische Schmalrollen-Range bei Ballerstaedt: 15-200 mm.
+    // Typische Schmalrollen-Range: 15-200 mm.
     // Typische Mutterrollen ≥ 200 mm. Werte ausserhalb deuten oft auf Tippfehler hin
     // (z.B. 250 statt 25, oder mm/cm verwechselt).
     if (isFinite(inp.schmal) && inp.schmal > 0) {
@@ -12125,7 +12125,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     if (out.restsatzLFM > 0 && out.volleSaetze >= 0) {
       const pct = (out.restsatzLFM / out.proSatz) * 100;
-      // Flick-Hinweis (BaCo) — Restsatz erfordert Sicht-Kontrolle auf Folienverbindung
+      // Flick-Hinweis — Restsatz erfordert Sicht-Kontrolle auf Folienverbindung
       add("warn", `Restsatz ${nf0.format(out.restsatzLFM)} LFM — auf Flickstellen / Folienverbindung kontrollieren.`);
       if (pct < 5 && out.volleSaetze > 0) {
         add("warn", `Restsatz nur ${nf0.format(pct)} % eines vollen Satzes — evtl. mit nächstem Auftrag bündeln.`);
@@ -14244,7 +14244,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     return fileName;
   }
   function restoreTitle() {
-    document.title = "Rollenrechner · Ballerstaedt";
+    document.title = "Rollenrechner · Längsschneidemaschinen-Operator";
   }
 
   // ============== SE-CAD-Modal Open/Close ==============
@@ -14362,7 +14362,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const headerHtml = `
       <div class="pm-header">
         <div class="pm-brand-row">
-          <div class="pm-brand"><span class="pm-brand-strong">Ballerstaedt</span>&nbsp;·&nbsp;Bestückungs-Anweisung</div>
+          <div class="pm-brand"><span class="pm-brand-strong">Bestückungs-Anweisung</span>&nbsp;·&nbsp;Jan Rohwedder</div>
           <div class="pm-doc-id">Auftrag <strong>${auftragNr}</strong> · ${datum} · <span style="color:#888;font-weight:600">${PRINT_VERSION} · ${genTime}</span></div>
         </div>
         <div class="pm-machine">${machineLine} · Trim-Strategie: ${trimLbl}</div>
@@ -15130,7 +15130,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           color: #111;
         }
         @bottom-left {
-          content: "Ballerstaedt · Bestückungs-Anweisung · ${datumSafe}";
+          content: "Bestückungs-Anweisung · Jan Rohwedder · ${datumSafe}";
           font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
           font-size: 8pt;
           color: #777;
