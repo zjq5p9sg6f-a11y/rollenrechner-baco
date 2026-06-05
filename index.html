@@ -14331,7 +14331,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.51";
+    const PRINT_VERSION = "v1.99.53";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
@@ -14759,6 +14759,32 @@ audio.team-player-audio::-webkit-media-controls-panel {
                .replace(/var\(--warn-color\)/g, "#000");
         el.setAttribute("style", st);
       });
+      // v1.99.53: Print-SVG-Größe EXPLIZIT in mm setzen aus viewBox (statt CSS
+      // height:auto auf Browser-Print-Engine zu vertrauen — Chrome/Safari/Firefox
+      // verhalten sich da unterschiedlich, einige kollabierten auf ~58mm Höhe →
+      // SVG-Breite shrunk dann via preserveAspectRatio auf ~150mm statt der
+      // verfügbaren 194mm). Mit expliziten width+height mm-Attributen rendert
+      // jede Engine identisch.
+      try {
+        const vb = (svgClone.getAttribute("viewBox") || "").trim().split(/\s+/);
+        if (vb.length === 4) {
+          const vbW = parseFloat(vb[2]), vbH = parseFloat(vb[3]);
+          if (isFinite(vbW) && isFinite(vbH) && vbW > 0 && vbH > 0) {
+            const targetWmm = 194;     // Volle nutzbare A4-Breite
+            const maxHmm = 120;        // Cap bei Mega-Cluster
+            const aspect = vbW / vbH;
+            const computedH = targetWmm / aspect;
+            const heightMm = Math.min(maxHmm, computedH);
+            // Wenn cap greift: Breite proportional shrinkenswert? Nein —
+            // bei Cap (Mega-Cluster) lieber Breite voll lassen + Höhe geclippt
+            // damit Welle immer ganz lesbar bleibt.
+            svgClone.setAttribute("width", `${targetWmm}mm`);
+            svgClone.setAttribute("height", `${heightMm}mm`);
+          }
+        }
+      } catch (e) {
+        console.warn("[PrintMaster] SVG-Größenberechnung fehlgeschlagen, CSS-Fallback:", e);
+      }
       const svgWrap = document.createElement("div");
       svgWrap.className = "pm-svg-wrap";
       svgWrap.appendChild(svgClone);
