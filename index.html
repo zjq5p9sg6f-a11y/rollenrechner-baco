@@ -1843,7 +1843,6 @@ header.bar {
   color: var(--machine-accent);
   border-color: rgba(255,154,60,0.5);
 }
-.at-group-icon { font-size: 14px; line-height: 1; }
 .at-group-name { font-weight: 800; letter-spacing: 0.04em; }
 /* Lösch-× — position absolute Overlay in der Ecke (Browser-Tab-Pattern).
    Vorher inline-flex → bei Nachbar-+ flackerte Hover-Status. Jetzt absolut
@@ -7719,22 +7718,33 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const gewindeEndX = padX - 10;  // 10 px Abstand zum linken Lager
       const gewindeY = barTop + barH * 0.30;
       const gewindeH = barH * 0.40;
+      // Klemm-Position vorab berechnen (rechts am Gewindeende, direkt vor Lager)
+      const klemmX = Math.max(gewindeStartX, gewindeEndX - klemmPx);
+      const klemmW = gewindeEndX - klemmX;
       // Gewinde-Hintergrund
       svgW(g, "rect", { x: gewindeStartX, y: gewindeY,
         width: Math.max(0, gewindeEndX - gewindeStartX), height: gewindeH, rx: 2,
         fill: "rgba(40,40,40,0.7)", stroke: "rgba(180,180,180,0.35)", "stroke-width": "0.7" });
-      // Gewinde-Schraffur (kleine diagonale Striche)
-      for (let lineX = gewindeStartX + 2; lineX < gewindeEndX - 2; lineX += 2.5) {
+      // Gewinde-Schraffur (kleine diagonale Striche) — endet 2px vor Klemm-Ring
+      for (let lineX = gewindeStartX + 2; lineX < klemmX - 2; lineX += 2.5) {
         svgW(g, "line", { x1: lineX, y1: gewindeY + 2, x2: lineX + 1.5, y2: gewindeY + gewindeH - 2,
           stroke: "rgba(140,140,140,0.5)", "stroke-width": "0.55" });
       }
-      // Gewinde-Label oben
-      svgW(g, "text", { x: (gewindeStartX + gewindeEndX) / 2, y: gewindeY - 4, "text-anchor": "middle",
-        fill: "rgba(180,180,180,0.75)", "font-size": "7.5", "font-weight": "700",
-        "letter-spacing": "0.08em", "font-family": "inherit" }, "GEWINDE");
-      // Klemm-Distanzring am rechten Ende des Gewindes (direkt links vom Lager)
-      const klemmX = Math.max(gewindeStartX, gewindeEndX - klemmPx);
-      const klemmW = gewindeEndX - klemmX;
+      // v1.99.39: GEWINDE-Label LINKS positioniert (text-anchor: start) statt
+      // Mitte — sonst überlappt der KLEMM-Ring rechts den Text (Screenshot
+      // Jan 2026-06-05: "GEWIND" abgeschnitten). Nur rendern wenn ≥36px Platz.
+      const gewindeLabelMaxX = klemmX - 4;
+      const gewindeLabelSpace = gewindeLabelMaxX - gewindeStartX;
+      if (gewindeLabelSpace >= 36) {
+        svgW(g, "text", { x: gewindeStartX + 2, y: gewindeY - 4, "text-anchor": "start",
+          fill: "rgba(180,180,180,0.85)", "font-size": "7.5", "font-weight": "700",
+          "letter-spacing": "0.08em", "font-family": "inherit" }, "GEWINDE");
+      } else if (gewindeLabelSpace >= 20) {
+        // Sehr eng — Kurzform
+        svgW(g, "text", { x: gewindeStartX + 2, y: gewindeY - 4, "text-anchor": "start",
+          fill: "rgba(180,180,180,0.85)", "font-size": "7", "font-weight": "700",
+          "letter-spacing": "0.04em", "font-family": "inherit" }, "GEW.");
+      }
       svgW(g, "rect", { x: klemmX, y: barTop + 8, width: klemmW, height: barH - 16, rx: 2,
         fill: "url(#gDistanz)", stroke: "rgba(0,255,138,0.7)", "stroke-width": "0.8" });
       if (klemmW > 14) {
@@ -9607,7 +9617,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       header.title = isActive ? `Aktive Maschine: ${MACHINES[mid].label}` : `Wechseln zu ${MACHINES[mid].label}`;
       header.dataset.machine = mid;
       header.tabIndex = -1;
-      header.innerHTML = `<span class="at-group-icon">📍</span><span class="at-group-name">${MACHINES[mid].label}</span>`;
+      header.innerHTML = `<span class="at-group-name">${MACHINES[mid].label}</span>`;
       groupEl.appendChild(header);
       // Tabs
       tabs.forEach(t => {
