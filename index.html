@@ -3753,13 +3753,16 @@ header.bar {
   position: absolute;
   left: -10000px;
   top: -10000px;
-  width: 186mm;
+  width: 194mm;
 }
 
 @media print {
   @page {
+    /* v1.99.49: enge Margins (8mm) damit Welle-Zeichnung volle A4-Breite nutzt
+       (210mm - 8mm - 8mm = 194mm). User-Wunsch: 'nutze das volle a4 potential
+       in der breite'. */
     size: A4;
-    margin: 12mm 12mm 14mm 12mm;
+    margin: 10mm 8mm 12mm 8mm;
   }
   /* === Grund-Reset === */
   html, body {
@@ -3780,8 +3783,8 @@ header.bar {
     position: static !important;
     left: auto !important;
     top: auto !important;
-    width: 186mm !important;
-    max-width: 186mm !important;
+    width: 194mm !important;
+    max-width: 194mm !important;
     margin: 0 auto !important;
     padding: 0 !important;
     background: white !important;
@@ -4013,7 +4016,7 @@ header.bar {
     border: 1px solid #bbb !important;
     border-radius: 3px;
     display: block !important;
-    width: 186mm !important;
+    width: 194mm !important;
     height: 56mm !important;
     page-break-inside: avoid !important;
     margin: 0 auto 5mm auto !important;
@@ -14980,7 +14983,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
          Hierarchie via FETT / BORDER-DICKE / GROESSE, nicht via FARBE. */
       * { box-sizing: border-box; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
       html, body { margin: 0; padding: 0; background: #fff; color: #000; font-family: -apple-system, "Segoe UI", system-ui, sans-serif; font-size: 9.5pt; line-height: 1.4; }
-      #printMaster { width: 173mm; max-width: 173mm; margin: 0 auto; padding: 0; }
+      #printMaster { width: 194mm; max-width: 194mm; margin: 0 auto; padding: 0; }
       /* === Header === */
       .pm-header { margin: 0 0 6mm 0; padding: 0 0 4mm 0; border-bottom: 2.5px solid #000; page-break-inside: avoid; }
       .pm-brand-row { display: flex; align-items: baseline; justify-content: space-between; gap: 4mm; margin-bottom: 2mm; flex-wrap: nowrap; }
@@ -15004,7 +15007,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       .pm-kpi-sub { font-size: 7.5pt; color: #666; margin-top: 0.5mm; }
       /* === SVG === */
       .pm-svg-wrap { margin: 0 0 3mm 0; page-break-inside: avoid; }
-      .pm-svg-wrap svg { display: block; width: 173mm; height: 42mm; border: 1px solid #999; border-radius: 2mm; background: #fff; }
+      .pm-svg-wrap svg { display: block; width: 194mm; height: 58mm; border: 1px solid #999; border-radius: 2mm; background: #fff; }
       /* === Werker-Rechenweg · kompakte Card === */
       .pm-werker-formel { margin: 0 0 3mm 0; padding: 2mm 3mm; border: 1.3px solid #000; border-radius: 1mm; background: #fff; page-break-inside: avoid !important; break-inside: avoid !important; }
       .pm-wf-head { font-size: 8pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #000; margin-bottom: 1.5mm; }
@@ -15191,7 +15194,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     inlineCssEl.textContent = `@media print {
 ${styleSheet}
 body > *:not(#printMaster) { display: none !important; }
-#printMaster { display: block !important; position: static !important; left: auto !important; top: auto !important; width: 173mm !important; max-width: 173mm !important; margin: 0 auto !important; }
+#printMaster { display: block !important; position: static !important; left: auto !important; top: auto !important; width: 194mm !important; max-width: 194mm !important; margin: 0 auto !important; }
 }`;
     document.head.appendChild(inlineCssEl);
     function cleanupPrint() {
