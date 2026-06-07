@@ -52,7 +52,21 @@ const MACHINES = {
   }
 };
 let ACTIVE = "DCM";
-function getMachine() { return MACHINES[ACTIVE]; }
+let currentMrMm = null;
+function setCurrentMrMmForCalc(mr) { currentMrMm = mr; }
+function getMachine() {
+  const base = MACHINES[ACTIVE];
+  if (base.id === "DCM" && currentMrMm != null) {
+    let override = base.PARK_PRO_SEITE;
+    if (currentMrMm >= 1237 - 0.001) override = 1;
+    else if (currentMrMm >= 1001 - 0.001) override = 2;
+    if (override !== base.PARK_PRO_SEITE) {
+      const total = override * base.PARK_RING;
+      return Object.assign({}, base, { PARK_PRO_SEITE: override, PARK_TOTAL: total, BESTUECKUNGS_BREITE: base.WELLE - 2*total, MAX_MR_MM: base.WELLE - 2*total });
+    }
+  }
+  return base;
+}
 function distanzringeForMachine(ziel, machine) {
   const M = machine || getMachine();
   const tol = 0.001;

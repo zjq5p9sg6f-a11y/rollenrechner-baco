@@ -10136,6 +10136,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
   // Vereinigt Cuts mehrerer Aufträge mit MR-Versatz-Optimierung.
   function calcMasterWelle(allJobs) {
     if (!Array.isArray(allJobs) || allJobs.length < 2) return null;
+    // v1.99.70: setze currentMrMm auf den GRÖSSTEN MR aller Cluster-Jobs damit
+    // Park-Auto-Reduzierung für die ganze Master-Welle greift, nicht nur Primary.
+    // Vorher: calcWelleJob(Primary) setzte currentMrMm auf Primary's MR (z.B. 620).
+    // Bei Cluster mit A4=1100mm blieb PARK_PRO_SEITE=4 → A4 passte nicht in 1000mm.
+    {
+      let maxMr = 0;
+      for (const j of allJobs) if (j.mr > maxMr) maxMr = j.mr;
+      if (maxMr > 0) setCurrentMrMmForCalc(maxMr);
+    }
     const tol = 0.5;
     const validJobs = [];
     for (let idx = 0; idx < allJobs.length; idx++) {
@@ -14523,7 +14532,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.69";
+    const PRINT_VERSION = "v1.99.70";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
