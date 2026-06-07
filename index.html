@@ -8327,17 +8327,20 @@ audio.team-player-audio::-webkit-media-controls-panel {
           fill: warnCol });
         svgW(g, "path", { d: `M${xRight} ${dimWerkerY} L${xRight - 8} ${dimWerkerY - 4.5} L${xRight - 8} ${dimWerkerY + 4.5} Z`,
           fill: warnCol });
-        // v1.99.62: Schneidkante-Label optisch prominenter als die darunter
-        // gestapelten MR-Bahn-Brackets (User-Feedback: 'nicht genug abgesetzt
-        // von den Maßen der Mutterrollen')
+        // v1.99.65: Label-Box ÜBER der Bemaßungs-Linie (statt durchgestrichen)
+        // User: 'bei 1.schneidekante v. rechts wird das bullet durchgestrichen ·
+        // angaben sollten über der bemaßung sitzen'.
         const valTxt = `${fmtW(distMm, 1)} mm · 1. Schneidkante v. rechts`;
         const lblW = valTxt.length * 6 + 24;
         let lblCx = (xCut + xRight) / 2;
         lblCx = Math.max(padX + lblW / 2 + 4, Math.min(W - padX - lblW / 2 - 4, lblCx));
-        // Box: dickere Border + subtle warm-orange Hintergrund
-        svgW(g, "rect", { x: lblCx - lblW / 2, y: dimWerkerY - 11, width: lblW, height: 22, rx: 5,
-          fill: "rgba(255,138,0,0.08)", stroke: warnCol, "stroke-width": "1.7" });
-        svgW(g, "text", { x: lblCx, y: dimWerkerY + 5, "text-anchor": "middle",
+        // Box: opak dunkler Hintergrund (statt transparent rgba 0.08), positioniert
+        // ÜBER der Linie damit sie nicht durchs Label geht
+        const boxH = 22;
+        const boxY = dimWerkerY - boxH - 2;  // 2px Luft zur Bemaßungs-Linie
+        svgW(g, "rect", { x: lblCx - lblW / 2, y: boxY, width: lblW, height: boxH, rx: 5,
+          fill: "var(--bg-base)", stroke: warnCol, "stroke-width": "1.7" });
+        svgW(g, "text", { x: lblCx, y: boxY + 15, "text-anchor": "middle",
           fill: warnCol, "font-size": "11.5", "font-weight": "800", "letter-spacing": "0.04em",
           "font-family": "inherit" }, valTxt);
       }
@@ -8409,16 +8412,18 @@ audio.team-player-audio::-webkit-media-controls-panel {
           fill: mj.color });
         svgW(g, "path", { d: `M${xRight} ${mrY} L${xRight - 6} ${mrY - 3.5} L${xRight - 6} ${mrY + 3.5} Z`,
           fill: mj.color });
-        // Label (kompakt mit Job-Slot-Tag bei Cluster)
+        // Label-Box ÜBER der Bemaßungs-Linie (v1.99.65)
         const lblTxt = mj.slotLabel
           ? `${fmtW(distMrMm, 1)} mm · MR-Bahn r. ${mj.slotLabel}`
           : `${fmtW(distMrMm, 1)} mm · MR-Bahn rechts`;
         const lblW = lblTxt.length * 5.2 + 14;
         let lblCx = (xMr + xRight) / 2;
         lblCx = Math.max(padX + lblW / 2 + 4, Math.min(W - padX - lblW / 2 - 4, lblCx));
-        svgW(g, "rect", { x: lblCx - lblW / 2, y: mrY - 7, width: lblW, height: 14, rx: 3,
+        const mrBoxH = 14;
+        const mrBoxY = mrY - mrBoxH - 1;  // 1px Luft über der Linie
+        svgW(g, "rect", { x: lblCx - lblW / 2, y: mrBoxY, width: lblW, height: mrBoxH, rx: 3,
           fill: "var(--bg-base)", stroke: mj.color, "stroke-width": "0.9" });
-        svgW(g, "text", { x: lblCx, y: mrY + 3.5, "text-anchor": "middle",
+        svgW(g, "text", { x: lblCx, y: mrBoxY + 10, "text-anchor": "middle",
           fill: mj.color, "font-size": "8.5", "font-weight": "800", "letter-spacing": "0.04em",
           "font-family": "inherit" }, lblTxt);
       });
@@ -10180,10 +10185,24 @@ audio.team-player-audio::-webkit-media-controls-panel {
       for (const c of initCuts) if (ref.cuts.some(r => Math.abs(c-r) < tol)) initCommon++;
       let bestDelta = 0, bestBesL = initBesL;
       let bestScore = scoreLayout(initCommon, 0, initBesL, job.totalRest);
+      // v1.99.65: Bounds-Check — Engine versuchte für A4 (haupt=120mm) den
+      // versatz=-43 (max common cuts mit Primary), aber A4 würde links über
+      // Park-L hinausschieben → Master-Welle 'passt nicht in 1000mm Bereich'.
+      // Lösung: Versatz/besL-Kombis die außerhalb des Bestückungsbereichs
+      // landen werden im Grid-Search verworfen.
+      const _M = getMachine();
+      const PARK_TL = _M.PARK_TOTAL;
+      const PARK_TR = _M.PARK_TOTAL + _M.BESTUECKUNGS_BREITE;
+      const SO = _M.SCHNITT_OFFSET;
+      const SE_W = _M.SCHNEIDEEINHEIT;
       // 2D-Grid-Search innerhalb sicherer Soft-Min-Range
       for (let d = -50; d <= 50; d += 1) {
         for (let bL = besLMin; bL <= besLMax + 0.0001; bL += 0.5) {
           const test = rebuildCutsWithAsym(job, d, bL);
+          // Bounds-Check: erste SE-Linke-Kante muss >= PARK_TL, letzte SE-Rechte-Kante <= PARK_TR
+          const firstSeLeft = test.cuts[0] - SO;
+          const lastSeRight = test.cuts[test.cuts.length - 1] - SO + SE_W;
+          if (firstSeLeft < PARK_TL - 0.001 || lastSeRight > PARK_TR + 0.001) continue;
           let common = 0;
           for (const c of test.cuts) {
             if (ref.cuts.some(r => Math.abs(c - r) < tol)) common++;
@@ -14465,7 +14484,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.64";
+    const PRINT_VERSION = "v1.99.65";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
