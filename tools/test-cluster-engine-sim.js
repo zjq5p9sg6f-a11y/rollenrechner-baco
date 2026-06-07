@@ -171,27 +171,20 @@ track(runScenario("3 kompatibel + 1 Bock-Job", "DCM",
 track(runScenario("Primary + 2 ok + 1 ok + 1 fail", "DCM",
   [mkJob(700,29), mkJob(710,29), mkJob(690,29), mkJob(700,29), mkJob(700,77)], "partial"));
 
-console.log("\n══ G* · v1.99.63 Differenzierte Extra-Cut-Detection (Haupt lenient / Neben strict) ═══\n");
-// Haupt-Schmal-Split = lenient (Werker bekommt feinere Rollen, akzeptabel)
-// Neben-Bahn-Verletzung = strict (Neben war explizit als Einzel-Bahn bestellt)
+console.log("\n══ G* · v1.99.64 Lenient-Mode für Schmal-Splits (alles wo Cuts physisch passen geht) ═══\n");
+// Engine erlaubt alle Cluster wo Cuts nicht physisch überlappen. Wenn Schmal-Bahnen
+// (haupt oder neben) durch fremde Cuts feiner zerschnitten werden, ist das Werker's
+// Entscheidung (er bekommt mehr/feinere Rollen als bestellt).
 
-// Jan's PDF-Bug: A3 hat NEBEN 120mm. Master zerschneidet das → A3 strict konflikt.
-// A2 hat nur main 90mm = 3×30mm (lenient OK). Engine sollte A3 excluden, A2 + Primary reached.
-track(runScenario("PDF-Bug · 30/90/60+120Neben (A3 excluded)", "DCM",
-  [mkJob(620, 30), mkJob(800, 90), { mr: 700, haupt: 60, nebenSlots: [{ breite: 120, anz: 1 }] }],
-  "partial"));
-// Jan's heutiger Bug: 30mm + 60mm gleiche MR → MUSS clustern (60 = 2×30, kein Neben)
-track(runScenario("Jan-Bug · 30mm + 60mm gleiche MR (lenient)", "DCM",
+track(runScenario("30mm + 60mm gleiche MR (Jan-Bug)", "DCM",
   [mkJob(620, 30), mkJob(620, 60)], "all"));
-// 90mm Schmal über 30mm Primary: jetzt lenient → kompatibel
-track(runScenario("90 mm Schmal über 30 mm Primary (lenient)", "DCM",
+track(runScenario("30mm + 30mm+1×60 Neben gleiche MR", "DCM",
+  [mkJob(620, 30), { mr: 620, haupt: 30, nebenSlots: [{ breite: 60, anz: 1 }] }], "all"));
+track(runScenario("90 mm Schmal über 30 mm Primary", "DCM",
   [mkJob(620, 30), mkJob(800, 90)], "all"));
-// Sicher-Kompatibel: gleich haupt + Neben gleich
-track(runScenario("Gleiche haupt + identischer Neben → ok", "DCM",
-  [
-    { mr: 620, haupt: 30, nebenSlots: [{ breite: 60, anz: 1 }] },
-    { mr: 680, haupt: 30, nebenSlots: [{ breite: 60, anz: 1 }] }
-  ], "all"));
+// Echter Konflikt: 35mm nicht Vielfaches von 30mm
+track(runScenario("Inkompatible Schmal 30 vs 35 (SE-Überlapp)", "DCM",
+  [mkJob(620, 30), mkJob(700, 35)], "fail"));
 
 console.log("\n══ G · Edge-Cases & Validierung ═══════════════════════════════════════════════════\n");
 track(runScenario("Einzelner Job (kein Cluster nötig)", "DCM", [mkJob(700,29)], "all"));

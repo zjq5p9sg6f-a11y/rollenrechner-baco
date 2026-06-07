@@ -10233,45 +10233,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
       }
     }
 
-    // v1.99.61: EXTRA-CUT-KONFLIKT (semantisch).
-    // v1.99.63: differenziert zwischen Haupt-Schmal-Split und Neben-Bahn-Verletzung:
-    //   - HAUPT: 60mm bestellt + Master 30mm-Cuts → 2× 30mm. Werker bekommt
-    //     mehr (feinere) Rollen — lenient akzeptiert (Jan: 'kombinierbar').
-    //   - NEBEN: explizit 1× 120mm bestellt + Master 30mm-Cuts → zerschnitten.
-    //     Werker bekommt nicht das Bestellte — STRICT konflikt.
-    const masterCutsDedup = [];
-    {
-      let prev = -Infinity;
-      for (const r of allRaw) {
-        if (r.pos - prev > sameTol) { masterCutsDedup.push(r.pos); prev = r.pos; }
-      }
-    }
-    for (const job of validJobs) {
-      const jobL = job.mrLeft, jobR = job.mrRight;
-      const sortedJobCuts = [...job.cuts].sort((a, b) => a - b);
-      const N_main = job.N;  // Anzahl Haupt-Schmal-Bahnen
-      for (const mc of masterCutsDedup) {
-        if (mc <= jobL + sameTol || mc >= jobR - sameTol) continue;
-        const isJobCut = sortedJobCuts.some(jc => Math.abs(jc - mc) < sameTol);
-        if (isJobCut) continue;
-        // Welcher Segment-Index? Master-Cut liegt zwischen sortedJobCuts[i] und [i+1]
-        let segIdx = -1;
-        for (let i = 0; i < sortedJobCuts.length - 1; i++) {
-          if (mc > sortedJobCuts[i] && mc < sortedJobCuts[i+1]) { segIdx = i; break; }
-        }
-        if (segIdx === -1) continue; // außerhalb aller Segment-Paare
-        // segIdx 0..N_main-1 = Haupt-Schmal-Segment → lenient (kein Konflikt)
-        // segIdx >= N_main = Neben-Bahn-Segment → STRICT Konflikt
-        if (segIdx >= N_main) {
-          conflicts.push({
-            posA: mc, jobA: job.idx,
-            posB: mc, jobB: -1,
-            distance: 0,
-            type: 'extra-cut-neben'
-          });
-        }
-      }
-    }
+    // v1.99.64: Extra-Cut-Detection KOMPLETT ENTFERNT zurück auf lenient (v1.99.60).
+    // Vorher v1.99.61: strict für alle extra-cuts → 30+60 ging nicht (60=2×30 ist physisch ok)
+    // Dann v1.99.63: differenziert haupt-lenient/neben-strict → 30+30+1×60neben ging nicht
+    // (60=2×30 als Neben ist auch physisch ok, Werker bekommt 30mm-Streifen statt 60mm-Neben).
+    // Jetzt v1.99.64: alles lenient — Engine erlaubt jedes Cluster wo Cuts physisch nicht
+    // überlappen. Wenn der Werker mehr/feinere Rollen bekommt als bestellt, ist das nicht
+    // die Engine's Sache zu entscheiden. Optional: Warning-Alert im UI (TODO).
 
     // ===== Schneidbuchse-Resolver fuer Cut-Konflikte =====
     // Wenn aktive Maschine eine Schneidbuchse im Sortiment hat (Euromac): pruefe
@@ -10326,23 +10294,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     if (unresolvedConflicts.length > 0) {
       // STRICT MODE: nicht deckungsgleich → Master physisch unmöglich
-      // v1.99.63: differenzierte Fehler-Meldung — Overlap vs Neben-Zerschneidung
-      // (Haupt-Schmal-Split ist jetzt lenient)
-      const overlapCnt = unresolvedConflicts.filter(c => c.type !== 'extra-cut-neben').length;
-      const nebenCnt = unresolvedConflicts.filter(c => c.type === 'extra-cut-neben').length;
-      const conflictTxt = unresolvedConflicts.slice(0, 4).map(c => {
-        if (c.type === 'extra-cut-neben') {
-          return `A${c.jobA + 1}@${c.posA.toFixed(0)}mm · Neben-Bahn wird zerschnitten`;
-        }
-        return `A${c.jobA + 1}@${c.posA.toFixed(0)}mm ↔ A${c.jobB + 1}@${c.posB.toFixed(0)}mm (Abstand ${c.distance.toFixed(1)}mm)`;
-      }).join(", ") + (unresolvedConflicts.length > 4 ? ` ... +${unresolvedConflicts.length - 4} weitere` : "");
-      const errorParts = [];
-      if (overlapCnt > 0) {
-        errorParts.push(`${overlapCnt} SE-Überlappung${overlapCnt > 1 ? "en" : ""} (physisch unmöglich)`);
-      }
-      if (nebenCnt > 0) {
-        errorParts.push(`${nebenCnt} Neben-Bahn-Zerschneidung${nebenCnt > 1 ? "en" : ""} (Neben war als Einzel-Bahn bestellt)`);
-      }
+      // v1.99.64: nur noch SE-Überlappung (physikalisch unmöglich) als Konflikt
+      const conflictTxt = unresolvedConflicts.slice(0, 4).map(c =>
+        `A${c.jobA + 1}@${c.posA.toFixed(0)}mm ↔ A${c.jobB + 1}@${c.posB.toFixed(0)}mm (Abstand ${c.distance.toFixed(1)}mm)`
+      ).join(", ") + (unresolvedConflicts.length > 4 ? ` ... +${unresolvedConflicts.length - 4} weitere` : "");
+      const errorParts = [`${unresolvedConflicts.length} SE-Überlappung${unresolvedConflicts.length > 1 ? "en" : ""} (physisch unmöglich)`];
       return {
         ok: false,
         error: errorParts.join(" + ") +
@@ -14509,7 +14465,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.63";
+    const PRINT_VERSION = "v1.99.64";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
