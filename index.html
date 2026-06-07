@@ -13244,10 +13244,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
     if (typeof syncBahnOffsetUI === "function") syncBahnOffsetUI();
     if (typeof syncTrimModeUI === "function") syncTrimModeUI();
     // v1.99.13/18: clusterJobs + activeJob für neue Maschine laden + applyen
+    // v1.99.74 BUGFIX: bei null newPrimary explizit applyMainState({}) aufrufen
+    // damit Input-Felder gecleared werden — sonst behält UI die Werte der
+    // vorherigen Maschine (User: 'DCM-Aufträge bei der euromac angezeigt').
     if (typeof loadClusterJobs === "function") loadClusterJobs();
     const newPrimary = (typeof loadActiveJob === "function") ? loadActiveJob() : null;
-    if (newPrimary && typeof applyMainState === "function") {
-      try { applyMainState(newPrimary, { calc: true }); }
+    if (typeof applyMainState === "function") {
+      try { applyMainState(newPrimary || {}, { calc: true }); }
       catch(e) { console.error("[onMachineChanged] applyMainState failed:", e); }
     } else if (typeof calc === "function") {
       calc();
@@ -14545,7 +14548,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.73";
+    const PRINT_VERSION = "v1.99.74";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
