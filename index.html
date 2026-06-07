@@ -10202,8 +10202,41 @@ audio.team-player-audio::-webkit-media-controls-panel {
           conflicts.push({
             posA: allRaw[i].pos, jobA: allRaw[i].jobIdx,
             posB: allRaw[j].pos, jobB: allRaw[j].jobIdx,
-            distance: dist
+            distance: dist,
+            type: 'overlap'
           });
+        }
+      }
+    }
+
+    // v1.99.61: EXTRA-CUT-KONFLIKT (semantisch) — Master-Cuts innerhalb eines
+    // Job-MR die NICHT zu Job's Cuts gehören → würden das Schmal-Material in
+    // feinere Streifen zerschneiden. Beispiel: A3 will 1× 120mm Neben, aber
+    // 3 fremde Cuts fallen rein → A3 bekommt 4× 30mm statt 1× 120mm.
+    // Engine v1.99.60 hat das nicht erkannt weil 30mm > 20mm SE (keine
+    // physische SE-Überlappung). Aber Auftrag wird WRONG.
+    // Dedup zur Master-Cut-Liste:
+    const masterCutsDedup = [];
+    {
+      let prev = -Infinity;
+      for (const r of allRaw) {
+        if (r.pos - prev > sameTol) { masterCutsDedup.push(r.pos); prev = r.pos; }
+      }
+    }
+    // Pro Job: prüfe ob es Master-Cuts innerhalb Job's MR gibt die nicht in Job's Cuts vorkommen
+    for (const job of validJobs) {
+      const jobL = job.mrLeft, jobR = job.mrRight;
+      for (const mc of masterCutsDedup) {
+        if (mc > jobL + sameTol && mc < jobR - sameTol) {
+          const isJobCut = job.cuts.some(jc => Math.abs(jc - mc) < sameTol);
+          if (!isJobCut) {
+            conflicts.push({
+              posA: mc, jobA: job.idx,
+              posB: mc, jobB: -1,  // kein zweiter Job — fremd-Cut der A3 zerschneidet
+              distance: 0,
+              type: 'extra-cut'
+            });
+          }
         }
       }
     }
@@ -10261,13 +10294,26 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     if (unresolvedConflicts.length > 0) {
       // STRICT MODE: nicht deckungsgleich → Master physisch unmöglich
-      const conflictTxt = unresolvedConflicts.slice(0, 4).map(c =>
-        `A${c.jobA + 1}@${c.posA.toFixed(0)}mm ↔ A${c.jobB + 1}@${c.posB.toFixed(0)}mm (Abstand ${c.distance.toFixed(1)}mm)`
-      ).join(", ") + (unresolvedConflicts.length > 4 ? ` ... +${unresolvedConflicts.length - 4} weitere` : "");
+      // v1.99.61: differenzierte Fehler-Meldung für overlap vs extra-cut
+      const overlapCnt = unresolvedConflicts.filter(c => c.type !== 'extra-cut').length;
+      const extraCnt = unresolvedConflicts.filter(c => c.type === 'extra-cut').length;
+      const conflictTxt = unresolvedConflicts.slice(0, 4).map(c => {
+        if (c.type === 'extra-cut') {
+          return `A${c.jobA + 1}@${c.posA.toFixed(0)}mm wird durch fremde SE zerschnitten`;
+        }
+        return `A${c.jobA + 1}@${c.posA.toFixed(0)}mm ↔ A${c.jobB + 1}@${c.posB.toFixed(0)}mm (Abstand ${c.distance.toFixed(1)}mm)`;
+      }).join(", ") + (unresolvedConflicts.length > 4 ? ` ... +${unresolvedConflicts.length - 4} weitere` : "");
+      const errorParts = [];
+      if (overlapCnt > 0) {
+        errorParts.push(`${overlapCnt} SE-Überlappung${overlapCnt > 1 ? "en" : ""} (physisch unmöglich)`);
+      }
+      if (extraCnt > 0) {
+        errorParts.push(`${extraCnt} Schmal-Bahn-Zerschneidung${extraCnt > 1 ? "en" : ""} (Auftrag bekäme feinere Streifen als bestellt)`);
+      }
       return {
         ok: false,
-        error: `${unresolvedConflicts.length} Cut-Position${unresolvedConflicts.length > 1 ? "en" : ""} nicht deckungsgleich — beide SEs würden physisch überlappen` +
-               (buchseSpec ? " (auch Schneidbuchse-Resolver konnte sie nicht auflösen — kein 5 mm-Raster oder >30 mm Spannweite)." : "."),
+        error: errorParts.join(" + ") +
+               (buchseSpec && overlapCnt > 0 ? " · Schneidbuchse-Resolver hat es nicht gelöst (kein 5 mm-Raster oder >30 mm Spannweite)." : "."),
         conflictDetails: conflictTxt,
         conflicts: unresolvedConflicts,
         validJobs
@@ -10543,7 +10589,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const hist = {};
       for (const cf of master.conflicts) {
         hist[cf.jobA] = (hist[cf.jobA] || 0) + 1;
-        hist[cf.jobB] = (hist[cf.jobB] || 0) + 1;
+        // v1.99.61: jobB=-1 für extra-cut Konflikte (nur ein Job betroffen) → nicht zählen
+        if (cf.jobB >= 0) hist[cf.jobB] = (hist[cf.jobB] || 0) + 1;
       }
       let worstSubIdx = -1, worstCount = -1;
       for (const [k, v] of Object.entries(hist)) {
@@ -14422,7 +14469,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.60";
+    const PRINT_VERSION = "v1.99.61";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs

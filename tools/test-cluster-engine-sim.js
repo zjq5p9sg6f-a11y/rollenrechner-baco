@@ -171,6 +171,25 @@ track(runScenario("3 kompatibel + 1 Bock-Job", "DCM",
 track(runScenario("Primary + 2 ok + 1 ok + 1 fail", "DCM",
   [mkJob(700,29), mkJob(710,29), mkJob(690,29), mkJob(700,29), mkJob(700,77)], "partial"));
 
+console.log("\n══ G* · v1.99.61 Extra-Cut-Konflikte (semantische Schmal-Bahn-Integrität) ═══\n");
+// Regression-Tests für Jan's PDF-Bug 2026-06-07: A3 mit 60mm + 1×120mm Neben
+// wurde fälschlich als 'reached' markiert obwohl Primary's 30mm-Cuts A3's
+// 120mm-Neben in 4× 30mm zerschneiden würden.
+// Mit STRICT-mode bekommen alle 3 Aufträge extra-cut-Konflikte → 'fail' korrekt.
+track(runScenario("Jan PDF-Bug · 30 / 90 / 60+120Neben", "DCM",
+  [mkJob(620, 30), mkJob(800, 90), { mr: 700, haupt: 60, nebenSlots: [{ breite: 120, anz: 1 }] }],
+  "fail"));
+// 90mm Schmal mit 30mm Primary: 90=3×30 → A2's Schmal-Bereich wird durch
+// Primary's 30mm-Cuts in 3× 30mm zerschnitten. Engine soll Konflikt erkennen.
+track(runScenario("90 mm Schmal über 30 mm Primary (Split)", "DCM",
+  [mkJob(620, 30), mkJob(800, 90)], "fail"));
+// Sicher-Kompatibel: gleich haupt + Neben gleich → cluster geht
+track(runScenario("Gleiche haupt + identischer Neben → ok", "DCM",
+  [
+    { mr: 620, haupt: 30, nebenSlots: [{ breite: 60, anz: 1 }] },
+    { mr: 680, haupt: 30, nebenSlots: [{ breite: 60, anz: 1 }] }
+  ], "all"));
+
 console.log("\n══ G · Edge-Cases & Validierung ═══════════════════════════════════════════════════\n");
 track(runScenario("Einzelner Job (kein Cluster nötig)", "DCM", [mkJob(700,29)], "all"));
 track(runScenario("Leeres Array", "DCM", [], "all"));
