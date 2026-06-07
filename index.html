@@ -8543,22 +8543,21 @@ audio.team-player-audio::-webkit-media-controls-panel {
           "pointer-events": "none"
         });
       }
-      // v1.99.67: Per-Job Cut-Projection Lines — default unsichtbar, bei Solo
-      // des Jobs sichtbar mit Job-Farbe. Verbinden Welle-Cuts (oben) mit Job's
-      // Track-Mitte. So sieht Werker bei Klick auf Auftrag X: welche Cuts auf
-      // der Welle gehören zu X (= colored projection von Welle bis Track).
+      // v1.99.68: Per-Job Cut-Projection Lines — DEFAULT SICHTBAR (Jan: 'ich
+      // will von jedem auftrag die passenden projektionslinien auf die
+      // masterwelle sehen können'). Jede Linie in Job-Farbe verbindet die
+      // Welle-Cut-Position oben mit der Job-Track-Mitte unten.
+      // Bei Solo-Mode: aktiver Job voll sichtbar, andere ausgeblendet.
       trackGroups.forEach(({ jw, i, tmidY, color }) => {
         const projG = svgW(svgEl, "g", {
           class: "welle-track-cut-projection",
-          "data-track-job": String(i),
-          style: "opacity: 0;",
-          opacity: "0"
+          "data-track-job": String(i)
         });
         for (const c of jw.cuts) {
           const x = xAt(c);
           svgW(projG, "line", {
             x1: x, y1: barBottom, x2: x, y2: tmidY,
-            stroke: color, "stroke-width": "1.3", opacity: "0.85",
+            stroke: color, "stroke-width": "1.2", opacity: "0.55",
             "pointer-events": "none"
           });
         }
@@ -11242,12 +11241,18 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const idx = parseInt(line.getAttribute("data-track-job"));
         line.style.opacity = (activeIdx != null && idx === activeIdx) ? "0.75" : "0";
       });
-      // v1.99.67: Per-Job Cut-Projection-Linien (Welle → Track-Mitte) NUR
-      // für aktiven Job sichtbar
+      // v1.99.68: Per-Job Cut-Projection-Linien — default sichtbar (opacity ""),
+      // bei Solo-Mode aktiver Job voll sichtbar, andere ausgeblendet.
       const cutProjGroups = svg.querySelectorAll(".welle-track-cut-projection");
       cutProjGroups.forEach(grp => {
         const idx = parseInt(grp.getAttribute("data-track-job"));
-        grp.style.opacity = (activeIdx != null && idx === activeIdx) ? "1" : "0";
+        if (activeIdx == null) {
+          grp.style.opacity = "";  // default = SVG-Group opacity = 1, Linien selbst 0.55
+        } else if (idx === activeIdx) {
+          grp.style.opacity = "1";  // Solo-Aktiv: voll sichtbar
+        } else {
+          grp.style.opacity = "0";  // Solo andere: ausgeblendet
+        }
       });
       if (activeIdx == null) svg.removeAttribute("data-track-active");
       else svg.setAttribute("data-track-active", String(activeIdx));
@@ -14513,7 +14518,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.67";
+    const PRINT_VERSION = "v1.99.68";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
