@@ -12265,6 +12265,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
     }
 
     // ============== Hülsen-Card: klassisch vs. Hetero ==============
+    // v1.99.80: Rohhülsen-Bedarf zusätzlich anzeigen (Brodbeck UNI 1000 = 1035mm,
+    // Reststück 12mm → nutzbar 1023mm pro Rohhülse)
+    const HUELSE_USABLE = 1023;
+    const rohreFor = (breite, stk) => {
+      const b = parseFloat(breite) || 0;
+      const s = parseFloat(stk) || 0;
+      if (b <= 0 || s <= 0 || b > HUELSE_USABLE) return 0;
+      return Math.ceil(s / Math.floor(HUELSE_USABLE / b));
+    };
     if (o.hasNeben) {
       els.huelsenClassic.style.display = "none";
       els.huelsenHetero.style.display = "";
@@ -12274,14 +12283,24 @@ audio.team-player-audio::-webkit-media-controls-panel {
       });
       els.huelsenHetero.innerHTML = html;
       const cuts = 1 + o.nebenSlots.length;
-      els.rHuelsenSub.textContent = `${o.totalSaetze} Sätze · ${cuts} Brodbeck-Cuts nötig (je Bestellposition 1 Cut)`;
+      // Rohhülsen total: Summe über Haupt + alle Neben-Slots
+      let rohreTotal = rohreFor(o.schmal, o.huelsenHaupt);
+      o.nebenSlots.forEach(s => { rohreTotal += rohreFor(s.breite, s.huelsen); });
+      els.rHuelsenSub.innerHTML = rohreTotal > 0
+        ? `<strong style="color:var(--accent-primary)">→ ${rohreTotal} Rohhülsen à 1035 mm (Brodbeck UNI)</strong><br>${o.totalSaetze} Sätze · ${cuts} Brodbeck-Cuts nötig`
+        : `${o.totalSaetze} Sätze · ${cuts} Brodbeck-Cuts nötig (je Bestellposition 1 Cut)`;
       const copyBtn = document.getElementById("huelsenCopyBtn");
       if (copyBtn) copyBtn.style.display = "none";
     } else if (els.rHuelsenSub) {
       els.huelsenClassic.style.display = "";
       els.huelsenHetero.style.display = "none";
       els.huelsenHetero.innerHTML = "";
-      els.rHuelsenSub.textContent = `${o.totalSaetze} Sätze × ${o.nutzen} NTZ · á ${nf0.format(o.schmal)} mm`;
+      // Klassisch: ein Schmal, eine Berechnung
+      const rohre = rohreFor(o.schmal, o.huelsen);
+      const huelsenProRohr = o.schmal > 0 ? Math.floor(HUELSE_USABLE / o.schmal) : 0;
+      els.rHuelsenSub.innerHTML = rohre > 0
+        ? `<strong style="color:var(--accent-primary)">→ ${rohre} Rohhülsen à 1035 mm (Brodbeck UNI)</strong> · ${huelsenProRohr}× pro Rohr<br>${o.totalSaetze} Sätze × ${o.nutzen} NTZ · á ${nf0.format(o.schmal)} mm`
+        : `${o.totalSaetze} Sätze × ${o.nutzen} NTZ · á ${nf0.format(o.schmal)} mm`;
       const copyBtn = document.getElementById("huelsenCopyBtn");
       if (copyBtn) copyBtn.style.display = "";
     }
@@ -14904,7 +14923,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.79";
+    const PRINT_VERSION = "v1.99.80";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
