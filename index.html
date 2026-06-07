@@ -1490,9 +1490,12 @@ header.bar {
 /* ============== v1.94 Hero-KPI-Strip · Carlon-Thermal-Dashboard-Style ============== */
 .kpi-hero {
   display: grid;
-  grid-template-columns: 1.25fr 1fr 1fr;
+  grid-template-columns: 1.25fr 1fr 1fr 1fr;  /* v1.99.77: 4. Tile Hülsen-Bedarf */
   gap: 14px;
   margin: 14px 0 18px;
+}
+@media (max-width: 1100px) {
+  .kpi-hero { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 900px) {
   .kpi-hero { grid-template-columns: 1fr; }
@@ -6023,6 +6026,16 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="kpi-tile-val"><span id="kpiCountVal">—</span><span class="kpi-tile-unit" id="kpiCountUnit"></span></div>
           <div class="kpi-tile-lbl">Stück / Mutterrolle</div>
           <div class="kpi-tile-sub" id="kpiCountSub">Schnittkanten + Trim</div>
+        </div>
+        <!-- v1.99.77 Hülsen-Bedarf · UNI 1000 Rohhülsen 1035mm -->
+        <div class="kpi-tile kpi-tile-huelse" data-kpi="huelse">
+          <div class="kpi-tile-head">
+            <span class="kpi-tile-eyebrow">Hülsen-Bedarf</span>
+            <svg class="kpi-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/></svg>
+          </div>
+          <div class="kpi-tile-val"><span id="kpiHuelseVal">—</span><span class="kpi-tile-unit">Rohre</span></div>
+          <div class="kpi-tile-lbl">UNI 1000 · 1035mm</div>
+          <div class="kpi-tile-sub" id="kpiHuelseSub">Schmal-Hülsen pro Rohhülse</div>
         </div>
       </div>
 
@@ -11817,6 +11830,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const countValEl  = document.getElementById("kpiCountVal");
     const countUnitEl = document.getElementById("kpiCountUnit");
     const countSubEl  = document.getElementById("kpiCountSub");
+    // v1.99.77 Hülsen-Bedarf
+    const huelseValEl = document.getElementById("kpiHuelseVal");
+    const huelseSubEl = document.getElementById("kpiHuelseSub");
     if (!massValEl) return;  // KPI-Hero nicht im DOM (z.B. anderer View)
 
     const setEmpty = (el, empty) => {
@@ -11829,10 +11845,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
       massValEl.textContent = "—";  setEmpty(massValEl, true);
       yieldValEl.textContent = "—"; setEmpty(yieldValEl, true);
       countValEl.textContent = "—"; setEmpty(countValEl, true);
+      if (huelseValEl) { huelseValEl.textContent = "—"; setEmpty(huelseValEl, true); }
       if (countUnitEl) countUnitEl.textContent = "";
       if (massSubEl)   massSubEl.textContent   = "Werte oben eingeben";
       if (yieldSubEl)  yieldSubEl.textContent  = "Trim & Rest geringer = besser";
       if (countSubEl)  countSubEl.textContent  = "Schnittkanten + Trim";
+      if (huelseSubEl) huelseSubEl.textContent = "Schmal-Hülsen pro Rohhülse";
       if (yieldTile)   yieldTile.removeAttribute("data-tone");
       return;
     }
@@ -11898,6 +11916,42 @@ audio.team-player-audio::-webkit-media-controls-panel {
     countSubEl.textContent = seCount
       ? `${seCount} Schneideeinheiten${hauptTxt ? ` · ${hauptTxt}` : ""}`
       : (hauptTxt || "");
+
+    // v1.99.77: 4. KPI-Tile Hülsen-Bedarf (UNI 1000 Brodbeck-Spec)
+    // Rohhülsen-Länge 1035 mm, Reststück min 12 mm → nutzbar 1023 mm
+    // Bahnen pro MR × Anzahl-MRs (= volleSätze + Restsatz>0 ? 1 : 0)
+    if (huelseValEl) {
+      const HUELSE_ROHLAENGE = 1035;
+      const HUELSE_RESTSTUECK = 12;
+      const huelseUseable = HUELSE_ROHLAENGE - HUELSE_RESTSTUECK;
+      const hauptBreite = parseFloat(haupt) || 0;
+      if (hauptBreite > 0 && hauptBreite <= huelseUseable) {
+        const huelsenProRohr = Math.floor(huelseUseable / hauptBreite);
+        // Anz-MR-Bänder: aus out.volleSaetze + (restsatzLFM > 0 ? 1 : 0), fallback 1
+        let anzMr = 1;
+        if (typeof out.volleSaetze === "number" && out.volleSaetze > 0) {
+          anzMr = out.volleSaetze + ((out.restsatzLFM || 0) > 0 ? 1 : 0);
+        }
+        // Total Haupt-Bahnen über alle MRs
+        const N_haupt_total = N * anzMr;
+        const rohreNoetig = Math.ceil(N_haupt_total / huelsenProRohr);
+        huelseValEl.textContent = String(rohreNoetig);
+        setEmpty(huelseValEl, false);
+        const verschnittProRohr = huelseUseable - (huelsenProRohr * hauptBreite);
+        const subParts = [];
+        subParts.push(`${huelsenProRohr}× ${hauptBreite}mm/Rohr`);
+        if (anzMr > 1) subParts.push(`${N_haupt_total} Stk total · ${anzMr} MRs`);
+        else subParts.push(`${N} Stk · 1 MR`);
+        if (verschnittProRohr >= 1) subParts.push(`Verschnitt ${verschnittProRohr.toFixed(0)}mm`);
+        if (huelseSubEl) huelseSubEl.textContent = subParts.join(" · ");
+      } else {
+        huelseValEl.textContent = "—";
+        setEmpty(huelseValEl, true);
+        if (huelseSubEl) huelseSubEl.textContent = hauptBreite > huelseUseable
+          ? `Schmal ${hauptBreite}mm > Rohhülse 1023mm nutzbar`
+          : "Schmal-Hülsen pro Rohhülse";
+      }
+    }
   }
 
   function renderWelle(out) {
@@ -14818,7 +14872,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.76";
+    const PRINT_VERSION = "v1.99.77";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
