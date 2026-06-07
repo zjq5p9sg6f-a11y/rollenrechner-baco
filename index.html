@@ -7380,16 +7380,51 @@ audio.team-player-audio::-webkit-media-controls-panel {
   function setCurrentMrMmForCalc(mr) {
     currentMrMm = (typeof mr === "number" && isFinite(mr) && mr > 0) ? mr : null;
   }
+  // v1.99.85: Auto-Override-Funktionen pro Maschine — was würde der Auto-Trigger
+  // für die aktuelle MR empfehlen? Wird genutzt um veraltete Stored-Overrides zu
+  // erkennen und zurückzusetzen (Bug-Fix: nach breiter MR wurde Park-Reduktion via
+  // Button gesetzt; bei späterer schmaler MR blieb sie aktiv obwohl Auto nicht mehr griff)
+  function getEuroAutoPark(mr) {
+    if (mr != null && mr > 1120 + 0.001) return 1;
+    return MACHINES.EUROMAC.PARK_PRO_SEITE;  // default 2
+  }
+  function getDcmAutoPark(mr) {
+    if (mr == null) return MACHINES.DCM.PARK_PRO_SEITE;  // default 4
+    if (mr >= 1237 - 0.001) return 1;
+    if (mr >= 1001 - 0.001) return 2;
+    return MACHINES.DCM.PARK_PRO_SEITE;
+  }
+  // Auto-Reset: gespeicherten Park-Override löschen wenn er schmaler ist als
+  // was der aktuelle Auto-Trigger empfehlen würde. Nur ausführen wenn currentMrMm
+  // bekannt (= aktive Berechnung). Bei null bleibt der Override stehen.
+  function maybeAutoResetPark(machineId, autoVal) {
+    if (currentMrMm == null) return;
+    try {
+      const key = "rr.parkPerSide." + machineId;
+      const v = localStorage.getItem(key);
+      if (v == null) return;
+      const stored = parseInt(v, 10);
+      if (!isFinite(stored)) return;
+      if (stored < autoVal) {
+        localStorage.removeItem(key);
+        // Toast nur einmal pro Reset-Event (best-effort, kein Spam)
+        if (typeof toast === "function") {
+          setTimeout(() => toast(`Park-Ringe automatisch zurück auf ${autoVal}× (MR passt jetzt wieder)`), 50);
+        }
+      }
+    } catch (_) {}
+  }
+
   function getMachine() {
     const base = MACHINES[activeMachineId];
     // Euromac: Park-Reduzierung bei breiter MR (1 oder 0 Ringe statt 2)
     if (base.id === "EUROMAC") {
-      let override = base.PARK_PRO_SEITE;
-      // 1) Auto-Reduzierung: MR > 1120 mm → 1 Ring/Seite (Werker-Regel)
-      if (currentMrMm != null && currentMrMm > 1120 + 0.001) {
-        override = 1;
-      }
-      // 2) Manueller Override aus localStorage hat Vorrang ueber Auto
+      const autoOverride = getEuroAutoPark(currentMrMm);
+      // v1.99.85: Auto-Reset veralteter Stored-Override BEVOR wir ihn lesen
+      maybeAutoResetPark("EUROMAC", autoOverride);
+      let override = autoOverride;
+      // Manueller Override aus localStorage hat Vorrang (sofern nicht eben gerade
+      // durch maybeAutoResetPark gelöscht weil veraltet)
       try {
         const v = localStorage.getItem("rr.parkPerSide.EUROMAC");
         if (v === "0" || v === "1" || v === "2") override = parseInt(v, 10);
@@ -7413,11 +7448,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
     //   MR 1001-1236 → 2 Park/Seite (1236 mm Bestückung)
     //   MR ≥ 1237 mm → 1 Park/Seite (1354 mm Bestückung)
     if (base.id === "DCM") {
-      let override = base.PARK_PRO_SEITE;  // default 4
-      if (currentMrMm != null) {
-        if (currentMrMm >= 1237 - 0.001)      override = 1;
-        else if (currentMrMm >= 1001 - 0.001) override = 2;
-      }
+      const autoOverride = getDcmAutoPark(currentMrMm);
+      // v1.99.85: Auto-Reset wie bei Euromac
+      maybeAutoResetPark("DCM", autoOverride);
+      let override = autoOverride;
       // Manueller Override aus localStorage (falls Werker explizit setzen will)
       try {
         const v = localStorage.getItem("rr.parkPerSide.DCM");
@@ -15004,7 +15038,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.84";
+    const PRINT_VERSION = "v1.99.85";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
