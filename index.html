@@ -7691,8 +7691,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     // Layout-Zonen (v1.95.1: Werker-Bemaßung über Welle (statt unter) für bessere Übersicht)
     // Plus dynamisches extraTop für viele MR-Brackets (v1.99.6) + extraMrTop (v1.99.60) für MR-Bahn-Brackets-Stack.
-    const dimWerkerY = 28;                                // Werker-Mass GANZ OBEN
-    const dimMrYStart = 46;                                // Start der MR-Bahn-rechts-Brackets (Stack)
+    const dimWerkerY = 28;                                // Werker-Mass GANZ OBEN (Schneidkante)
+    const dimMrYStart = 56;                                // v1.99.62: +10px Abstand zur Schneidkante (vorher 46) damit klarer abgesetzt
     const dimTop1Y = 64 + extraMrTop;                      // Welle-Total
     const dimTop2Y = 104 + extraMrTop;                     // MR-Bracket Start-Y
     const knifeY = 140 + extraTop + extraMrTop;            // Cut-Position-Labels
@@ -8327,15 +8327,18 @@ audio.team-player-audio::-webkit-media-controls-panel {
           fill: warnCol });
         svgW(g, "path", { d: `M${xRight} ${dimWerkerY} L${xRight - 8} ${dimWerkerY - 4.5} L${xRight - 8} ${dimWerkerY + 4.5} Z`,
           fill: warnCol });
-        // Kompaktes mm-Label zentriert auf der Linie
+        // v1.99.62: Schneidkante-Label optisch prominenter als die darunter
+        // gestapelten MR-Bahn-Brackets (User-Feedback: 'nicht genug abgesetzt
+        // von den Maßen der Mutterrollen')
         const valTxt = `${fmtW(distMm, 1)} mm · 1. Schneidkante v. rechts`;
-        const lblW = valTxt.length * 5.8 + 20;
+        const lblW = valTxt.length * 6 + 24;
         let lblCx = (xCut + xRight) / 2;
         lblCx = Math.max(padX + lblW / 2 + 4, Math.min(W - padX - lblW / 2 - 4, lblCx));
-        svgW(g, "rect", { x: lblCx - lblW / 2, y: dimWerkerY - 9, width: lblW, height: 18, rx: 4,
-          fill: "var(--bg-base)", stroke: warnCol, "stroke-width": "1.1" });
-        svgW(g, "text", { x: lblCx, y: dimWerkerY + 4, "text-anchor": "middle",
-          fill: warnCol, "font-size": "10.5", "font-weight": "800", "letter-spacing": "0.04em",
+        // Box: dickere Border + subtle warm-orange Hintergrund
+        svgW(g, "rect", { x: lblCx - lblW / 2, y: dimWerkerY - 11, width: lblW, height: 22, rx: 5,
+          fill: "rgba(255,138,0,0.08)", stroke: warnCol, "stroke-width": "1.7" });
+        svgW(g, "text", { x: lblCx, y: dimWerkerY + 5, "text-anchor": "middle",
+          fill: warnCol, "font-size": "11.5", "font-weight": "800", "letter-spacing": "0.04em",
           "font-family": "inherit" }, valTxt);
       }
     }
@@ -8369,14 +8372,30 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const distMrMm = M.WELLE - mj.mrEnd;
         const mrY = dimMrYStart + idx * 13;  // Gestaffelt nach oben unten
 
-        // Vertikale Guide nur fürs erste/letzte (sonst zu viele Striche)
+        // Vertikale Guide-Linie: kurzer Default-Stub für Anchor-Andeutung
         if (idx === 0) {
           svgW(g, "line", { x1: xMr, y1: mrY + 4, x2: xMr, y2: barTop - 2,
             stroke: mj.color, "stroke-width": "1", "stroke-dasharray": "2 3", opacity: "0.4" });
         } else {
-          // Kurze nur 6px lange Andeutung damit der Werker den X-Anchor sieht
           svgW(g, "line", { x1: xMr, y1: mrY + 4, x2: xMr, y2: mrY + 9,
             stroke: mj.color, "stroke-width": "1", opacity: "0.7" });
+        }
+        // v1.99.62: Durchgängige Solo-Guide-Linie pro Job — default unsichtbar,
+        // wird bei Track-Solo (Klick auf Auftrag) sichtbar gemacht. Verbindet
+        // MR-Bahn-Bracket oben mit der entsprechenden Track-Spur unten.
+        if (d.isMaster) {
+          const tracksY0_local = baseH + 6;
+          const trackHeader_local = 28;
+          const trackH_local = 44;
+          const trackGap_local = 6;
+          const tmidY_local = tracksY0_local + trackHeader_local + idx * (trackH_local + trackGap_local) + trackH_local / 2;
+          svgW(g, "line", {
+            class: "welle-mr-bahn-projection",
+            "data-track-job": String(idx),
+            x1: xMr, y1: mrY + 4, x2: xMr, y2: tmidY_local,
+            stroke: mj.color, "stroke-width": "1.4", "stroke-dasharray": "3 4",
+            opacity: "0", "pointer-events": "none"
+          });
         }
         // Bemaßungs-Linie + Pfeilköpfe
         svgW(g, "line", { x1: xMr + 1, y1: mrY, x2: xRight - 1, y2: mrY,
@@ -11204,6 +11223,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const parent = line.parentNode;
         const idx = parent ? parseInt(parent.getAttribute("data-track-job")) : -1;
         line.style.opacity = (activeIdx != null && idx === activeIdx) ? "0.65" : "0";
+      });
+      // v1.99.62: MR-Bahn-Projektion-Linien (von MR-Bahn-Bracket bis Track-Mitte)
+      // NUR für aktiven Job sichtbar machen.
+      const mrBahnLines = svg.querySelectorAll(".welle-mr-bahn-projection");
+      mrBahnLines.forEach(line => {
+        const idx = parseInt(line.getAttribute("data-track-job"));
+        line.style.opacity = (activeIdx != null && idx === activeIdx) ? "0.75" : "0";
       });
       if (activeIdx == null) svg.removeAttribute("data-track-active");
       else svg.setAttribute("data-track-active", String(activeIdx));
@@ -14469,7 +14495,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.61";
+    const PRINT_VERSION = "v1.99.62";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
