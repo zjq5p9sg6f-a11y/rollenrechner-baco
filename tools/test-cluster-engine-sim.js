@@ -171,19 +171,22 @@ track(runScenario("3 kompatibel + 1 Bock-Job", "DCM",
 track(runScenario("Primary + 2 ok + 1 ok + 1 fail", "DCM",
   [mkJob(700,29), mkJob(710,29), mkJob(690,29), mkJob(700,29), mkJob(700,77)], "partial"));
 
-console.log("\n══ G* · v1.99.61 Extra-Cut-Konflikte (semantische Schmal-Bahn-Integrität) ═══\n");
-// Regression-Tests für Jan's PDF-Bug 2026-06-07: A3 mit 60mm + 1×120mm Neben
-// wurde fälschlich als 'reached' markiert obwohl Primary's 30mm-Cuts A3's
-// 120mm-Neben in 4× 30mm zerschneiden würden.
-// Mit STRICT-mode bekommen alle 3 Aufträge extra-cut-Konflikte → 'fail' korrekt.
-track(runScenario("Jan PDF-Bug · 30 / 90 / 60+120Neben", "DCM",
+console.log("\n══ G* · v1.99.63 Differenzierte Extra-Cut-Detection (Haupt lenient / Neben strict) ═══\n");
+// Haupt-Schmal-Split = lenient (Werker bekommt feinere Rollen, akzeptabel)
+// Neben-Bahn-Verletzung = strict (Neben war explizit als Einzel-Bahn bestellt)
+
+// Jan's PDF-Bug: A3 hat NEBEN 120mm. Master zerschneidet das → A3 strict konflikt.
+// A2 hat nur main 90mm = 3×30mm (lenient OK). Engine sollte A3 excluden, A2 + Primary reached.
+track(runScenario("PDF-Bug · 30/90/60+120Neben (A3 excluded)", "DCM",
   [mkJob(620, 30), mkJob(800, 90), { mr: 700, haupt: 60, nebenSlots: [{ breite: 120, anz: 1 }] }],
-  "fail"));
-// 90mm Schmal mit 30mm Primary: 90=3×30 → A2's Schmal-Bereich wird durch
-// Primary's 30mm-Cuts in 3× 30mm zerschnitten. Engine soll Konflikt erkennen.
-track(runScenario("90 mm Schmal über 30 mm Primary (Split)", "DCM",
-  [mkJob(620, 30), mkJob(800, 90)], "fail"));
-// Sicher-Kompatibel: gleich haupt + Neben gleich → cluster geht
+  "partial"));
+// Jan's heutiger Bug: 30mm + 60mm gleiche MR → MUSS clustern (60 = 2×30, kein Neben)
+track(runScenario("Jan-Bug · 30mm + 60mm gleiche MR (lenient)", "DCM",
+  [mkJob(620, 30), mkJob(620, 60)], "all"));
+// 90mm Schmal über 30mm Primary: jetzt lenient → kompatibel
+track(runScenario("90 mm Schmal über 30 mm Primary (lenient)", "DCM",
+  [mkJob(620, 30), mkJob(800, 90)], "all"));
+// Sicher-Kompatibel: gleich haupt + Neben gleich
 track(runScenario("Gleiche haupt + identischer Neben → ok", "DCM",
   [
     { mr: 620, haupt: 30, nebenSlots: [{ breite: 60, anz: 1 }] },

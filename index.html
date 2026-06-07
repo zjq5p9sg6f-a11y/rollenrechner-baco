@@ -8383,6 +8383,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
         // v1.99.62: Durchgängige Solo-Guide-Linie pro Job — default unsichtbar,
         // wird bei Track-Solo (Klick auf Auftrag) sichtbar gemacht. Verbindet
         // MR-Bahn-Bracket oben mit der entsprechenden Track-Spur unten.
+        // v1.99.63: opacity sowohl als ATTRIBUTE als auch als inline-STYLE
+        // damit der Browser bei initial-render garantiert nicht rendert
+        // (User-Report: Linien wurden bei initial-Render sichtbar).
         if (d.isMaster) {
           const tracksY0_local = baseH + 6;
           const trackHeader_local = 28;
@@ -8394,7 +8397,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
             "data-track-job": String(idx),
             x1: xMr, y1: mrY + 4, x2: xMr, y2: tmidY_local,
             stroke: mj.color, "stroke-width": "1.4", "stroke-dasharray": "3 4",
-            opacity: "0", "pointer-events": "none"
+            opacity: "0",
+            style: "opacity: 0; pointer-events: none;",
+            "pointer-events": "none"
           });
         }
         // Bemaßungs-Linie + Pfeilköpfe
@@ -10228,13 +10233,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
       }
     }
 
-    // v1.99.61: EXTRA-CUT-KONFLIKT (semantisch) — Master-Cuts innerhalb eines
-    // Job-MR die NICHT zu Job's Cuts gehören → würden das Schmal-Material in
-    // feinere Streifen zerschneiden. Beispiel: A3 will 1× 120mm Neben, aber
-    // 3 fremde Cuts fallen rein → A3 bekommt 4× 30mm statt 1× 120mm.
-    // Engine v1.99.60 hat das nicht erkannt weil 30mm > 20mm SE (keine
-    // physische SE-Überlappung). Aber Auftrag wird WRONG.
-    // Dedup zur Master-Cut-Liste:
+    // v1.99.61: EXTRA-CUT-KONFLIKT (semantisch).
+    // v1.99.63: differenziert zwischen Haupt-Schmal-Split und Neben-Bahn-Verletzung:
+    //   - HAUPT: 60mm bestellt + Master 30mm-Cuts → 2× 30mm. Werker bekommt
+    //     mehr (feinere) Rollen — lenient akzeptiert (Jan: 'kombinierbar').
+    //   - NEBEN: explizit 1× 120mm bestellt + Master 30mm-Cuts → zerschnitten.
+    //     Werker bekommt nicht das Bestellte — STRICT konflikt.
     const masterCutsDedup = [];
     {
       let prev = -Infinity;
@@ -10242,20 +10246,29 @@ audio.team-player-audio::-webkit-media-controls-panel {
         if (r.pos - prev > sameTol) { masterCutsDedup.push(r.pos); prev = r.pos; }
       }
     }
-    // Pro Job: prüfe ob es Master-Cuts innerhalb Job's MR gibt die nicht in Job's Cuts vorkommen
     for (const job of validJobs) {
       const jobL = job.mrLeft, jobR = job.mrRight;
+      const sortedJobCuts = [...job.cuts].sort((a, b) => a - b);
+      const N_main = job.N;  // Anzahl Haupt-Schmal-Bahnen
       for (const mc of masterCutsDedup) {
-        if (mc > jobL + sameTol && mc < jobR - sameTol) {
-          const isJobCut = job.cuts.some(jc => Math.abs(jc - mc) < sameTol);
-          if (!isJobCut) {
-            conflicts.push({
-              posA: mc, jobA: job.idx,
-              posB: mc, jobB: -1,  // kein zweiter Job — fremd-Cut der A3 zerschneidet
-              distance: 0,
-              type: 'extra-cut'
-            });
-          }
+        if (mc <= jobL + sameTol || mc >= jobR - sameTol) continue;
+        const isJobCut = sortedJobCuts.some(jc => Math.abs(jc - mc) < sameTol);
+        if (isJobCut) continue;
+        // Welcher Segment-Index? Master-Cut liegt zwischen sortedJobCuts[i] und [i+1]
+        let segIdx = -1;
+        for (let i = 0; i < sortedJobCuts.length - 1; i++) {
+          if (mc > sortedJobCuts[i] && mc < sortedJobCuts[i+1]) { segIdx = i; break; }
+        }
+        if (segIdx === -1) continue; // außerhalb aller Segment-Paare
+        // segIdx 0..N_main-1 = Haupt-Schmal-Segment → lenient (kein Konflikt)
+        // segIdx >= N_main = Neben-Bahn-Segment → STRICT Konflikt
+        if (segIdx >= N_main) {
+          conflicts.push({
+            posA: mc, jobA: job.idx,
+            posB: mc, jobB: -1,
+            distance: 0,
+            type: 'extra-cut-neben'
+          });
         }
       }
     }
@@ -10313,12 +10326,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     if (unresolvedConflicts.length > 0) {
       // STRICT MODE: nicht deckungsgleich → Master physisch unmöglich
-      // v1.99.61: differenzierte Fehler-Meldung für overlap vs extra-cut
-      const overlapCnt = unresolvedConflicts.filter(c => c.type !== 'extra-cut').length;
-      const extraCnt = unresolvedConflicts.filter(c => c.type === 'extra-cut').length;
+      // v1.99.63: differenzierte Fehler-Meldung — Overlap vs Neben-Zerschneidung
+      // (Haupt-Schmal-Split ist jetzt lenient)
+      const overlapCnt = unresolvedConflicts.filter(c => c.type !== 'extra-cut-neben').length;
+      const nebenCnt = unresolvedConflicts.filter(c => c.type === 'extra-cut-neben').length;
       const conflictTxt = unresolvedConflicts.slice(0, 4).map(c => {
-        if (c.type === 'extra-cut') {
-          return `A${c.jobA + 1}@${c.posA.toFixed(0)}mm wird durch fremde SE zerschnitten`;
+        if (c.type === 'extra-cut-neben') {
+          return `A${c.jobA + 1}@${c.posA.toFixed(0)}mm · Neben-Bahn wird zerschnitten`;
         }
         return `A${c.jobA + 1}@${c.posA.toFixed(0)}mm ↔ A${c.jobB + 1}@${c.posB.toFixed(0)}mm (Abstand ${c.distance.toFixed(1)}mm)`;
       }).join(", ") + (unresolvedConflicts.length > 4 ? ` ... +${unresolvedConflicts.length - 4} weitere` : "");
@@ -10326,8 +10340,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (overlapCnt > 0) {
         errorParts.push(`${overlapCnt} SE-Überlappung${overlapCnt > 1 ? "en" : ""} (physisch unmöglich)`);
       }
-      if (extraCnt > 0) {
-        errorParts.push(`${extraCnt} Schmal-Bahn-Zerschneidung${extraCnt > 1 ? "en" : ""} (Auftrag bekäme feinere Streifen als bestellt)`);
+      if (nebenCnt > 0) {
+        errorParts.push(`${nebenCnt} Neben-Bahn-Zerschneidung${nebenCnt > 1 ? "en" : ""} (Neben war als Einzel-Bahn bestellt)`);
       }
       return {
         ok: false,
@@ -14495,7 +14509,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.62";
+    const PRINT_VERSION = "v1.99.63";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
