@@ -5774,6 +5774,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
             <div class="result-sub" id="rHuelsenSub">— Sätze × — NTZ á — mm</div>
           </div>
 
+          <!-- v1.99.81: Rohhülsen-Bedarf (Brodbeck UNI 1000 Einkaufs-Bedarf) -->
+          <div class="result-card" data-domain="brodbeck">
+            <button class="copy-btn" data-copy-target="rRohhuelsen" data-copy-label="Rohhülsen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+            <span class="result-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5 L21 5"/><path d="M3 5 v14"/><path d="M21 5 v14"/><path d="M3 19 L21 19"/><path d="M7 5 v14" opacity="0.4"/><path d="M12 5 v14" opacity="0.4"/><path d="M17 5 v14" opacity="0.4"/></svg></span>
+            <div class="result-label">Rohhülsen einkaufen <span style="opacity:0.55;font-weight:500;">(UNI 1000)</span></div>
+            <div class="result-value"><span id="rRohhuelsen">—</span><span class="result-unit">Rohh.</span></div>
+            <div class="result-sub" id="rRohhuelsenSub">à 1035 mm · Reststück 12 mm</div>
+          </div>
+
           <div class="result-card" data-domain="time">
             <button class="copy-btn" data-copy-target="rTPerSatz" data-copy-label="Laufzeit/Satz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
             <span class="result-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 8 L12 13 L15.5 15.5"/><path d="M9 2 L15 2 M12 2 L12 5"/></svg></span>
@@ -6397,6 +6406,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     rHuelsen:     document.getElementById("rHuelsen"),
     rHuelsenSub:  document.getElementById("rHuelsenSub"),
+    rRohhuelsen:    document.getElementById("rRohhuelsen"),
+    rRohhuelsenSub: document.getElementById("rRohhuelsenSub"),
     rTPerSatz:    document.getElementById("rTPerSatz"),
     rTPerSatzSub: document.getElementById("rTPerSatzSub"),
     rTTotal:      document.getElementById("rTTotal"),
@@ -6844,7 +6855,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   // ---------- render ----------
   function renderEmpty() {
     [els.rHero, els.rGesamt, els.rNutzen, els.rRest, els.rMaterialEff, els.rProSatz, els.rSaetze,
-     els.rHuelsen, els.rTPerSatz, els.rTTotal].forEach(e => {
+     els.rHuelsen, els.rRohhuelsen, els.rTPerSatz, els.rTTotal].forEach(e => {
       if (!e) return;
       e.textContent = "—";
       e.dataset.raw = "0";
@@ -6861,6 +6872,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     els.rRestsatzSub.textContent = "Restsatz: — LFM";
     if (els.rMaterialEffSub) els.rMaterialEffSub.textContent = "— mm Schmalrolle ÷ — mm MR";
     if (els.rHuelsenSub)  els.rHuelsenSub.textContent  = "— Sätze × — NTZ á — mm";
+    if (els.rRohhuelsenSub) els.rRohhuelsenSub.textContent = "à 1035 mm · Reststück 12 mm";
     if (els.rTPerSatzSub) els.rTPerSatzSub.textContent = "LFM ÷ Geschwindigkeit";
     if (els.rTTotalSub)   els.rTTotalSub.textContent   = "MR-Menge ÷ Geschwindigkeit";
     if (els.rTTotalUnit)  els.rTTotalUnit.textContent  = "min";
@@ -12178,6 +12190,32 @@ audio.team-player-audio::-webkit-media-controls-panel {
     animateNumber(els.rProSatz, o.proSatz);
     animateNumber(els.rSaetze,  o.totalSaetze);
     animateNumber(els.rHuelsen, o.huelsen);
+    // v1.99.81: Rohhülsen-Bedarf (Brodbeck UNI 1000, nutzbar 1023mm)
+    // im Hetero-Modus: Σ pro Schmal-Breite separat; klassisch: floor(1023/schmal)
+    {
+      const ROH_USABLE = 1023;
+      const rohreFor = (b, s) => (b > 0 && s > 0 && b <= ROH_USABLE)
+        ? Math.ceil(s / Math.floor(ROH_USABLE / b)) : 0;
+      let rohreTotal;
+      if (o.hasNeben) {
+        rohreTotal = rohreFor(o.schmal, o.huelsenHaupt);
+        o.nebenSlots.forEach(s => { rohreTotal += rohreFor(s.breite, s.huelsen); });
+      } else {
+        rohreTotal = rohreFor(o.schmal, o.huelsen);
+      }
+      animateNumber(els.rRohhuelsen, rohreTotal);
+      if (els.rRohhuelsenSub) {
+        if (o.hasNeben) {
+          const parts = [`${rohreFor(o.schmal, o.huelsenHaupt)}× Haupt à ${nf0.format(o.schmal)} mm`];
+          o.nebenSlots.forEach(s => { parts.push(`${rohreFor(s.breite, s.huelsen)}× N${s.slotIdx} à ${nf0.format(s.breite)} mm`); });
+          els.rRohhuelsenSub.textContent = parts.join(" · ") + " · à 1035 mm";
+        } else {
+          const huelsenProRohr = o.schmal > 0 ? Math.floor(ROH_USABLE / o.schmal) : 0;
+          const verschnitt = ROH_USABLE - huelsenProRohr * o.schmal;
+          els.rRohhuelsenSub.textContent = `à 1035 mm · ${huelsenProRohr}× pro Rohr · Verschnitt ${nf0.format(verschnitt)} mm`;
+        }
+      }
+    }
 
     // Hero-Formel je nach Modus
     els.rHeroFormula.textContent = _flaecheMode === "lfm"
@@ -14923,7 +14961,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.80";
+    const PRINT_VERSION = "v1.99.81";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
