@@ -7394,94 +7394,40 @@ audio.team-player-audio::-webkit-media-controls-panel {
     if (mr >= 1001 - 0.001) return 2;
     return MACHINES.DCM.PARK_PRO_SEITE;
   }
-  // Auto-Reset: gespeicherten Park-Override löschen wenn er schmaler ist als
-  // was der aktuelle Auto-Trigger empfehlen würde. Nur ausführen wenn currentMrMm
-  // bekannt (= aktive Berechnung). Bei null bleibt der Override stehen.
-  function maybeAutoResetPark(machineId, autoVal) {
-    if (currentMrMm == null) return;
-    try {
-      const key = "rr.parkPerSide." + machineId;
-      const v = localStorage.getItem(key);
-      if (v == null) return;
-      const stored = parseInt(v, 10);
-      if (!isFinite(stored)) return;
-      if (stored < autoVal) {
-        localStorage.removeItem(key);
-        // Toast nur einmal pro Reset-Event (best-effort, kein Spam)
-        if (typeof toast === "function") {
-          setTimeout(() => toast(`Park-Ringe automatisch zurück auf ${autoVal}× (MR passt jetzt wieder)`), 50);
-        }
-      }
-    } catch (_) {}
-  }
-
   function getMachine() {
     const base = MACHINES[activeMachineId];
-    // Euromac: Park-Reduzierung bei breiter MR (1 oder 0 Ringe statt 2)
+    // v1.99.86: localStorage-Override komplett entfernt. Park-Reduzierung läuft
+    // jetzt RAIN-PROOF nur über getEuroAutoPark / getDcmAutoPark basierend auf
+    // currentMrMm. Der frühere "Park reduzieren"-Button setzte einen persistenten
+    // Override, der nach Löschung der breiten MR aktiv blieb — klassischer State-
+    // Leak. Da der Auto-Trigger eh greift sobald MR den Schwellwert erreicht,
+    // ist der Override-Mechanismus redundant und schadhaft. Stale-Werte werden
+    // beim Lesen einmalig aufgeräumt.
+    //
+    // Euromac: MR ≤ 1120 → 2 Park (default) · MR > 1120 → 1 Park
+    // DCM:     MR ≤ 1000 → 4 Park (default) · MR 1001-1236 → 2 Park · MR ≥ 1237 → 1 Park
+    let override = base.PARK_PRO_SEITE;
     if (base.id === "EUROMAC") {
-      const autoOverride = getEuroAutoPark(currentMrMm);
-      // v1.99.85: Auto-Reset veralteter Stored-Override BEVOR wir ihn lesen
-      maybeAutoResetPark("EUROMAC", autoOverride);
-      let override = autoOverride;
-      // Manueller Override aus localStorage hat Vorrang (sofern nicht eben gerade
-      // durch maybeAutoResetPark gelöscht weil veraltet)
-      try {
-        const v = localStorage.getItem("rr.parkPerSide.EUROMAC");
-        if (v === "0" || v === "1" || v === "2") override = parseInt(v, 10);
-      } catch (_) {}
-      if (override !== base.PARK_PRO_SEITE) {
-        const total = override * base.PARK_RING;
-        return Object.assign({}, base, {
-          PARK_PRO_SEITE: override,
-          PARK_TOTAL: total,
-          BESTUECKUNGS_BREITE: base.WELLE - 2 * total,
-          MAX_MR_MM: base.WELLE - 2 * total,
-        });
-      }
+      override = getEuroAutoPark(currentMrMm);
+      // einmalig stale localStorage aufräumen (defensiv)
+      try { localStorage.removeItem("rr.parkPerSide.EUROMAC"); } catch (_) {}
+    } else if (base.id === "DCM") {
+      override = getDcmAutoPark(currentMrMm);
+      try { localStorage.removeItem("rr.parkPerSide.DCM"); } catch (_) {}
     }
-    // v1.99.23 DCM-Panther: Park-Reduzierung bei großen MR (Werker-Praxis 04.06.).
-    // v1.99.69: Threshold-Update — die alte Spec ließ eine Lücke 1001-1179 wo
-    // MR weder in 4-Park (max 1000mm) noch in 2-Park-Trigger (≥1180mm) fiel.
-    // Korrekte 'just-fits'-Logik: sobald MR die aktuelle Bestückung überschreitet,
-    // reduziere zur nächsten Park-Setup.
-    //   MR ≤ 1000 mm → 4 Park/Seite (default 1000 mm Bestückung)
-    //   MR 1001-1236 → 2 Park/Seite (1236 mm Bestückung)
-    //   MR ≥ 1237 mm → 1 Park/Seite (1354 mm Bestückung)
-    if (base.id === "DCM") {
-      const autoOverride = getDcmAutoPark(currentMrMm);
-      // v1.99.85: Auto-Reset wie bei Euromac
-      maybeAutoResetPark("DCM", autoOverride);
-      let override = autoOverride;
-      // Manueller Override aus localStorage (falls Werker explizit setzen will)
-      try {
-        const v = localStorage.getItem("rr.parkPerSide.DCM");
-        if (v === "0" || v === "1" || v === "2" || v === "3" || v === "4") override = parseInt(v, 10);
-      } catch (_) {}
-      if (override !== base.PARK_PRO_SEITE) {
-        const total = override * base.PARK_RING;
-        return Object.assign({}, base, {
-          PARK_PRO_SEITE: override,
-          PARK_TOTAL: total,
-          BESTUECKUNGS_BREITE: base.WELLE - 2 * total,
-          MAX_MR_MM: base.WELLE - 2 * total,
-        });
-      }
+    if (override !== base.PARK_PRO_SEITE) {
+      const total = override * base.PARK_RING;
+      return Object.assign({}, base, {
+        PARK_PRO_SEITE: override,
+        PARK_TOTAL: total,
+        BESTUECKUNGS_BREITE: base.WELLE - 2 * total,
+        MAX_MR_MM: base.WELLE - 2 * total,
+      });
     }
     return base;
   }
-  function getEuroParkPerSide() {
-    try {
-      const v = localStorage.getItem("rr.parkPerSide.EUROMAC");
-      if (v === "0" || v === "1" || v === "2") return parseInt(v, 10);
-    } catch (_) {}
-    return MACHINES.EUROMAC.PARK_PRO_SEITE;
-  }
-  function setEuroParkPerSide(n) {
-    try {
-      if (n === MACHINES.EUROMAC.PARK_PRO_SEITE) localStorage.removeItem("rr.parkPerSide.EUROMAC");
-      else localStorage.setItem("rr.parkPerSide.EUROMAC", String(n));
-    } catch (_) {}
-  }
+  // v1.99.86: getEuroParkPerSide/setEuroParkPerSide entfernt — Park ist nun
+  // ausschließlich Auto-Trigger basierend auf currentMrMm.
   function setActiveMachine(id) {
     if (!MACHINES[id]) return;
     if (id === activeMachineId) return;
@@ -7647,25 +7593,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const innerLen = innerSegs.reduce((s,x)=>s+x.breite, 0);
 
     if (innerLen > M.BESTUECKUNGS_BREITE + 0.001) {
-      // Euromac: prüfe ob Park-Reduzierung helfen würde
-      const isEuroMain = (activeMachineId === "EUROMAC");
-      const currentPark = isEuroMain ? M.PARK_PRO_SEITE : 0;
-      let suggestion = "";
-      let actionPark = null;
-      if (isEuroMain && currentPark > 0) {
-        const nextPark = currentPark - 1;
-        const nextBreite = MACHINES.EUROMAC.WELLE - 2 * nextPark * MACHINES.EUROMAC.PARK_RING;
-        if (innerLen <= nextBreite + 0.001) {
-          const gain = nextBreite - M.BESTUECKUNGS_BREITE;
-          suggestion = ` Mit ${nextPark}× Park-Ring pro Seite waeren ${nextBreite} mm verfuegbar (+${gain} mm). Werker-Entscheidung — Werkzeug zur Reduzierung unten.`;
-          actionPark = nextPark;
-        }
-      }
-      const alt = (activeMachineId === "DCM") ? " Reduziere Anzahl oder wechsle auf Euromac." : (suggestion || " Reduziere Anzahl.");
+      // v1.99.86: Park-Reduzierung läuft jetzt automatisch via currentMrMm.
+      // Wenn hier overflow auftritt, ist die Bestückung wirklich zu breit für
+      // die Maschine, kein manueller Park-Override möglich/sinnvoll.
+      const alt = (activeMachineId === "DCM") ? " Reduziere Anzahl oder wechsle auf Euromac." : " Reduziere Anzahl.";
       const alertObj = {type:"danger", msg:`Bestückung ${innerLen.toFixed(1)} mm überschreitet ${M.label}-Bereich ${M.BESTUECKUNGS_BREITE} mm.${alt}`};
-      if (actionPark !== null) {
-        alertObj.action = { label: `Auf ${actionPark}× Park-Ring reduzieren`, parkPerSide: actionPark };
-      }
       return { ok: false, alerts: [alertObj] };
     }
 
@@ -9176,43 +9108,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const div = document.createElement("div");
       div.className = `welle-alert ${a.type}`;
       div.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>${a.msg}</span>`;
-      if (a.action && a.action.parkPerSide !== undefined) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "welle-alert-action";
-        btn.textContent = a.action.label || "Park reduzieren";
-        btn.style.cssText = "margin-left:auto;padding:6px 12px;background:#c87800;color:#fff;border:0;border-radius:6px;font-weight:700;font-size:11px;cursor:pointer;letter-spacing:0.04em;text-transform:uppercase;flex-shrink:0";
-        btn.addEventListener("click", () => {
-          if (typeof setEuroParkPerSide === "function") setEuroParkPerSide(a.action.parkPerSide);
-          if (typeof calc === "function") calc();
-          if (typeof toast === "function") toast(`Park-Ringe reduziert auf ${a.action.parkPerSide}× pro Seite`);
-        });
-        div.appendChild(btn);
-      }
       cont.appendChild(div);
     }
-    // Info-Banner wenn aktuell reduziert ist (sichtbar bei jeder calc, ermutigt
-    // den Werker, wieder auf Default zurueckzukehren wenn moeglich)
-    if (activeMachineId === "EUROMAC" && typeof getEuroParkPerSide === "function") {
-      const cur = getEuroParkPerSide();
-      const def = MACHINES.EUROMAC.PARK_PRO_SEITE;
-      if (cur !== def) {
-        const info = document.createElement("div");
-        info.className = "welle-alert info";
-        info.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Park-Ringe aktuell auf <strong>${cur}× pro Seite</strong> reduziert (Default: ${def}×).</span>`;
-        const resetBtn = document.createElement("button");
-        resetBtn.type = "button";
-        resetBtn.textContent = "Zurück auf Default";
-        resetBtn.style.cssText = "margin-left:auto;padding:5px 10px;background:transparent;color:#007a3d;border:1px solid #007a3d;border-radius:5px;font-weight:700;font-size:10px;cursor:pointer;letter-spacing:0.04em;text-transform:uppercase;flex-shrink:0";
-        resetBtn.addEventListener("click", () => {
-          if (typeof setEuroParkPerSide === "function") setEuroParkPerSide(def);
-          if (typeof calc === "function") calc();
-          if (typeof toast === "function") toast(`Park-Ringe wieder auf ${def}× pro Seite`);
-        });
-        info.appendChild(resetBtn);
-        cont.appendChild(info);
-      }
-    }
+    // v1.99.86: Park-Reduzieren-Button + Reset-Banner entfernt — Park läuft jetzt
+    // automatisch via getEuroAutoPark/getDcmAutoPark basierend auf currentMrMm.
   }
 
   // ============== Cluster-State (Folgeaufträge) ==============
@@ -15038,7 +14937,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.85";
+    const PRINT_VERSION = "v1.99.86";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
