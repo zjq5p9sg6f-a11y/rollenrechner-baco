@@ -4790,17 +4790,21 @@ header.bar {
   min-width: 0;
   text-shadow: 0 0 28px rgba(0,230,118,0.18);
 }
-/* v1.99.82: Dual-Value-Layout für kombinierte Kacheln (z.B. Laufzeit pro Satz + gesamt) */
+/* v1.99.83: Dual-Value-Layout für kombinierte Kacheln (z.B. Laufzeit pro Satz + gesamt)
+   Layout: vertikal gestapelt, beide Werte gleich groß, mit Hairline-Trenner */
 .result-value.result-value-dual {
-  font-size: clamp(1.6rem, 2.4vw, 2.4rem);
-  gap: 6px 10px;
-  align-items: baseline;
+  font-size: clamp(1.7rem, 2.5vw, 2.6rem);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
 }
 .result-value.result-value-dual .result-num-group {
   display: inline-flex;
   align-items: baseline;
   flex-wrap: nowrap;
-  gap: 4px;
+  gap: 6px;
+  width: 100%;
 }
 .result-value.result-value-dual .result-tag {
   font-size: 10px;
@@ -4808,19 +4812,27 @@ header.bar {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text-muted, #999);
-  margin-left: 2px;
+  margin-left: 4px;
   align-self: center;
   opacity: 0.85;
 }
 .result-value.result-value-dual .result-num-sep {
-  font-size: clamp(1.2rem, 1.8vw, 1.8rem);
-  color: var(--accent-primary, #00e676);
-  opacity: 0.4;
-  font-weight: 600;
-  margin: 0 2px;
+  /* Hairline-Trenner statt Bullet — nimmt volle Card-Breite, dezent */
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--accent-primary, #00e676) 8%,
+    var(--accent-primary, #00e676) 92%,
+    transparent 100%);
+  opacity: 0.18;
+  margin: 2px 0;
+  font-size: 0;
+  color: transparent;
 }
 .result-value.result-value-dual .result-unit {
-  font-size: clamp(0.9rem, 1.2vw, 1.1rem);
+  font-size: clamp(0.95rem, 1.3vw, 1.2rem);
 }
 .result-unit {
   font-size: clamp(1.15rem, 1.7vw, 1.5rem);
@@ -14992,7 +15004,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.82";
+    const PRINT_VERSION = "v1.99.83";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
