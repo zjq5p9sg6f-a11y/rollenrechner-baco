@@ -3212,6 +3212,58 @@ header.bar {
   cursor: not-allowed;
 }
 
+/* v1.99.75: Migrate-Modal Styles */
+.migrate-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 24px; opacity: 0; pointer-events: none; transition: opacity 220ms ease; }
+.migrate-modal[aria-hidden="false"] { opacity: 1; pointer-events: auto; }
+.migrate-modal-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); }
+.migrate-modal-content { position: relative; background: var(--bg-card); border: 1.5px solid rgba(255,154,60,0.45); border-radius: var(--r-2); padding: 0; max-width: 720px; width: 100%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+.migrate-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); background: rgba(255,154,60,0.06); }
+.migrate-modal-head h3 { margin: 0; font-size: 15px; font-weight: 800; color: #ff9a3c; letter-spacing: 0.04em; }
+.migrate-close { background: transparent; border: none; color: var(--text-secondary); font-size: 24px; cursor: pointer; padding: 0 6px; line-height: 1; }
+.migrate-close:hover { color: var(--text-primary); }
+.migrate-modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+.migrate-intro { font-size: 12.5px; color: var(--text-primary); margin-bottom: 12px; line-height: 1.5; }
+.migrate-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.migrate-table thead th { text-align: left; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.12); font-weight: 800; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-secondary); }
+.migrate-table tbody td { padding: 8px 10px; border-bottom: 1px solid rgba(255,255,255,0.06); vertical-align: top; }
+.migrate-table tbody tr:last-child td { border-bottom: none; }
+.migrate-status-ok { color: #00e676; font-weight: 700; }
+.migrate-status-warn { color: #ffb74d; font-weight: 700; }
+.migrate-status-err { color: #ef5350; font-weight: 700; }
+.migrate-table small { color: var(--text-secondary); font-size: 10.5px; line-height: 1.4; display: block; margin-top: 3px; }
+.migrate-summary { margin-top: 14px; padding: 10px 14px; background: rgba(255,255,255,0.04); border-left: 3px solid #ff9a3c; border-radius: 3px; font-size: 12px; }
+.migrate-modal-actions { display: flex; gap: 10px; padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.08); justify-content: flex-end; background: rgba(0,0,0,0.2); }
+.migrate-btn-cancel, .migrate-btn-confirm { padding: 8px 18px; border-radius: 5px; font-family: inherit; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; cursor: pointer; transition: all var(--t-fast); }
+.migrate-btn-cancel { background: transparent; border: 1px solid rgba(255,255,255,0.18); color: var(--text-secondary); }
+.migrate-btn-cancel:hover { background: rgba(255,255,255,0.06); color: var(--text-primary); }
+.migrate-btn-confirm { background: rgba(255,154,60,0.18); border: 1.5px solid #ff9a3c; color: #ff9a3c; }
+.migrate-btn-confirm:hover:not(:disabled) { background: rgba(255,154,60,0.3); }
+.migrate-btn-confirm:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* v1.99.75: Migrate-to-other-machine Button */
+.cluster-migrate-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 16px;
+  background: rgba(255, 154, 60, 0.06);
+  border: 1px dashed rgba(255, 154, 60, 0.4);
+  border-radius: var(--r-2);
+  color: #ff9a3c;
+  font-family: inherit;
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--t-fast);
+}
+.cluster-migrate-btn:hover:not(:disabled) {
+  background: rgba(255, 154, 60, 0.14);
+  border-style: solid;
+}
+.cluster-migrate-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 /* Cluster-Actions-Row: Add + Bulk nebeneinander */
 .cluster-actions-row {
   display: flex; flex-wrap: wrap; gap: 8px;
@@ -6130,6 +6182,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             <span>Als Vorlage speichern</span>
           </button>
+          <button type="button" class="cluster-migrate-btn" id="clusterMigrateBtn" tabindex="-1" title="Aktuellen Auftrag + Cluster auf andere Maschine übernehmen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <span id="clusterMigrateBtnLabel">Auf andere Maschine prüfen</span>
+          </button>
         </div>
         <div class="cluster-bulk-pane" id="clusterBulkPane" hidden>
           <div class="cluster-bulk-help">
@@ -6181,6 +6237,22 @@ audio.team-player-audio::-webkit-media-controls-panel {
             </button>
           </div>
         </details>
+      </div>
+
+      <!-- v1.99.75: Migrations-Modal (Aufträge auf andere Maschine übernehmen) -->
+      <div class="migrate-modal" id="migrateModal" aria-hidden="true">
+        <div class="migrate-modal-bg" id="migrateModalBg"></div>
+        <div class="migrate-modal-content">
+          <div class="migrate-modal-head">
+            <h3 id="migrateModalTitle">Aufträge übernehmen</h3>
+            <button type="button" class="migrate-close" id="migrateCloseBtn" aria-label="Schließen">×</button>
+          </div>
+          <div class="migrate-modal-body" id="migrateModalBody"></div>
+          <div class="migrate-modal-actions">
+            <button type="button" class="migrate-btn-cancel" id="migrateCancelBtn">Abbrechen</button>
+            <button type="button" class="migrate-btn-confirm" id="migrateConfirmBtn">Kompatible übernehmen</button>
+          </div>
+        </div>
       </div>
 
       <!-- CAD-Detail-Modal (volle Werkstattzeichnung nach DIN ISO 128) -->
@@ -13256,6 +13328,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
       calc();
     }
     if (typeof renderClusterJobs === "function") renderClusterJobs();
+    // v1.99.75: Migrate-Button-Label auf neue Ziel-Maschine aktualisieren
+    if (typeof window.__migrateUpdateAfterMachineChange === "function") {
+      try { window.__migrateUpdateAfterMachineChange(); } catch(_) {}
+    }
     toast(`Maschine: ${getMachine().label} · ${clusterJobs.length} Folgeauftrag${clusterJobs.length === 1 ? "" : "äge"}`);
   }
   machineBtns.forEach(b => {
@@ -13876,6 +13952,203 @@ audio.team-player-audio::-webkit-media-controls-panel {
       saveClusterJobs();
       renderClusterJobs();
     });
+  }
+
+  // ============== v1.99.75: Migration auf andere Maschine (Planer-Feature) ==============
+  // Planer hat Aufträge auf z.B. DCM eingegeben. Will prüfen: 'gehen die auch auf
+  // Euromac?' Button öffnet Modal mit Per-Auftrags-Kompatibilitäts-Report. Bei
+  // 'Übernehmen': kompatible Aufträge werden auf Target-Maschine kopiert + Switch.
+  function getMigrationTarget() {
+    return activeMachineId === "DCM" ? "EUROMAC" : "DCM";
+  }
+  function getMachineSpecForCheck(machineId) {
+    const base = MACHINES[machineId];
+    if (!base) return null;
+    // Best-case Park-Setup: Maximum-MR der Maschine (= mit minimalen Parkringen)
+    // damit Kompatibilität OPTIMISTISCH geprüft wird (= passt mit Park-Reduzierung?)
+    let maxMr = base.MAX_MR_MM;
+    if (base.id === "DCM") maxMr = base.WELLE - 2 * base.PARK_RING;  // 1 Park = 1354
+    else if (base.id === "EUROMAC") maxMr = base.WELLE;              // 0 Park = full
+    return { base, maxMrOptimistic: maxMr };
+  }
+  function checkJobOnMachine(job, machineId) {
+    const spec = getMachineSpecForCheck(machineId);
+    if (!spec) return { checks: [{ type: "error", msg: "Maschine unbekannt" }] };
+    const checks = [];
+    const mr = parseFloat(String(job.mr || "").replace(",", "."));
+    const haupt = parseFloat(String(job.haupt || "").replace(",", "."));
+    const nebenB = parseFloat(String(job.nebenBreite || "").replace(",", "."));
+    const nebenA = parseInt(job.nebenAnz || "0", 10);
+    if (!isFinite(mr) || mr <= 0) {
+      checks.push({ type: "error", msg: "MR fehlt" });
+      return { checks };
+    }
+    if (!isFinite(haupt) || haupt <= 0) {
+      checks.push({ type: "error", msg: "Schmal fehlt" });
+      return { checks };
+    }
+    if (mr > spec.maxMrOptimistic) {
+      checks.push({ type: "error", msg: `MR ${mr} mm > Maximum ${spec.maxMrOptimistic} mm (${spec.base.label})` });
+    } else if (mr > spec.base.MAX_MR_MM) {
+      checks.push({ type: "warn", msg: `MR ${mr} mm benötigt Park-Auto-Reduzierung` });
+    }
+    if (haupt < spec.base.SCHNEIDEEINHEIT) {
+      checks.push({ type: "error", msg: `Schmal ${haupt} mm < SE-Breite ${spec.base.SCHNEIDEEINHEIT} mm` });
+    }
+    if (isFinite(nebenB) && nebenB > 0 && isFinite(nebenA) && nebenA > 0) {
+      if (nebenB < spec.base.SCHNEIDEEINHEIT) {
+        checks.push({ type: "error", msg: `Neben ${nebenB} mm < SE-Breite ${spec.base.SCHNEIDEEINHEIT} mm` });
+      }
+    }
+    const nebenTotal = (isFinite(nebenB) && isFinite(nebenA)) ? nebenB * nebenA : 0;
+    const N = Math.floor((mr - nebenTotal) / haupt);
+    if (N < 1) {
+      checks.push({ type: "error", msg: `Kein Schmal-Nutzen möglich (N<1) auf ${spec.base.label}` });
+    }
+    if (spec.base.SCHNITT_OFFSET !== MACHINES[activeMachineId].SCHNITT_OFFSET) {
+      checks.push({ type: "warn", msg: `SE-Geometrie unterschiedlich (Schnittkante ${spec.base.SCHNITT_OFFSET} mm v. links vs. ${MACHINES[activeMachineId].SCHNITT_OFFSET} mm bei aktueller) — Werker-Mass ändert sich` });
+    }
+    return { checks };
+  }
+  function buildMigrationReport() {
+    const target = getMigrationTarget();
+    const rows = [];
+    // Primary
+    const primaryJob = {
+      mr: (document.getElementById("mutter") || {}).value || "",
+      haupt: (document.getElementById("schmal") || {}).value || "",
+      nebenBreite: (document.getElementById("neben1Breite") || {}).value || "",
+      nebenAnz: (document.getElementById("neben1Anz") || {}).value || ""
+    };
+    rows.push({ label: "A1 (Primary)", job: primaryJob, isPrimary: true, ...checkJobOnMachine(primaryJob, target) });
+    // Cluster
+    clusterJobs.forEach((j, i) => {
+      const job = { mr: j.mr, haupt: j.haupt, nebenBreite: j.nebenBreite, nebenAnz: j.nebenAnz };
+      rows.push({ label: `A${i + 2}`, job, isPrimary: false, slotIdx: i, ...checkJobOnMachine(job, target) });
+    });
+    return { target, rows };
+  }
+  function renderMigrationModal() {
+    const { target, rows } = buildMigrationReport();
+    const targetLabel = MACHINES[target].label;
+    const sourceLabel = MACHINES[activeMachineId].label;
+    const titleEl = document.getElementById("migrateModalTitle");
+    if (titleEl) titleEl.textContent = `${sourceLabel} → ${targetLabel}: Kompatibilität prüfen`;
+    const body = document.getElementById("migrateModalBody");
+    if (!body) return;
+    let html = `<div class="migrate-intro">Aktueller Primary + ${clusterJobs.length} Folgeauftr${clusterJobs.length === 1 ? "ag" : "äge"} würden vom <strong>${sourceLabel}</strong>-Setup auf <strong>${targetLabel}</strong> übertragen. Vor dem Übernehmen: Per-Auftrags-Check.</div>`;
+    html += `<table class="migrate-table"><thead><tr><th>Auftrag</th><th>MR · Schmal</th><th>Status</th></tr></thead><tbody>`;
+    let okCount = 0, warnCount = 0, errCount = 0;
+    for (const r of rows) {
+      const hasError = r.checks.some(c => c.type === "error");
+      const hasWarn = r.checks.some(c => c.type === "warn");
+      if (hasError) errCount++;
+      else if (hasWarn) warnCount++;
+      else okCount++;
+      const status = hasError ? "✗ passt nicht" : (hasWarn ? "⚠ Hinweis" : "✓ kompatibel");
+      const cls = hasError ? "migrate-status-err" : (hasWarn ? "migrate-status-warn" : "migrate-status-ok");
+      const detail = r.checks.length > 0 ? `<small>${r.checks.map(c => c.msg).join(" · ")}</small>` : "";
+      const nebenTxt = (r.job.nebenBreite && r.job.nebenAnz && parseInt(r.job.nebenAnz, 10) > 0)
+        ? ` + ${r.job.nebenAnz}×${r.job.nebenBreite}` : "";
+      html += `<tr><td><strong>${r.label}</strong>${r.isPrimary ? '<br><small style="color:var(--text-secondary)">Hauptrechner-Auftrag</small>' : ""}</td>`;
+      html += `<td>${r.job.mr || "—"} mm · ${r.job.haupt || "—"}${nebenTxt}</td>`;
+      html += `<td class="${cls}">${status}${detail}</td></tr>`;
+    }
+    html += `</tbody></table>`;
+    html += `<div class="migrate-summary">`;
+    html += `<strong>Zusammenfassung:</strong> ${okCount}/${rows.length} sauber kompatibel`;
+    if (warnCount > 0) html += ` · ${warnCount} mit Hinweis`;
+    if (errCount > 0) html += ` · <span style="color:#ef5350">${errCount} würden NICHT übernommen</span>`;
+    html += `</div>`;
+    body.innerHTML = html;
+    const confirmBtn = document.getElementById("migrateConfirmBtn");
+    if (confirmBtn) {
+      const okPlusWarn = okCount + warnCount;
+      confirmBtn.disabled = okPlusWarn === 0;
+      confirmBtn.textContent = okPlusWarn === rows.length
+        ? `Alle ${rows.length} übernehmen`
+        : `${okPlusWarn}/${rows.length} kompatible übernehmen`;
+      confirmBtn.dataset.target = target;
+    }
+  }
+  function openMigrationModal() {
+    renderMigrationModal();
+    const modal = document.getElementById("migrateModal");
+    if (modal) modal.setAttribute("aria-hidden", "false");
+  }
+  function closeMigrationModal() {
+    const modal = document.getElementById("migrateModal");
+    if (modal) modal.setAttribute("aria-hidden", "true");
+  }
+  function performMigration() {
+    const confirmBtn = document.getElementById("migrateConfirmBtn");
+    if (!confirmBtn || confirmBtn.disabled) return;
+    const target = confirmBtn.dataset.target || getMigrationTarget();
+    const { rows } = buildMigrationReport();
+    const compatible = rows.filter(r => !r.checks.some(c => c.type === "error"));
+    if (compatible.length === 0) { closeMigrationModal(); return; }
+    // Save current state on source (= activeMachineId) bevor wir wechseln
+    try {
+      if (typeof saveClusterJobs === "function") saveClusterJobs();
+      if (typeof saveActiveJob === "function") saveActiveJob();
+    } catch(_) {}
+    // Auf Target-Storage schreiben
+    const targetClusterRaw = compatible.filter(r => !r.isPrimary).map(r => ({
+      mr: r.job.mr,
+      haupt: r.job.haupt,
+      nebenBreite: r.job.nebenBreite,
+      nebenAnz: r.job.nebenAnz,
+      auftragsNr: "",
+      kunde: "",
+      material: "",
+      bemerkung: "",
+      flaeche: "",
+      lfm: ""
+    })).map(j => typeof ensureClusterJobShape === "function" ? ensureClusterJobShape(j) : j);
+    try { localStorage.setItem("rr.clusterJobs." + target, JSON.stringify(targetClusterRaw)); } catch(_) {}
+    // Target-Primary: erster kompatibler ist Primary
+    const primaryRow = compatible.find(r => r.isPrimary);
+    if (primaryRow) {
+      const targetActiveJob = {
+        mutter: primaryRow.job.mr,
+        schmal: primaryRow.job.haupt,
+        neben1Breite: primaryRow.job.nebenBreite,
+        neben1Anz: primaryRow.job.nebenAnz
+      };
+      try { localStorage.setItem("rr.activeJob." + target, JSON.stringify(targetActiveJob)); } catch(_) {}
+    }
+    closeMigrationModal();
+    setActiveMachine(target);
+    toast(`✓ ${compatible.length} Aufträge auf ${MACHINES[target].label} übernommen`);
+  }
+  // Button-Label dynamisch + Click-Handler
+  function updateMigrateBtnLabel() {
+    const lbl = document.getElementById("clusterMigrateBtnLabel");
+    if (!lbl) return;
+    const target = getMigrationTarget();
+    lbl.textContent = `Auf ${MACHINES[target].label} prüfen`;
+  }
+  updateMigrateBtnLabel();
+  const clusterMigrateBtn = document.getElementById("clusterMigrateBtn");
+  if (clusterMigrateBtn) clusterMigrateBtn.addEventListener("click", openMigrationModal);
+  const migrateCancelBtn = document.getElementById("migrateCancelBtn");
+  if (migrateCancelBtn) migrateCancelBtn.addEventListener("click", closeMigrationModal);
+  const migrateCloseBtn = document.getElementById("migrateCloseBtn");
+  if (migrateCloseBtn) migrateCloseBtn.addEventListener("click", closeMigrationModal);
+  const migrateModalBg = document.getElementById("migrateModalBg");
+  if (migrateModalBg) migrateModalBg.addEventListener("click", closeMigrationModal);
+  const migrateConfirmBtn = document.getElementById("migrateConfirmBtn");
+  if (migrateConfirmBtn) migrateConfirmBtn.addEventListener("click", performMigration);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const modal = document.getElementById("migrateModal");
+      if (modal && modal.getAttribute("aria-hidden") === "false") closeMigrationModal();
+    }
+  });
+  // Bei Maschinen-Wechsel das Button-Label updaten
+  const _origOnMachineChanged = (typeof onMachineChanged === "function") ? onMachineChanged : null;
+  if (_origOnMachineChanged) {
+    window.__migrateUpdateAfterMachineChange = updateMigrateBtnLabel;
   }
 
   // v1.99.10 · Plan-Export/Import-Buttons in der Auftrags-Tabs-Section wiren
@@ -14548,7 +14821,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.74";
+    const PRINT_VERSION = "v1.99.75";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
