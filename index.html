@@ -7689,15 +7689,17 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const trackH = 44, trackGap = 6, trackHeader = 28;
     const tracksTotalH = isMaster ? (trackHeader + d.validJobs.length * (trackH + trackGap) + 16) : 0;
     // v1.99.60: extraMrTop für Master-Welle MR-Bahn-Brackets-Stack (1 Bracket pro Auftrag)
+    // v1.99.72: spacing 13 → 20 px (User: 'sehr gequetscht visualisiert')
     const mrBahnBracketCount = (isMaster && d.validJobs) ? d.validJobs.length : 1;
-    const extraMrTop = (mrBahnBracketCount - 1) * 13;
+    const MR_BRACKET_SPACING = 20;
+    const extraMrTop = (mrBahnBracketCount - 1) * MR_BRACKET_SPACING;
     const H = baseH + extraTop + extraMrTop + tracksTotalH;
     svgEl.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
     // Layout-Zonen (v1.95.1: Werker-Bemaßung über Welle (statt unter) für bessere Übersicht)
     // Plus dynamisches extraTop für viele MR-Brackets (v1.99.6) + extraMrTop (v1.99.60) für MR-Bahn-Brackets-Stack.
     const dimWerkerY = 28;                                // Werker-Mass GANZ OBEN (Schneidkante)
-    const dimMrYStart = 56;                                // v1.99.62: +10px Abstand zur Schneidkante (vorher 46) damit klarer abgesetzt
+    const dimMrYStart = 62;                                // v1.99.72: noch mehr Abstand zur Schneidkante (vorher 56)
     const dimTop1Y = 64 + extraMrTop;                      // Welle-Total
     const dimTop2Y = 104 + extraMrTop;                     // MR-Bracket Start-Y
     const knifeY = 140 + extraTop + extraMrTop;            // Cut-Position-Labels
@@ -8378,7 +8380,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const xMr = xAt(mj.mrEnd);
         const xRight = W - padX;
         const distMrMm = M.WELLE - mj.mrEnd;
-        const mrY = dimMrYStart + idx * 13;  // Gestaffelt nach oben unten
+        const mrY = dimMrYStart + idx * MR_BRACKET_SPACING;  // v1.99.72: Spacing 13→20
 
         // Vertikale Guide-Linie: kurzer Default-Stub für Anchor-Andeutung
         if (idx === 0) {
@@ -14536,7 +14538,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.71";
+    const PRINT_VERSION = "v1.99.72";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
