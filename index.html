@@ -8395,15 +8395,19 @@ audio.team-player-audio::-webkit-media-controls-panel {
         // damit der Browser bei initial-render garantiert nicht rendert
         // (User-Report: Linien wurden bei initial-Render sichtbar).
         if (d.isMaster) {
+          // v1.99.71: MR-Bahn-Projektion-Linie geht durch ALLE Tracks bis zum
+          // Tracks-Boden — vorher endete sie bei job's eigenem track-mitte,
+          // ging also nicht durch die unteren Aufträge. User: 'die gestrichelten
+          // linien gehen nicht durch die anderen aufträge hindurch'.
           const tracksY0_local = baseH + 6;
           const trackHeader_local = 28;
           const trackH_local = 44;
           const trackGap_local = 6;
-          const tmidY_local = tracksY0_local + trackHeader_local + idx * (trackH_local + trackGap_local) + trackH_local / 2;
+          const tracksBottomY_local = tracksY0_local + trackHeader_local + (d.validJobs.length) * (trackH_local + trackGap_local);
           svgW(g, "line", {
             class: "welle-mr-bahn-projection",
             "data-track-job": String(idx),
-            x1: xMr, y1: mrY + 4, x2: xMr, y2: tmidY_local,
+            x1: xMr, y1: mrY + 4, x2: xMr, y2: tracksBottomY_local,
             stroke: mj.color, "stroke-width": "1.4", "stroke-dasharray": "3 4",
             opacity: "0",
             style: "opacity: 0; pointer-events: none;",
@@ -14532,7 +14536,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.70";
+    const PRINT_VERSION = "v1.99.71";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
