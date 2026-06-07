@@ -7661,6 +7661,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
       svgEl.appendChild(g);
     }
     g.innerHTML = "";
+    // v1.99.73 BUGFIX: track-bezogene Groups werden direkt an svgEl appended
+    // (welle-track-group, welle-master-rails, welle-track-cut-projection).
+    // Bei jedem Re-Render müssen diese ALTEN Groups vorher entfernt werden,
+    // sonst stacken sich Track-Markers + Linien bei jedem Schreiben.
+    // User: 'sowas kommt manchmal wenn man mehrfach ändert' — extra Marker
+    // in A4 row waren Stack-Up aus mehrfachen Re-Renders.
+    svgEl.querySelectorAll(".welle-track-group, .welle-master-rails, .welle-track-cut-projection").forEach(el => el.remove());
 
     const W = 1500;
     const padX = 60;
@@ -14538,7 +14545,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.72";
+    const PRINT_VERSION = "v1.99.73";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
