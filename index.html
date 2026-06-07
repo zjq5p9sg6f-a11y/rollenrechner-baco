@@ -7683,18 +7683,24 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     const trackH = 44, trackGap = 6, trackHeader = 28;
     const tracksTotalH = isMaster ? (trackHeader + d.validJobs.length * (trackH + trackGap) + 16) : 0;
-    const H = baseH + extraTop + tracksTotalH;
+    // v1.99.60: extraMrTop für Master-Welle MR-Bahn-Brackets-Stack (1 Bracket pro Auftrag)
+    const mrBahnBracketCount = (isMaster && d.validJobs) ? d.validJobs.length : 1;
+    const extraMrTop = (mrBahnBracketCount - 1) * 13;
+    const H = baseH + extraTop + extraMrTop + tracksTotalH;
     svgEl.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
     // Layout-Zonen (v1.95.1: Werker-Bemaßung über Welle (statt unter) für bessere Übersicht)
-    // Plus dynamisches extraTop für viele MR-Brackets (v1.99.6).
-    const dimWerkerY = 28;               // Werker-Mass GANZ OBEN
-    const dimTop1Y = 64;                 // Welle-Total
-    const dimTop2Y = 104;                // MR-Bracket Start-Y (wächst nach unten mit i*14)
-    const knifeY = 140 + extraTop;       // Cut-Position-Labels — verschoben mit Brackets
-    const barTop = 168 + extraTop;       // Welle-Bar — verschoben mit Brackets
+    // Plus dynamisches extraTop für viele MR-Brackets (v1.99.6) + extraMrTop (v1.99.60) für MR-Bahn-Brackets-Stack.
+    const dimWerkerY = 28;                                // Werker-Mass GANZ OBEN
+    const dimMrYStart = 46;                                // Start der MR-Bahn-rechts-Brackets (Stack)
+    const dimTop1Y = 64 + extraMrTop;                      // Welle-Total
+    const dimTop2Y = 104 + extraMrTop;                     // MR-Bracket Start-Y
+    const knifeY = 140 + extraTop + extraMrTop;            // Cut-Position-Labels
+    const barTop = 168 + extraTop + extraMrTop;            // Welle-Bar
     const barH = 110;
     const barBottom = barTop + barH;
+    // v1.99.60: jobColors global im renderWelleSvg für Master-Welle MR-Bahn-Brackets + Tracks
+    const jobColors = ["#00e676", "#ffb74d", "#42a5f5", "#ec407a", "#ce93d8", "#80cbc4", "#ffd54f", "#ff8a65", "#aed581", "#4dd0e1", "#f48fb1"];
     const dimBotY = barBottom + 32;
     const dimBot2Y = barBottom + 62;
     const scaleY = barBottom + 92;
@@ -7838,8 +7844,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     // ============ TOP-Bemaßung 2: MR-Bereich ============
     if (isMaster) {
-      // 11 distinct Farben für MAX_CLUSTER=10 + Primary — Material-Design-Palette
-      const jobColors = ["#00e676", "#ffb74d", "#42a5f5", "#ec407a", "#ce93d8", "#80cbc4", "#ffd54f", "#ff8a65", "#aed581", "#4dd0e1", "#f48fb1"];
+      // v1.99.60: jobColors jetzt global oben — wir teilen die Palette mit MR-Bahn-Brackets
       // groups bereits oben berechnet (für extraTop) — reuse aus cache
       const groups = _mrGroupsCache;
       // tracksY0 hier vorberechnen für Projection-Y-End (Track-Mitte pro Job)
@@ -8336,52 +8341,63 @@ audio.team-player-audio::-webkit-media-controls-panel {
     }
 
     // ============ MR-Bahn-rechts: rechter Wellenrand → rechte MR-Kante ============
-    // v1.99.58: Werker-Anlege-Maß BEVOR der erste Schnitt — Werker prüft ob die
-    // Mutterrolle korrekt aufgelegt ist (rechte MR-Kante muss bei Y mm v. Welle-
-    // Ende sitzen). Wichtig bei MR-Versatz oder asymm. Trim.
-    // Bei Cluster: nur Primary's MR-Bahn (validJobs[0]) — andere Aufträge stehen
-    // separat in der Cluster-Tabelle.
+    // v1.99.60: Werker-Anlege-Maß für JEDEN Auftrag im Cluster — pro Job eine
+    // farbige Bracket gestapelt (gleiche Farben wie Tracks-Spuren unten). Werker
+    // prüft pro Auftrag VOR dem Schneiden ob die jeweilige MR korrekt aufliegt.
     {
-      let mrEndMm = null;
+      const mrJobs = [];
       if (d.isMaster && d.validJobs && d.validJobs.length > 0) {
-        mrEndMm = d.validJobs[0].mrRight;
+        d.validJobs.forEach((jw, i) => {
+          mrJobs.push({
+            idx: jw.idx,
+            slotLabel: `A${jw.idx + 1}`,
+            mrEnd: jw.mrRight,
+            color: jobColors[i % jobColors.length]
+          });
+        });
       } else if (d.mrEnd != null) {
-        mrEndMm = d.mrEnd;
+        mrJobs.push({ idx: 0, slotLabel: "", mrEnd: d.mrEnd, color: "#00e676" });
       } else if (d.innerEnd != null) {
-        mrEndMm = d.innerEnd;
+        mrJobs.push({ idx: 0, slotLabel: "", mrEnd: d.innerEnd, color: "#00e676" });
       } else if (d.mr) {
-        mrEndMm = M.WELLE_MITTE + (d.mr / 2);
+        mrJobs.push({ idx: 0, slotLabel: "", mrEnd: M.WELLE_MITTE + (d.mr / 2), color: "#00e676" });
       }
-      if (mrEndMm != null && mrEndMm > 0 && mrEndMm < M.WELLE) {
-        const xMr = xAt(mrEndMm);
+      mrJobs.forEach((mj, idx) => {
+        if (mj.mrEnd == null || !(mj.mrEnd > 0) || !(mj.mrEnd < M.WELLE)) return;
+        const xMr = xAt(mj.mrEnd);
         const xRight = W - padX;
-        const distMrMm = M.WELLE - mrEndMm;
-        const mrCol = "#00e676";  // Grün — MR-Auflege-Maß (unterscheidet von Cut-Orange)
-        const dimMrY = dimWerkerY + 18;  // Unter der Schneidkante-Bracket
+        const distMrMm = M.WELLE - mj.mrEnd;
+        const mrY = dimMrYStart + idx * 13;  // Gestaffelt nach oben unten
 
-        // Vertikale Guides (kurze Striche von Bracket zu Bar-Top)
-        svgW(g, "line", { x1: xMr, y1: dimMrY + 5, x2: xMr, y2: barTop - 2,
-          stroke: mrCol, "stroke-width": "1", "stroke-dasharray": "2 3", opacity: "0.55" });
+        // Vertikale Guide nur fürs erste/letzte (sonst zu viele Striche)
+        if (idx === 0) {
+          svgW(g, "line", { x1: xMr, y1: mrY + 4, x2: xMr, y2: barTop - 2,
+            stroke: mj.color, "stroke-width": "1", "stroke-dasharray": "2 3", opacity: "0.4" });
+        } else {
+          // Kurze nur 6px lange Andeutung damit der Werker den X-Anchor sieht
+          svgW(g, "line", { x1: xMr, y1: mrY + 4, x2: xMr, y2: mrY + 9,
+            stroke: mj.color, "stroke-width": "1", opacity: "0.7" });
+        }
         // Bemaßungs-Linie + Pfeilköpfe
-        svgW(g, "line", { x1: xMr + 1, y1: dimMrY, x2: xRight - 1, y2: dimMrY,
-          stroke: mrCol, "stroke-width": "1.2", opacity: "0.85" });
-        svgW(g, "path", { d: `M${xMr} ${dimMrY} L${xMr + 7} ${dimMrY - 4} L${xMr + 7} ${dimMrY + 4} Z`,
-          fill: mrCol });
-        svgW(g, "path", { d: `M${xRight} ${dimMrY} L${xRight - 7} ${dimMrY - 4} L${xRight - 7} ${dimMrY + 4} Z`,
-          fill: mrCol });
-        // Label (kleiner als Schneidkante-Bracket damit Hierarchie klar)
-        const lblTxt = d.isMaster
-          ? `${fmtW(distMrMm, 1)} mm · MR-Bahn rechts (A1)`
+        svgW(g, "line", { x1: xMr + 1, y1: mrY, x2: xRight - 1, y2: mrY,
+          stroke: mj.color, "stroke-width": "1.1", opacity: "0.85" });
+        svgW(g, "path", { d: `M${xMr} ${mrY} L${xMr + 6} ${mrY - 3.5} L${xMr + 6} ${mrY + 3.5} Z`,
+          fill: mj.color });
+        svgW(g, "path", { d: `M${xRight} ${mrY} L${xRight - 6} ${mrY - 3.5} L${xRight - 6} ${mrY + 3.5} Z`,
+          fill: mj.color });
+        // Label (kompakt mit Job-Slot-Tag bei Cluster)
+        const lblTxt = mj.slotLabel
+          ? `${fmtW(distMrMm, 1)} mm · MR-Bahn r. ${mj.slotLabel}`
           : `${fmtW(distMrMm, 1)} mm · MR-Bahn rechts`;
-        const lblW = lblTxt.length * 5.4 + 16;
+        const lblW = lblTxt.length * 5.2 + 14;
         let lblCx = (xMr + xRight) / 2;
         lblCx = Math.max(padX + lblW / 2 + 4, Math.min(W - padX - lblW / 2 - 4, lblCx));
-        svgW(g, "rect", { x: lblCx - lblW / 2, y: dimMrY - 8, width: lblW, height: 16, rx: 3,
-          fill: "var(--bg-base)", stroke: mrCol, "stroke-width": "1" });
-        svgW(g, "text", { x: lblCx, y: dimMrY + 4, "text-anchor": "middle",
-          fill: mrCol, "font-size": "9.5", "font-weight": "800", "letter-spacing": "0.04em",
+        svgW(g, "rect", { x: lblCx - lblW / 2, y: mrY - 7, width: lblW, height: 14, rx: 3,
+          fill: "var(--bg-base)", stroke: mj.color, "stroke-width": "0.9" });
+        svgW(g, "text", { x: lblCx, y: mrY + 3.5, "text-anchor": "middle",
+          fill: mj.color, "font-size": "8.5", "font-weight": "800", "letter-spacing": "0.04em",
           "font-family": "inherit" }, lblTxt);
-      }
+      });
     }
 
     // ============ Mass-Skala alle 100 mm ============
@@ -8423,8 +8439,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // ========================================================================
     if (isMaster) {
       const tracksY0 = baseH + 6;
-      // 11 distinct Farben für MAX_CLUSTER=10 + Primary — Material-Design-Palette
-      const jobColors = ["#00e676", "#ffb74d", "#42a5f5", "#ec407a", "#ce93d8", "#80cbc4", "#ffd54f", "#ff8a65", "#aed581", "#4dd0e1", "#f48fb1"];
+      // v1.99.60: jobColors global oben definiert — wir reuse die selbe Palette
       const tol = 0.5;
       const tracksBottom = tracksY0 + trackHeader + d.validJobs.length * (trackH + trackGap);
 
@@ -14407,7 +14422,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.59";
+    const PRINT_VERSION = "v1.99.60";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
