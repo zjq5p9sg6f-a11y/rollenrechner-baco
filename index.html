@@ -6622,6 +6622,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
   // v1.99.57: lastMaster speichert das Master-Welle-Object (welleData-konform)
   // bei aktivem Cluster — Print nutzt es statt Primary-only-Daten.
   let lastMaster = null;
+  // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
+  // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
+  const APP_VERSION = "v1.99.103";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -15432,7 +15435,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.103";
+    const PRINT_VERSION = APP_VERSION;  // v1.99.103.1: shared mit Debug-Snapshot
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
@@ -16482,7 +16485,7 @@ body > *:not(#printMaster) { display: none !important; }
     const lv = (typeof lastValid !== "undefined" && lastValid) ? lastValid : null;
     const lm = (typeof lastMaster !== "undefined" && lastMaster) ? lastMaster : null;
     const ts = new Date().toISOString().replace("T", " ").replace(/\..+/, "");
-    let txt = `═══ RR-DEBUG ${ts} · ${PRINT_VERSION} ═══\n`;
+    let txt = `═══ RR-DEBUG ${ts} · ${APP_VERSION} ═══\n`;
     txt += `MACHINE: ${M.id} · Park ${M.PARK_PRO_SEITE}/Seite · Bestück ${M.BESTUECKUNGS_BREITE}mm · Welle ${M.WELLE}mm\n`;
     txt += `SETTINGS: trim=${trimMode} · bahnOfs=${bahnOfs}mm · SE=${M.SCHNEIDEEINHEIT}mm · SchnittOfs=${M.SCHNITT_OFFSET}mm\n`;
     txt += `\n— Primary (A1) —\n`;
@@ -16532,7 +16535,7 @@ body > *:not(#printMaster) { display: none !important; }
     // JSON-Block für maschinen-parsing
     txt += `\n═══ JSON ═══\n`;
     const jsonData = {
-      v: PRINT_VERSION, ts, machine: M.id,
+      v: APP_VERSION, ts, machine: M.id,
       park: M.PARK_PRO_SEITE, trim: trimMode, bahnOfs,
       primary: primaryRaw,
       cluster: clusterRaw,
