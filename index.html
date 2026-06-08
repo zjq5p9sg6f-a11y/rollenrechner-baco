@@ -13667,7 +13667,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <li>Bei MR &gt; 1120 mm: Auto-Reduktion auf 1 Park</li>
         </ul>
         <p><strong>📖 Volles Euromac-Handbuch</strong> (13 MB PDF) — Button "Handbuch" rechts oben in der Maschinen-Bar. Enthält Kapitel C.5.3 Schneidgruppe + C.5.5 Aufwickelhülsen + Wartung.</p>
-        <p><strong>Wann welche?</strong> DCM für hohe Stückzahlen (4-Park-Stabilität). Euromac für feinere Schnitt-Geometrien (Schneidebuchse) und schmalere Schmalrollen ab 25 mm.</p>
+        <p><strong>Wann welche?</strong> (Werker-Regel)</p>
+        <ul>
+          <li><strong>DCM Panther</strong> — kleinere Stückzahlen · <strong>schnelleres Rüsten</strong> · lohnt sich bei wenig Material</li>
+          <li><strong>Euromac TB 3.06P</strong> — <strong>größere Stückzahlen + schmalere Rollen</strong> · längere Rüstzeit, aber die zahlt sich bei großen Aufträgen aus</li>
+        </ul>
+        <p>Faustregel: viel Material in schmal → Euromac. Wenig Material → DCM weil Rüstzeit schneller amortisiert.</p>
       `);
     }
   })();
@@ -15298,7 +15303,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.97";
+    const PRINT_VERSION = "v1.99.98";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
