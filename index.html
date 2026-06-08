@@ -6630,7 +6630,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.106";
+  const APP_VERSION = "v1.99.107";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -10843,11 +10843,18 @@ audio.team-player-audio::-webkit-media-controls-panel {
         // Werker-Konsequenz: Welle ist physisch nicht bestückbar — Buchse
         // würde Standard-SE überlappen. MUSS als Hard-Fail behandelt werden.
         if (dist < -0.5) {
+          // v1.99.107: jobA = HÖCHSTER Folger-Index damit resolveCluster ihn
+          // rauswerfen kann (jobA=0 Primary wird nie ausgeschlossen, sonst
+          // hängt resolveCluster-Loop → master:null → leere Anzeige).
+          // Engine versucht dann Cluster ohne diesen Folger zu bauen.
+          const worstJobIdx = validJobs.length > 1
+            ? validJobs[validJobs.length - 1].idx
+            : 0;
           return {
             ok: false,
             error: `Buchse/SE-Überlappung Welle-Pos ${prevEnd.toFixed(1)} ↔ ${wStart.toFixed(1)} (Überlappung ${(-dist).toFixed(1)}mm) — Schneidbuchsen-Resolver hat Buchse zu nah an Standard-SE platziert. Cluster physisch nicht bestückbar.`,
-            conflictDetails: `Letzte Bauteil endete bei ${prevEnd.toFixed(1)}mm, aktuelles Bauteil beginnt bei ${wStart.toFixed(1)}mm — ${(-dist).toFixed(1)}mm Überlappung.`,
-            conflicts: [{ posA: prevEnd, posB: wStart, jobA: 0, jobB: 0, distance: -dist }],
+            conflictDetails: `Letzte Bauteil endete bei ${prevEnd.toFixed(1)}mm, aktuelles Bauteil beginnt bei ${wStart.toFixed(1)}mm — ${(-dist).toFixed(1)}mm Überlappung. Versuche Folger A${worstJobIdx+1} auszuschließen.`,
+            conflicts: [{ posA: prevEnd, posB: wStart, jobA: worstJobIdx, jobB: -1, distance: -dist }],
             validJobs
           };
         }
@@ -12503,11 +12510,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
       lastMaster = null;  // v1.99.57: kein gültiger Master mehr
       const excludedAll = resolved.excluded || [];
       const singleResult = calcWelleJob(out);
-      const excludedListTxt = excludedAll.length > 0
-        ? excludedAll.map(e => `A${e.origIdx+1}`).join(", ")
-        : "alle Folgeaufträge";
+      // v1.99.107: Reason-Aufschlüsselung pro ausgeschlossenem Folger
+      const excludedDetail = excludedAll.length > 0
+        ? excludedAll.map(e => `A${e.origIdx+1}${e.reason ? " (" + e.reason + ")" : ""}`).join(", ")
+        : "alle Folgeaufträge (keine Detail-Reason von resolveCluster)";
       if (singleResult.ok) {
-        if (sub) sub.innerHTML = `<span style="color:var(--warn-color)"><strong>△ KEIN GEMEINSAMER MASTER</strong></span> · zeige Single-Welle für A1 · <strong style="color:var(--danger-color)">ausgeschlossen: ${excludedListTxt}</strong>`;
+        if (sub) sub.innerHTML = `<span style="color:var(--warn-color)"><strong>△ KEIN GEMEINSAMER MASTER</strong></span> · zeige Single-Welle für A1 · <strong style="color:var(--danger-color)">ausgeschlossen: ${excludedDetail}</strong>`;
         renderWelleSvg(singleResult);
         renderWelleSequenz(singleResult);
         renderWelleHolliste(singleResult);
@@ -16558,11 +16566,12 @@ body > *:not(#printMaster) { display: none !important; }
     txt += `SETTINGS: trim=${trimMode} · bahnOfs=${bahnOfs}mm · SE=${M.SCHNEIDEEINHEIT}mm · SchnittOfs=${M.SCHNITT_OFFSET}mm\n`;
     txt += `\n— Primary (A1) —\n`;
     txt += `INPUT: MR=${primaryRaw.mr || "—"} | Haupt=${primaryRaw.haupt || "—"} | Fläche=${primaryRaw.flaeche || "—"}qm | LFM=${primaryRaw.lfm || "—"}\n`;
-    if (lv && lv.ok) {
-      txt += `CALC:  N=${lv.nutzen} · restMM=${lv.restMM} (L=${lv.restL?.toFixed(1)}/R=${lv.restR?.toFixed(1)}) · innerLen ?\n`;
+    // v1.99.107: lv hat kein .ok-Flag (calc() out hat das nicht), checke via nutzen
+    if (lv && lv.nutzen > 0) {
+      txt += `CALC:  N=${lv.nutzen} · restMM=${lv.restMM} (L=${lv.restL?.toFixed(1)}/R=${lv.restR?.toFixed(1)})\n`;
       txt += `KPIs:  totalSaetze=${lv.totalSaetze} · huelsen=${lv.huelsen} · tNetto=${lv.tNettoMin?.toFixed(1)}min · tBrutto=${lv.tBruttoMin?.toFixed(1)}min\n`;
     } else if (lv) {
-      txt += `CALC:  ungültig (ok=false)\n`;
+      txt += `CALC:  out vorhanden aber nutzen<=0 (Eingabe-Lücke?)\n`;
     } else {
       txt += `CALC:  noch keine valid-berechnung (lastValid=null)\n`;
     }
@@ -16607,7 +16616,7 @@ body > *:not(#printMaster) { display: none !important; }
       park: M.PARK_PRO_SEITE, trim: trimMode, bahnOfs,
       primary: primaryRaw,
       cluster: clusterRaw,
-      lastValid: lv ? { ok: lv.ok, nutzen: lv.nutzen, restMM: lv.restMM, totalSaetze: lv.totalSaetze, huelsen: lv.huelsen } : null,
+      lastValid: lv ? { nutzen: lv.nutzen, restMM: lv.restMM, totalSaetze: lv.totalSaetze, huelsen: lv.huelsen } : null,
       master: lm && lm.ok ? {
         ok: true, mergedCount: lm.mergedCount, innerLen: lm.innerLen,
         SE: (lm.innerSegs || []).filter(s => s.kind === "schneid").length,
