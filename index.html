@@ -7704,7 +7704,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       });
     }
     if (M.PARK_PRO_SEITE > 0) {
-      holliste.push({ name: "Parkplatz-Ring", spec: `${M.PARK_RING} mm · Stahl · außerhalb Bestückung (Anti-Teleskop)`, anz: M.PARK_PRO_SEITE * 2 });
+      holliste.push({ name: "Parkplatz-Ring", spec: `${M.PARK_RING} mm · Stahl · geringerer Ø als Distanzringe (Messer-Parkebene) · außerhalb Bestückung`, anz: M.PARK_PRO_SEITE * 2 });
     }
     const distMap = {};
     for (const seg of innerSegs) {
@@ -8146,32 +8146,41 @@ audio.team-player-audio::-webkit-media-controls-panel {
           }
         }
       } else if (seg.kind === "park") {
-        // v1.95: Park-Ring mit Knurl-Pattern (geriffelter Werkzeug-Look) + Highlight
-        svgW(g, "rect", { x: x + 0.5, y: barTop, width: Math.max(0, w - 1), height: barH, rx: 3,
+        // v1.99.88: Park-Ringe haben physikalisch GERINGEREN Durchmesser als
+        // Distanzringe — Messer können auf Park-Ringen 'parken' ohne in die
+        // Schnittebene zu greifen. Visualisierung: Park noch schmaler als
+        // Distanz (barH - 24 statt barH - 16).
+        const parkPadY = 12; // statt 0 wie vorher (volle Höhe)
+        const parkH = Math.max(4, barH - 2 * parkPadY);
+        const parkY = barTop + parkPadY;
+        svgW(g, "rect", { x: x + 0.5, y: parkY, width: Math.max(0, w - 1), height: parkH, rx: 3,
           fill: "url(#gPark)", stroke: "#3a3a3a", "stroke-width": "1" });
-        if (w > 8) {
+        if (w > 8 && parkH > 10) {
           // Knurl-Streifen-Layer (subtil, nur in der mittleren Zone)
-          svgW(g, "rect", { x: x + 1.5, y: barTop + barH * 0.18, width: Math.max(0, w - 3), height: barH * 0.64, rx: 2,
+          svgW(g, "rect", { x: x + 1.5, y: parkY + parkH * 0.18, width: Math.max(0, w - 3), height: parkH * 0.64, rx: 2,
             fill: "url(#pKnurl)", opacity: "0.75" });
         }
         // Top-Highlight
-        svgW(g, "rect", { x: x + 0.5, y: barTop, width: Math.max(0, w - 1), height: barH * 0.32, rx: 3,
+        svgW(g, "rect", { x: x + 0.5, y: parkY, width: Math.max(0, w - 1), height: parkH * 0.32, rx: 3,
           fill: "url(#gParkHi)" });
         if (w > 18) {
-          svgW(g, "text", { x: x + w/2, y: barTop + barH/2 + 4, "text-anchor": "middle",
-            fill: "rgba(220,220,220,0.92)", "font-size": "11", "font-weight": "800",
+          svgW(g, "text", { x: x + w/2, y: parkY + parkH/2 + 4, "text-anchor": "middle",
+            fill: "rgba(220,220,220,0.92)", "font-size": "10", "font-weight": "800",
             "font-family": "inherit", "font-variant-numeric": "tabular-nums",
             "text-shadow": "0 1px 0 rgba(0,0,0,0.8)" }, String(M.PARK_RING));
         }
       } else if (seg.kind === "distanz") {
         if (w > 0.5) {
-          // v1.95: Distanzring mit subtilem Top-Highlight für 3D-Effekt
-          svgW(g, "rect", { x: x, y: barTop + 8, width: w, height: barH - 16, rx: 2,
+          // v1.99.88: Distanzringe haben gleichen Durchmesser wie Schneideeinheiten
+          // (beide sitzen im Bestückungs-Bereich auf demselben Geometrie-Niveau).
+          // Volle barH statt barH-16. Park-Ringe sind die einzigen mit reduziertem
+          // Durchmesser (Messer-Parkebene).
+          svgW(g, "rect", { x: x, y: barTop, width: w, height: barH, rx: 2,
             fill: "url(#gDistanz)", stroke: "rgba(0,255,138,0.55)", "stroke-width": "0.5" });
-          svgW(g, "rect", { x: x, y: barTop + 8, width: w, height: (barH - 16) * 0.35, rx: 2,
+          svgW(g, "rect", { x: x, y: barTop, width: w, height: barH * 0.35, rx: 2,
             fill: "url(#gDistanzHi)" });
           if (w > 22) {
-            // v1.95: Bei Mehrring-Distanzen (z.B. 102 mm = 100 + 2) Auflösung darunter
+            // Bei Mehrring-Distanzen (z.B. 102 mm = 100 + 2) Auflösung darunter
             const distFill = distanzringeForMachine(seg.breite, M);
             const isMulti = distFill.rings && Object.keys(distFill.rings).length > 1;
             const stackTxt = isMulti && w > 55 ? formatStackBreakdown(distFill.rings, 4) : "";
@@ -8187,7 +8196,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
             }
           }
         } else {
-          svgW(g, "rect", { x: x, y: barTop + 4, width: Math.max(1, w), height: barH - 8,
+          svgW(g, "rect", { x: x, y: barTop, width: Math.max(1, w), height: barH,
             fill: "var(--accent-primary)", opacity: "0.7" });
         }
       } else if (seg.kind === "schneid" || seg.kind === "neben") {
@@ -11131,9 +11140,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
       if (kind === "park") {
         eyebrow = "Parkplatz-Ring";
-        // v1.95 fix: Material Werker-bestätigt (Stahl). "Knurl-Reibschluss" war
-        // erfunden — raus. Funktion bleibt.
-        meta = "Hält das Obermesser außerhalb der Bestückungs-Breite. Stahl-Ring.";
+        // v1.99.88: Werker-Spec-Klarstellung — Park-Ringe haben physikalisch
+        // GERINGEREN Durchmesser als reguläre Distanzringe, damit die Obermesser
+        // sicher darauf 'parken' können ohne in die Schnittebene zu greifen.
+        meta = "Hält das Obermesser außerhalb der Bestückungs-Breite. Stahl-Ring · geringerer Durchmesser als Distanzringe (damit Messer sicher parken).";
         extras = `
           <dt>Position</dt><dd>${posTxt}</dd>
           <dt>Lage</dt><dd>${fromMitteTxt}</dd>
@@ -14943,7 +14953,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.87";
+    const PRINT_VERSION = "v1.99.88";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
