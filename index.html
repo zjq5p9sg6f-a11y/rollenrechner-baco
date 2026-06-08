@@ -6630,7 +6630,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.107";
+  const APP_VERSION = "v1.99.108";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -10746,6 +10746,25 @@ audio.team-player-audio::-webkit-media-controls-panel {
         const buchseEnd = buchseStart + buchseSpec.length;
         const lastCut = cluster[cluster.length - 1];
         if (lastCut > buchseEnd + 0.001) { failedClusters.push(cluster); continue; }
+        // v1.99.108: prüfe ob Buchse-Range mit NICHT-Konflikt-Cuts (Standard-SE)
+        // kollidieren würde. Wenn ja → Buchse physisch nicht platzierbar an dieser
+        // Stelle → Cluster failed. Vorher: Buchse wurde platziert + Distanz-Calc
+        // erst beim layoutLR-Bau gemerkt → master:null silent.
+        const SE_M = M_master.SCHNEIDEEINHEIT;
+        const SCHNITT_M = M_master.SCHNITT_OFFSET;
+        const conflictInCluster = new Set(cluster);
+        let collidesWithExternalSE = false;
+        for (const item of allRaw) {
+          if (conflictInCluster.has(item.pos)) continue; // gehört zur Buchse selbst
+          const seStart = item.pos - SCHNITT_M;
+          const seEnd = seStart + SE_M;
+          // SE-Range überlappt Buchse-Range?
+          if (seStart < buchseEnd - 0.001 && seEnd > buchseStart + 0.001) {
+            collidesWithExternalSE = true;
+            break;
+          }
+        }
+        if (collidesWithExternalSE) { failedClusters.push(cluster); continue; }
         resolved.push({ start: buchseStart, end: buchseEnd, cuts: cluster.slice() });
       }
       if (resolved.length > 0 && failedClusters.length === 0) {
