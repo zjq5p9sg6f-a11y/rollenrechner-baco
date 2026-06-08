@@ -6624,7 +6624,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.103";
+  const APP_VERSION = "v1.99.103.2";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -16553,14 +16553,56 @@ body > *:not(#printMaster) { display: none !important; }
     return txt;
   }
   const debugBtnEl = document.getElementById("debugSnapshotBtn");
+  console.log("[DEBUG-BTN] gefunden:", !!debugBtnEl);
   if (debugBtnEl) {
-    debugBtnEl.addEventListener("click", async () => {
-      const snap = buildDebugSnapshot();
-      const ok = await copyText(snap);
-      if (ok) toast("Debug-Snapshot in Zwischenablage · ins Claude-Chat einfügen");
-      else toast("Copy fehlgeschlagen — Snap in Konsole", "err");
+    debugBtnEl.addEventListener("click", async (ev) => {
+      console.log("[DEBUG-BTN] Click event fired");
+      ev.preventDefault();
+      let snap = "";
+      try {
+        snap = buildDebugSnapshot();
+        console.log("[DEBUG-BTN] buildDebugSnapshot OK, length:", snap.length);
+      } catch (err) {
+        console.error("[DEBUG-BTN] buildDebugSnapshot CRASH:", err);
+        try { toast("Snapshot-Crash: " + err.message, "err"); } catch(_) {}
+        alert("Debug-Snapshot Crash:\n\n" + (err.stack || err.message || err));
+        return;
+      }
       console.log("[DEBUG-SNAPSHOT]\n" + snap);
+      // Robuste Copy mit Fallback
+      let copied = false;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(snap);
+          copied = true;
+        }
+      } catch (err) { console.warn("[DEBUG-BTN] navigator.clipboard failed:", err); }
+      if (!copied) {
+        // Fallback: temporäres textarea + execCommand
+        try {
+          const ta = document.createElement("textarea");
+          ta.value = snap;
+          ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;width:1px;height:1px;";
+          document.body.appendChild(ta);
+          ta.focus(); ta.select();
+          copied = document.execCommand && document.execCommand("copy");
+          ta.remove();
+        } catch (err) { console.warn("[DEBUG-BTN] execCommand fallback failed:", err); }
+      }
+      if (copied) {
+        try { toast("✓ Debug-Snapshot in Zwischenablage · ins Claude-Chat einfügen"); } catch(_) {}
+      } else {
+        // Letzter Fallback: Snapshot in einem Prompt-Dialog zeigen damit User manuell kopieren kann
+        try { toast("Auto-Copy blockiert — Snap im Prompt zum manuellen Kopieren", "err"); } catch(_) {}
+        try {
+          window.prompt("Debug-Snapshot · Cmd+C kopieren, dann ins Claude-Chat einfügen:", snap);
+        } catch(_) {
+          alert("Snapshot:\n\n" + snap);
+        }
+      }
     });
+  } else {
+    console.warn("[DEBUG-BTN] Button-Element 'debugSnapshotBtn' NICHT im DOM gefunden — Render-Timing-Issue?");
   }
 
   const printBtnEl = document.getElementById("printWelleBtn");
