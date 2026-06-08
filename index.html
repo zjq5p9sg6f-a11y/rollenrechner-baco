@@ -6630,7 +6630,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.104.1";
+  const APP_VERSION = "v1.99.105";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -11026,45 +11026,42 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const subJobs = candidates.map(c => ({ mr: c.mr, haupt: c.haupt, nebenSlots: c.nebenSlots }));
       const master = calcMasterWelle(subJobs);
       if (master && master.ok) {
-        // v1.99.104 KRITISCH · MATERIAL-KONTAMINATIONS-CHECK
-        // calcMasterWelle prüft NUR ob alle Folger-Cuts auf Master fallen.
-        // ABER NICHT ob ÜBERZÄHLIGE Master-Cuts in Folger-MR-Bereich liegen.
-        // Beispiel: A1 Haupt 30 (21 cuts), A2 Haupt 155 (7 cuts) — Master hat
-        // alle A2-Cuts ✓, aber A1's 30er-Grid schneidet A2-Material in 24+
-        // Stücke statt 6. A2 würde NIE auf dieser Welle gefahren werden ohne
-        // Material-Schrott. UI sagte 'OK' → Werker fährt Garbage.
-        const contaminated = [];
+        // v1.99.105 · MATERIAL-KONTAMINATION als WARN (nicht Hard-Exclude).
+        // v1.99.104 hatte hart ausgeschlossen — das war zu strikt für legitime
+        // Vielfaches-Cluster wie A1 H30 + A3 H60 (30er-Grid schneidet 60er-
+        // Wunschrolle in 2× 30er-Streifen — Material-Verlust nein, aber
+        // Werker-Wunsch wird nicht erfüllt).
+        // Entscheidung: physisch möglich → zeigen + WARNEN. Werker beurteilt.
+        const contamination = [];
         for (let vjIdx = 1; vjIdx < master.validJobs.length; vjIdx++) {
           const vj = master.validJobs[vjIdx];
           const cutsInMR = (master.cuts || []).filter(c => c >= vj.mrLeft - 0.5 && c <= vj.mrRight + 0.5);
           const wantedCount = (vj.cuts && vj.cuts.length) || 0;
           if (cutsInMR.length > wantedCount + 0.5) {
-            contaminated.push({
+            contamination.push({
               vjIdx, vj,
               overflow: cutsInMR.length - wantedCount,
               cutsInMR: cutsInMR.length,
-              wanted: wantedCount
+              wanted: wantedCount,
+              origIdx: candidates[vjIdx] && candidates[vjIdx]._origIdx
             });
           }
-        }
-        if (contaminated.length > 0) {
-          // Schlimmsten kontaminierten Folger raus, retry
-          contaminated.sort((a, b) => b.overflow - a.overflow);
-          const worst = contaminated[0];
-          const removed = candidates[worst.vjIdx];
-          excluded.push({
-            origIdx: removed._origIdx,
-            conflictCount: worst.overflow,
-            reason: `Material-Kontamination: ${worst.overflow} Master-Cuts schneiden A${removed._origIdx + 1}-Material an unerwünschten Positionen (${worst.cutsInMR} cuts in MR, nur ${worst.wanted} gewünscht)`
-          });
-          candidates.splice(worst.vjIdx, 1);
-          continue;
         }
         // idx → origIdx zurück mappen für Display
         master.validJobs.forEach(vj => {
           const c = candidates[vj.idx];
           if (c) { vj.origIdx = c._origIdx; vj.idx = c._origIdx; }
         });
+        // Kontaminierte als WARN ins master.contamination Array — UI zeigt es als Warning
+        if (contamination.length > 0) {
+          master.contamination = contamination.map(c => ({
+            origIdx: c.origIdx,
+            overflow: c.overflow,
+            wanted: c.wanted,
+            cutsInMR: c.cutsInMR,
+            label: `A${c.origIdx + 1}`
+          }));
+        }
         return {
           master,
           excluded,
@@ -12455,6 +12452,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
         updateWerkerFormel(master, out);
         const qScore = calcQualityScore(master, out);
         const alerts = master.alerts || [];
+        // v1.99.105: Material-Kontamination-Warnung an OBERSTE Stelle
+        if (master.contamination && master.contamination.length > 0) {
+          const lines = master.contamination.map(c =>
+            `&nbsp;&nbsp;• <strong>${c.label}</strong>: Master macht <strong>${c.cutsInMR} Schnitte</strong> in ${c.label}-Material — der Auftrag will nur <strong>${c.wanted}</strong>. <strong>${c.overflow} überzählige Cuts</strong> würden die ${c.label}-Schmalrollen in kleinere Stücke zerteilen.`
+          ).join("<br>");
+          alerts.unshift({ type: "warn",
+            msg: `<strong>⚠ MATERIAL-KONTAMINATION · WERKER-ENTSCHEIDUNG NÖTIG:</strong><br>${lines}<br>&nbsp;&nbsp;<em>Tipp: ${master.contamination.length === 1 ? "diesen Auftrag" : "diese Aufträge"} aus dem Cluster entfernen ODER bewusst akzeptieren wenn die zusätzlichen Schnitte unkritisch sind (z.B. Material-Streifen die später kombiniert werden).</em>` });
+        }
         // Ratio-Pattern-Tipp (z.B. "A2 60mm ≈ 2× A1 30mm → jedes 2. Messer nutzen")
         const ratioTips = detectRatioPattern(master.validJobs);
         if (ratioTips) {
