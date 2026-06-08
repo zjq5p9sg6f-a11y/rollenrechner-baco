@@ -9105,6 +9105,34 @@ audio.team-player-audio::-webkit-media-controls-panel {
         kumPos += getMachine().SCHNEIDEEINHEIT;
         continue;
       }
+      // v1.99.102 KRITISCHER FIX: Schneidbuchse expliziter Branch.
+      // ELSE-Pfad behandelt sie zwar (mit seg.name), aber unklar als Distanzring
+      // gestyled. Werker brauchen klaren Marker + Cut-Positionen-Aufschlüsselung.
+      if (seg.kind === "buchse") {
+        const cutLines = (seg.cuts || []).map((relPos, i) => {
+          const absPos = kumPos + relPos;
+          const delta = MITTE - absPos;
+          const cutTxt = Math.abs(delta) < 0.4 ? "Mitte" : `Mitte ${delta > 0 ? "+" : ""}${fmtW(delta, 1)}`;
+          return `Cut ${i+1}: @ ${fmtW(absPos, 1)} (${cutTxt})`;
+        }).join(" · ");
+        const row = document.createElement("div");
+        row.className = "stueck-row";
+        row.dataset.segIdx = String(origIdx);
+        row.dataset.segKind = "buchse";
+        row.dataset.segBreite = String(seg.breite);
+        row.innerHTML = `
+          <div class="stueck-nr schneid" style="background:#00d4ff;color:#001a22">${nr++}</div>
+          <div>
+            <div class="stueck-name"><span class="icon" style="background:linear-gradient(90deg,#00d4ff 0%,#00d4ff 50%,#0099cc 50%,#0099cc 100%)"></span>${seg.name || "Schneidbuchse"} <span style="color:#00d4ff;font-size:10px;font-weight:700;letter-spacing:0.06em">MULTI-CUT</span></div>
+            <div class="stueck-detail">${cutLines || "—"}</div>
+          </div>
+          <div class="stueck-mass">${seg.breite} mm</div>
+          <div class="stueck-pos">@ ${fmtW(kumPos, 1)} mm</div>
+        `;
+        seqEl.appendChild(row);
+        kumPos += seg.breite;
+        continue;
+      }
       // Park-Ring oder Distanzring (innen)
       const cls = seg.kind === "park" ? "park" : "distanz";
       const swatch =
@@ -15375,7 +15403,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.101";
+    const PRINT_VERSION = "v1.99.102";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
@@ -16094,6 +16122,29 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <td class="pos">@ ${fmtW(kumPos, 1)} mm</td>
         </tr>`;
         kumPos += seg.breite;
+        continue;
+      }
+      // v1.99.102 KRITISCHER FIX: Schneidbuchse-Branch in Print-Sequenz.
+      // Vorher fehlte dieser komplett → Buchsen wurden NICHT gerendert UND ihre
+      // Breite nicht in kumPos gezählt → ALLE nachfolgenden Welle-Positionen
+      // waren um die Summe der Buchsen-Breiten (z.B. 4×30=120mm) zu klein.
+      // Werker-Mass-Berechnung in Visualisierung war korrekt, Sequenz aber falsch.
+      if (seg.kind === "buchse") {
+        const cutLines = (seg.cuts || []).map((relPos, i) => {
+          const absPos = kumPos + relPos;
+          const cutDelta = MITTE - absPos;
+          const cutTxt = Math.abs(cutDelta) < 0.4 ? "Mitte" : `Mitte ${cutDelta > 0 ? "+" : ""}${fmtW(cutDelta, 1)}`;
+          return `Cut ${i+1}: @ ${fmtW(absPos, 1)} mm (${cutTxt})`;
+        }).join(" · ");
+        seqHtml += `<tr class="pm-schneid" style="page-break-inside:avoid;break-inside:avoid;background:rgba(0,212,255,0.08)">
+          <td class="check"></td>
+          <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
+          <td class="bauteil"><strong>${escape(seg.name || "Schneidbuchse")}</strong> <span class="pm-badge-trennung" style="background:#00d4ff;color:#001a22">MULTI-CUT</span><br><small>${escape(cutLines || "—")}</small></td>
+          <td class="mass">${seg.breite} mm</td>
+          <td class="pos">@ ${fmtW(kumPos, 1)} mm</td>
+        </tr>`;
+        kumPos += seg.breite;
+        continue;
       }
     }
     // Euromac Post-Step: Klemm-Distanzring
