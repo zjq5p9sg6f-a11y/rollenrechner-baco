@@ -10431,10 +10431,29 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const nebenSpace = nebenSpec.reduce((s,x)=>s+x.anz*x.breite, 0);
       const N = Math.floor((mr - nebenSpace) / haupt);
       if (N < 1) continue;
-      const besaeumung = (mr - N*haupt - nebenSpace) / 2;
+      const totalRest = mr - N*haupt - nebenSpace;
+      // v1.99.96: User-Trim-Strategie respektieren statt fest symmetrisch.
+      // Vorher: Primary's Besäumung war hardcoded sym (besaeumung = totalRest/2).
+      // Bei User-Wechsel auf 'asym-l' / 'asym-r' wurde Master-Welle nicht live
+      // aktualisiert obwohl calc() lief — weil calcMasterWelle die Strategie
+      // ignorierte. Jetzt: User-Mode wird vor cuts-Berechnung gelesen.
+      let _trimMode = "sym";
+      if (typeof readTrimMode === "function") {
+        try { _trimMode = readTrimMode(getMachine().id) || "sym"; } catch (_) {}
+      }
+      let besaeumungL, besaeumungR;
+      if (totalRest <= 0.001) {
+        besaeumungL = 0; besaeumungR = 0;
+      } else if (_trimMode === "asym-l") {
+        besaeumungL = totalRest; besaeumungR = 0;
+      } else if (_trimMode === "asym-r") {
+        besaeumungL = 0; besaeumungR = totalRest;
+      } else {
+        besaeumungL = totalRest / 2; besaeumungR = totalRest / 2;
+      }
       const mrLeft = getMachine().WELLE_MITTE - mr/2;
       const cuts = [];
-      let p = mrLeft + besaeumung;
+      let p = mrLeft + besaeumungL;
       cuts.push(p);
       for (let i = 0; i < N; i++) { p += haupt; cuts.push(p); }
       for (const sp of nebenSpec) {
@@ -10443,9 +10462,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
       validJobs.push({
         idx, mr, haupt, nebenSpec, N,
         cuts, mrLeft, mrRight: mrLeft + mr,
-        besaeumung, besaeumungL: besaeumung, besaeumungR: besaeumung,
-        totalRest: mr - N*haupt - nebenSpace,
-        versatz: 0, asymmetric: false
+        besaeumung: (besaeumungL + besaeumungR) / 2,
+        besaeumungL, besaeumungR,
+        totalRest,
+        versatz: 0, asymmetric: Math.abs(besaeumungL - besaeumungR) > 0.05,
+        trimMode: _trimMode
       });
     }
     if (validJobs.length < 2) return null;
@@ -15237,7 +15258,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.95";
+    const PRINT_VERSION = "v1.99.96";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
