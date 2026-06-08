@@ -9971,7 +9971,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
           }
         }
         saveClusterJobs();
-        if (lastValid) renderWelle(lastValid);
+        // v1.99.101: calc() statt renderWelle(lastValid) — sonst läuft nur
+        // Welle-Re-Render mit alten 'out'-Cache, aber keine frische Auswertung.
+        // calc() baut out neu aus aktuellen Inputs + ruft renderWelle korrekt.
+        if (typeof calc === "function") calc();
       });
     });
     cont.querySelectorAll("[data-cremove]").forEach(btn => {
@@ -11129,16 +11132,32 @@ audio.team-player-audio::-webkit-media-controls-panel {
       return;
     }
     // Sammle valide Folgeaufträge — origIdx = position in clusterJobs + 1 (Primary = 0)
+    // v1.99.101: Werker-Bug 'wenn ich mist eintrage wie 15 mm wird es nicht
+    // als rot angezeigt'. Folger mit teilweise eingetippten aber ungültigen
+    // Werten (haupt < SE_MIN) bekommen jetzt expliziten conflict-Status.
     const followJobs = [];
-    clusterJobs.forEach((j) => {
+    const invalidFollowSlots = []; // {slotIdx, reason} für rote Markierung
+    const _seMinF = getMachine().SCHNEIDEEINHEIT;
+    clusterJobs.forEach((j, slotIdx) => {
       const mr = parseFloat((j.mr || "").replace(",", ".")) || 0;
       const haupt = parseFloat((j.haupt || "").replace(",", ".")) || 0;
       const nb = parseFloat((j.nebenBreite || "").replace(",", ".")) || 0;
       const na = parseInt(j.nebenAnz || "0") || 0;
-      if (mr > 0 && haupt >= getMachine().SCHNEIDEEINHEIT) {
+      if (mr > 0 && haupt >= _seMinF) {
         followJobs.push({ mr, haupt, nebenSlots: nb > 0 && na > 0 ? [{ breite: nb, anz: na }] : [] });
       } else {
-        followJobs.push(null); // invalid slot — bleibt neutral, kein Status
+        followJobs.push(null);
+        // Markiere als "conflict" wenn Werker schon WERTE eingetippt hat — aber ungültig.
+        // Komplett leer (kein mr/haupt) → bleibt neutral (Werker hat noch nicht angefangen)
+        const hasAnyInput = (j.mr && j.mr.trim() !== "") || (j.haupt && j.haupt.trim() !== "");
+        if (hasAnyInput) {
+          let reason = "";
+          if (haupt > 0 && haupt < _seMinF) reason = `Haupt ${haupt} mm < SE-Min ${_seMinF} mm`;
+          else if (mr <= 0) reason = "MR fehlt oder ungültig";
+          else if (haupt <= 0) reason = "Haupt fehlt";
+          else reason = "ungültige Werte";
+          invalidFollowSlots.push({ slotIdx, reason });
+        }
       }
     });
     // Filter nur valid für Engine — aber tracke Slot-Idx fürs Mapping
@@ -11191,9 +11210,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
     clearClusterJobStatus();
     const primaryDiv = cont.querySelector(".cluster-job-primary");
     if (primaryDiv && reachedSlots.has(0)) primaryDiv.setAttribute("data-cluster-status", "ok");
+    // v1.99.101: invalide Folger (Werker hat Werte eingetippt aber ungültig) als conflict
+    const invalidSlotsMap = new Map(invalidFollowSlots.map(x => [x.slotIdx, x.reason]));
     cont.querySelectorAll(".cluster-job:not(.cluster-job-primary)").forEach((div, slotIdx) => {
       const mappedSlot = slotIdx + 1; // Primary = 0, A2 = 1, ...
-      if (excludedSlots.has(mappedSlot)) {
+      if (invalidSlotsMap.has(slotIdx)) {
+        div.setAttribute("data-cluster-status", "conflict");
+        div.setAttribute("title", `A${slotIdx + 2} ungültig — ${invalidSlotsMap.get(slotIdx)}. Wird in Master-Welle ignoriert.`);
+      } else if (excludedSlots.has(mappedSlot)) {
         div.setAttribute("data-cluster-status", "conflict");
       } else if (reachedSlots.has(mappedSlot)) {
         div.setAttribute("data-cluster-status", "ok");
@@ -15351,7 +15375,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.100";
+    const PRINT_VERSION = "v1.99.101";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
