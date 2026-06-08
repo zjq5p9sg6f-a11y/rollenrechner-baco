@@ -6630,7 +6630,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.105";
+  const APP_VERSION = "v1.99.106";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -10836,6 +10836,21 @@ audio.team-player-audio::-webkit-media-controls-panel {
       // Distanzring vor diesem Bauteil
       if (prevEnd != null) {
         const dist = wStart - prevEnd;
+        // v1.99.106 KRITISCH · BUCHSE-SE-ÜBERLAPPUNG-DETECTION
+        // Wenn dist < 0 → Bauteile überlappen sich physisch. Tritt auf wenn
+        // Schneidbuchse zu nahe an einer Standard-SE platziert wird. Engine
+        // war zuvor 'silent' bei dist <= 0 (nur if dist > 0.001 → distanz).
+        // Werker-Konsequenz: Welle ist physisch nicht bestückbar — Buchse
+        // würde Standard-SE überlappen. MUSS als Hard-Fail behandelt werden.
+        if (dist < -0.5) {
+          return {
+            ok: false,
+            error: `Buchse/SE-Überlappung Welle-Pos ${prevEnd.toFixed(1)} ↔ ${wStart.toFixed(1)} (Überlappung ${(-dist).toFixed(1)}mm) — Schneidbuchsen-Resolver hat Buchse zu nah an Standard-SE platziert. Cluster physisch nicht bestückbar.`,
+            conflictDetails: `Letzte Bauteil endete bei ${prevEnd.toFixed(1)}mm, aktuelles Bauteil beginnt bei ${wStart.toFixed(1)}mm — ${(-dist).toFixed(1)}mm Überlappung.`,
+            conflicts: [{ posA: prevEnd, posB: wStart, jobA: 0, jobB: 0, distance: -dist }],
+            validJobs
+          };
+        }
         if (dist > 0.001) innerSegs.push({ kind: "distanz", breite: dist, name: `Distanzring Master`, short: "D" });
       } else {
         firstStart = wStart;
