@@ -8118,34 +8118,54 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const w = seg.breite * pxPerMM;
 
       if (seg.kind === "rest") {
-        // v1.99.91: Rest auf gleiche Höhe wie SE + Distanz (barTop+4, barH-8).
-        // Vorher (v1.95): barTop+8, barH-16 → Rest stand 4px unter/über SE eingerückt.
-        // Werker-Spec: Rest = Trim-Bereich auf der Welle hat physikalisch dieselbe
-        // Bestückungs-Höhe wie SE/Distanzringe (nur leer).
-        svgW(g, "rect", { x: x, y: barTop + 4, width: w, height: barH - 8, rx: 2,
-          fill: "rgba(255,255,255,0.025)", stroke: "rgba(0,230,118,0.18)",
-          "stroke-width": "0.6", "stroke-dasharray": "4 3" });
-        svgW(g, "rect", { x: x, y: barTop + 4, width: w, height: barH - 8, rx: 2,
-          fill: "url(#pRest)", opacity: "0.55" });
-        if (w > 30) {
-          // v1.95: Stack-Auflösung direkt in der Zeichnung anzeigen — Werker sieht
-          // sofort welche Distanzring-Größen er aufschieben muss
-          const stackTxt = (seg.fill && Object.keys(seg.fill).length > 0)
-            ? formatStackBreakdown(seg.fill, 5)
-            : "";
-          const hasStack = stackTxt && w > 70;
-          // Haupt-Label "Rest XX"
-          svgW(g, "text", { x: x + w/2, y: barTop + barH/2 + (hasStack ? -2 : 4), "text-anchor": "middle",
-            fill: "rgba(0,230,118,0.7)", "font-size": "10.5", "font-weight": "800",
-            "letter-spacing": "0.04em", "font-family": "inherit" },
-            `Rest ${fmtW2(seg.breite)}`);
-          // Stack-Auflösung darunter (klein, monospace)
-          if (hasStack) {
-            svgW(g, "text", { x: x + w/2, y: barTop + barH/2 + 13, "text-anchor": "middle",
-              fill: "rgba(0,230,118,0.5)", "font-size": "8.5", "font-weight": "700",
-              "letter-spacing": "0.02em",
-              "font-family": "ui-monospace, SF Mono, monospace" },
-              stackTxt);
+        // v1.99.92: Rest jetzt als konkrete Distanzringe rendern (statt Schraffur).
+        // Werker baut den Trim physisch aus genau diesen Ringen auf — Visualisierung
+        // ist 1:1 die spätere Bestückung. Dezenter (opacity 0.75) damit klar ist:
+        // 'das ist Trim-Auffüllung, nicht Schmal-Bestückung'.
+        const distY = barTop + 4;
+        const distH = barH - 8;
+        const fillEntries = (seg.fill && Object.keys(seg.fill).length > 0)
+          ? Object.entries(seg.fill).map(([k, v]) => [parseFloat(k), v]).sort((a, b) => b[0] - a[0])
+          : [];
+        if (fillEntries.length > 0) {
+          let subX = x;
+          for (const [ringSize, count] of fillEntries) {
+            for (let i = 0; i < count; i++) {
+              const ringW = ringSize * pxPerMM;
+              if (ringW > 0.3) {
+                svgW(g, "rect", { x: subX, y: distY, width: ringW, height: distH, rx: 1.5,
+                  fill: "url(#gDistanz)", stroke: "rgba(0,255,138,0.40)",
+                  "stroke-width": "0.5", opacity: "0.75" });
+                svgW(g, "rect", { x: subX, y: distY, width: ringW, height: distH * 0.35, rx: 1.5,
+                  fill: "url(#gDistanzHi)", opacity: "0.6" });
+                if (ringW > 18) {
+                  svgW(g, "text", { x: subX + ringW/2, y: distY + distH/2 + 4,
+                    "text-anchor": "middle",
+                    fill: "rgba(4,30,14,0.85)", "font-size": "10", "font-weight": "800",
+                    "font-family": "inherit" }, fmtW2(ringSize));
+                }
+              }
+              subX += ringW;
+            }
+          }
+          // Trim-Label klein oben über der Ring-Gruppe
+          if (w > 30) {
+            svgW(g, "text", { x: x + w/2, y: barTop - 2,
+              "text-anchor": "middle",
+              fill: "rgba(0,230,118,0.6)", "font-size": "8.5", "font-weight": "700",
+              "letter-spacing": "0.10em", "font-family": "inherit" },
+              `Trim ${fmtW2(seg.breite)}`);
+          }
+        } else {
+          // Fallback: kein seg.fill (z.B. Rest unter Granularität) → dezente Box
+          svgW(g, "rect", { x: x, y: distY, width: w, height: distH, rx: 2,
+            fill: "rgba(255,255,255,0.025)", stroke: "rgba(0,230,118,0.18)",
+            "stroke-width": "0.6", "stroke-dasharray": "4 3" });
+          if (w > 30) {
+            svgW(g, "text", { x: x + w/2, y: barTop + barH/2 + 4, "text-anchor": "middle",
+              fill: "rgba(0,230,118,0.7)", "font-size": "10", "font-weight": "800",
+              "letter-spacing": "0.04em", "font-family": "inherit" },
+              `Rest ${fmtW2(seg.breite)}`);
           }
         }
       } else if (seg.kind === "park") {
@@ -14959,7 +14979,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.91";
+    const PRINT_VERSION = "v1.99.92";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
