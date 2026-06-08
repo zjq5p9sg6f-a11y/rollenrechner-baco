@@ -650,6 +650,31 @@ header.bar {
     0 0 0 1px rgba(255,154,60,0.32),
     inset 0 1px 0 rgba(255,255,255,0.28);
 }
+/* v1.99.97: Handbuch-Link bei Maschinen-Auswahl */
+.machine-handbuch-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 10px;
+  padding: 8px 14px;
+  background: rgba(0,212,255,0.08);
+  border: 1px solid rgba(0,212,255,0.32);
+  border-radius: 8px;
+  color: #00d4ff;
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: background 180ms ease, border-color 180ms ease, transform 180ms ease;
+}
+.machine-handbuch-link:hover {
+  background: rgba(0,212,255,0.20);
+  border-color: rgba(0,212,255,0.60);
+  transform: translateY(-1px);
+}
+.machine-handbuch-link:active { transform: translateY(0); }
+.machine-handbuch-link svg { color: #00d4ff; }
 @media (max-width: 600px) {
   .machine-bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 12px; }
   .machine-bar-label { font-size: 11px; }
@@ -5937,8 +5962,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <span class="machine-btn-label">DCM Panther</span>
         </button>
         <button type="button" class="machine-btn" data-machine="EUROMAC" role="tab" aria-selected="false">
-          <span class="machine-btn-label">Euromac</span>
+          <span class="machine-btn-label">Euromac TB 3.06P</span>
         </button>
+        <!-- v1.99.97: Handbuch-Link für Euromac (PDF im docs/ Ordner) -->
+        <a href="docs/euromac-handbuch-tb3-06p.pdf" target="_blank" rel="noopener"
+           class="machine-handbuch-link" id="euromacHandbuchLink"
+           title="Euromac TB 3.06P Bedienungs- und Wartungshandbuch (PDF)" aria-label="Euromac-Handbuch öffnen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          <span>Handbuch</span>
+        </a>
       </div>
       <div class="bahn-eich-bar" title="Bahn-Mitte-Offset (mm): Verschiebung der Stack-Mitte gegenüber der operativen Welle-Mitte. Positiv = Stack nach rechts. Pro Maschine separat einstellbar und gespeichert.">
         <label for="bahnOffsetInput" class="bahn-eich-label">
@@ -13609,7 +13641,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <p><strong>Beispiel:</strong> 208 Schmal-Hülsen à 30 mm → 34 Hülsen pro Rohr → 7 Rohhülsen einkaufen (Verschnitt 3 mm/Rohr).</p>
       `);
     }
-    // 5. Maschinen-Bar (Profile-Unterschiede)
+    // 5. Maschinen-Bar (Profile-Unterschiede + Handbuch-Tech-Specs aus Bedienungs-PDF)
     const machineBarLabel = document.querySelector(".machine-bar-label");
     if (machineBarLabel) {
       attachInfoBtn(machineBarLabel, "Maschinen-Profile · DCM vs Euromac", `
@@ -13620,14 +13652,22 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <li>Schneideeinheit asymmetrisch: 13 mm Schnitt v.l.</li>
           <li>Bei MR &gt; 1000 mm: Auto-Reduktion auf 2 Park (Best. 1236 mm), &gt; 1236: 1 Park (Best. 1354 mm)</li>
         </ul>
-        <p><strong>Euromac:</strong></p>
+        <p><strong>Euromac TB 3.06P</strong> <em>(aus Bedienungshandbuch 07/2013, Rev. 0)</em>:</p>
         <ul>
-          <li>Welle 1320 mm · Bestückung max 1120 mm</li>
+          <li><strong>Mech-Spec:</strong> Welle 1320 mm · Bestückung max 1120 mm</li>
+          <li><strong>Max Bahnbreite:</strong> 1300 mm (lt. Handbuch)</li>
+          <li><strong>Max MR-Ø:</strong> 1000 mm · <strong>max MR-Gewicht:</strong> 1500 kg</li>
+          <li><strong>Max Aufwickel-Ø:</strong> 600 mm</li>
+          <li><strong>Hülsen-Innen-Ø:</strong> Ab 76 / 150 / 152 mm · Auf 76 mm</li>
+          <li><strong>Geschwindigkeit:</strong> bis 500 m/min</li>
+          <li><strong>Pneumatik:</strong> 6 bar · 120 Nl/min · <strong>Strom:</strong> 3×400V 50Hz, 35 kW</li>
+          <li><strong>Geräusch:</strong> unter 80 dBA · <strong>Farbe:</strong> RAL 9002</li>
           <li>2× Parkringe à 50 mm pro Seite (= 100 mm)</li>
           <li>SE 10 mm v.l. + optionale Schneidebuchse (Multi-Cut bis 6× pro Block)</li>
           <li>Bei MR &gt; 1120 mm: Auto-Reduktion auf 1 Park</li>
         </ul>
-        <p><strong>Wann welche?</strong> DCM für hohe Stückzahlen (4-Park-Stabilität, 0.5-mm-Distanzringe nicht nötig). Euromac für feinere Schnitt-Geometrien (Schneidebuchse) und schmalere Schmalrollen ab 25 mm.</p>
+        <p><strong>📖 Volles Euromac-Handbuch</strong> (13 MB PDF) — Button "Handbuch" rechts oben in der Maschinen-Bar. Enthält Kapitel C.5.3 Schneidgruppe + C.5.5 Aufwickelhülsen + Wartung.</p>
+        <p><strong>Wann welche?</strong> DCM für hohe Stückzahlen (4-Park-Stabilität). Euromac für feinere Schnitt-Geometrien (Schneidebuchse) und schmalere Schmalrollen ab 25 mm.</p>
       `);
     }
   })();
@@ -15258,7 +15298,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.96";
+    const PRINT_VERSION = "v1.99.97";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
