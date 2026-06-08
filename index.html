@@ -9657,18 +9657,25 @@ audio.team-player-audio::-webkit-media-controls-panel {
     let mr = "—", haupt = "—", nebenBreite = "—", nebenAnz = "—";
     let flaeche = "—", lfm = "—";
     let auftragsNr = "—", kunde = "—", material = "—", bemerkung = "—";
-    if (lastValid && lastValid.mutter) {
-      mr = lastValid.mutter + " mm";
-      haupt = lastValid.schmal + " mm";
-      if (lastValid.nebenSlots && lastValid.nebenSlots.length) {
-        const slots = lastValid.nebenSlots;
-        if (slots.length === 1) {
-          nebenBreite = slots[0].breite + " mm";
-          nebenAnz = String(slots[0].anz);
-        } else {
-          nebenBreite = slots.map(s => s.breite).join("/") + " mm";
-          nebenAnz = String(slots.reduce((s,x)=>s+x.anz,0));
-        }
+    // v1.99.99: LIVE-Werte aus DOM-Inputs lesen statt aus lastValid-Cache.
+    // Vorher: bei Werten die Maschinen-Limits unterschreiten (z.B. Schmal 3 < SE 20)
+    // konnte lastValid hängen bleiben → A1 zeigte alten Stand während User schon
+    // weitergetippt hatte (39). Jetzt: was im Input steht, steht auch in A1.
+    const liveMr = (els.mutter && els.mutter.value || "").trim();
+    const liveSchmal = (els.schmal && els.schmal.value || "").trim();
+    if (liveMr) mr = liveMr + " mm";
+    else if (lastValid && lastValid.mutter) mr = lastValid.mutter + " mm";
+    if (liveSchmal) haupt = liveSchmal + " mm";
+    else if (lastValid && lastValid.schmal) haupt = lastValid.schmal + " mm";
+    // Neben-Slots aus lastValid (komplexer, Werker sieht die aktuelle Hetero-Bestückung)
+    if (lastValid && lastValid.nebenSlots && lastValid.nebenSlots.length) {
+      const slots = lastValid.nebenSlots;
+      if (slots.length === 1) {
+        nebenBreite = slots[0].breite + " mm";
+        nebenAnz = String(slots[0].anz);
+      } else {
+        nebenBreite = slots.map(s => s.breite).join("/") + " mm";
+        nebenAnz = String(slots.reduce((s,x)=>s+x.anz,0));
       }
     }
     // Mengen direkt aus Hauptrechner-Inputs (lastValid hat sie nicht direkt als Strings)
@@ -15303,7 +15310,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.98";
+    const PRINT_VERSION = "v1.99.99";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
