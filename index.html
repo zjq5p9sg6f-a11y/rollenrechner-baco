@@ -8259,17 +8259,19 @@ audio.team-player-audio::-webkit-media-controls-panel {
             fill: "rgba(255,255,255,0.32)", rx: 1
           });
         }
-        // B+C · Nutmesser als L-FORM (3mm Stufe + 7mm Vollhöhe) — eine zusammen-
-        // hängende gelbe Form. Stufe gehört zum Nutmesser, ist niedriger.
-        // Geometrie (DCM): 10mm Schneidring | 3mm Stufe (50% Höhe, Nutmesser) | 7mm Vollhöhe
+        // B+C · Nutmesser als zusammenhängende Form (3mm Spalt-Bereich + 7mm Hauptkörper).
+        // v1.99.90: Stufen-Höhen-Unterschied entfernt — alle Bestückungs-Komponenten
+        // (Schneidring, Nutmesser, Distanzring) haben jetzt EINE Höhe. Werker-Spec:
+        // physikalische Bestückung sitzt auf gleichem Durchmesser, nur Park-Ringe sind
+        // kleiner. Der ehemalige L-Form-Höhensprung (innerH × 0.94) zeigte die Schnitt-
+        // Geometrie an, war aber irreführend (sah aus wie Durchmesser-Unterschied).
+        // Cut-Position bleibt durch die weiße Cut-Marker-Linie (Z. 8313) klar lesbar.
         if ((bPx + cPx) > 0.5) {
           const xStufe = x + aPx;
           const xMain = x + aPx + bPx;
           const xR = x + w;
-          // v1.99.35: Stufe-Höhe FAST voll (94%) → Welle wird komplett überdeckt,
-          // L-Form ist noch ganz dezent sichtbar als Andeutung (3% oben + unten frei).
-          const stufeH = innerH * 0.94;
-          const stufeY = innerY + (innerH - stufeH) / 2;
+          const stufeH = innerH;       // war innerH * 0.94 → jetzt gleiche Höhe
+          const stufeY = innerY;       // war innerY + (innerH - stufeH) / 2
           // L-Form path: erst entlang oben des Hauptteils (xMain → xR), runde Ecke
           // rechts oben, runter, runde Ecke rechts unten, zurück zu xMain unten,
           // hoch bis Stufe-unten, links bis xStufe (Stufe-unten), hoch bis Stufe-oben,
@@ -14954,7 +14956,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.89";
+    const PRINT_VERSION = "v1.99.90";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
