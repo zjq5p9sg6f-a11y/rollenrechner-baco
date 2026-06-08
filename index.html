@@ -11109,6 +11109,25 @@ audio.team-player-audio::-webkit-media-controls-panel {
       clearClusterJobStatus();
       return;
     }
+    // v1.99.100: Primary explizit auf SE-Min prüfen.
+    // calcMasterWelle filtert Primary stillschweigend wenn haupt < SE_MIN — UI
+    // muss das deutlich machen, sonst zeigt A1 grünen 'ok'-Border obwohl Engine
+    // den Auftrag ignoriert.
+    const seMin = getMachine().SCHNEIDEEINHEIT;
+    const primaryInvalid = (out.schmal && out.schmal < seMin) ||
+      ((out.nebenSlots || []).some(s => s.breite && s.breite < seMin));
+    if (primaryInvalid) {
+      clearClusterJobStatus();
+      const primaryDiv = cont.querySelector(".cluster-job-primary");
+      if (primaryDiv) {
+        primaryDiv.setAttribute("data-cluster-status", "conflict");
+        const reason = (out.schmal < seMin)
+          ? `Haupt ${out.schmal}mm < SE-Min ${seMin}mm`
+          : `Neben-Breite < SE-Min ${seMin}mm`;
+        primaryDiv.setAttribute("title", `A1 Primary ungültig — ${reason}. Wird in Master-Welle ignoriert.`);
+      }
+      return;
+    }
     // Sammle valide Folgeaufträge — origIdx = position in clusterJobs + 1 (Primary = 0)
     const followJobs = [];
     clusterJobs.forEach((j) => {
@@ -12251,6 +12270,28 @@ audio.team-player-audio::-webkit-media-controls-panel {
           nebenSlots: nb > 0 && na > 0 ? [{ breite: nb, anz: na }] : []
         };
       });
+      // v1.99.100: Primary-SE-Validierung VOR resolveCluster.
+      // calcMasterWelle würde Primary stillschweigend ignorieren — Werker sieht
+      // grüne Master-Welle obwohl A1 in Wirklichkeit nicht gefahren werden kann.
+      const _seMin = getMachine().SCHNEIDEEINHEIT;
+      const _primaryHauptInvalid = primaryJob.haupt > 0 && primaryJob.haupt < _seMin;
+      const _primaryNebenInvalid = (primaryJob.nebenSlots || []).some(s => s.breite > 0 && s.breite < _seMin);
+      if (_primaryHauptInvalid || _primaryNebenInvalid) {
+        const reason = _primaryHauptInvalid
+          ? `A1 Haupt ${primaryJob.haupt} mm < Schneideeinheit ${_seMin} mm`
+          : `A1 Neben < Schneideeinheit ${_seMin} mm`;
+        if (sub) sub.innerHTML = `<strong style="color:var(--danger-color)">✗ A1 PRIMARY UNGÜLTIG</strong> · ${reason} · auf ${getMachine().label} nicht fahrbar`;
+        lastMaster = null;
+        renderWelleSvg(null);
+        renderWelleSequenz(null);
+        renderWelleHolliste(null);
+        updateKpiHero(null, null);
+        updateWerkerFormel(null, null);
+        renderWelleAlerts({ ok: false, alerts: [
+          { type: "danger", msg: `<strong>✗ Primary-Auftrag A1 nicht fahrbar:</strong> ${reason}. Korrigiere Haupt/Neben-Breite auf min ${_seMin} mm oder wechsle auf andere Maschine.` }
+        ]});
+        return;
+      }
       const allJobs = [primaryJob, ...followJobs];
       const resolved = resolveCluster(allJobs);
       const master = resolved.master;
@@ -15310,7 +15351,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.99";
+    const PRINT_VERSION = "v1.99.100";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
