@@ -2354,6 +2354,30 @@ header.bar {
 }
 .btn-print svg { width: 16px; height: 16px; }
 
+/* v1.99.103: Debug-Snapshot Button · cyan-Akzent für Dev-Tools */
+.btn-debug-snapshot {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid rgba(0,212,255,0.45);
+  border-radius: 7px;
+  color: #00d4ff;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  margin-right: 8px;
+}
+.btn-debug-snapshot:hover {
+  background: rgba(0,212,255,0.12);
+  border-color: #00d4ff;
+  box-shadow: 0 0 12px rgba(0,212,255,0.35);
+}
+.btn-debug-snapshot:active { transform: translateY(1px); }
+
 #welleSvg {
   width: 100%;
   height: auto;
@@ -6101,6 +6125,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="welle-sub" id="welleSubtitle">Werte eingeben um Bestückung zu berechnen</div>
         </div>
         <div class="welle-head-actions">
+          <!-- v1.99.103: Closed-Loop Debug-Snapshot · kompakter Text in Zwischenablage -->
+          <button class="btn-debug-snapshot" id="debugSnapshotBtn" type="button" tabindex="-1" title="Komplette Konstellation als Text in Zwischenablage kopieren · zum Posten in Claude-Chat für sofortigen Kontext">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M8 2v4M16 2v4M3 10h18M5 6h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><path d="M9 16l2 2 4-4"/></svg>
+            <span>Debug-Snapshot</span>
+          </button>
           <button class="btn-print" id="printWelleBtn" type="button" tabindex="-1" title="Drucken oder als PDF speichern — im Print-Dialog 'Als PDF speichern' wählen">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             <span>Drucken / PDF</span>
@@ -15403,7 +15432,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.102";
+    const PRINT_VERSION = "v1.99.103";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
@@ -16423,6 +16452,112 @@ body > *:not(#printMaster) { display: none !important; }
       console.error("[Print] window.print() failed:", e);
       if (typeof toast === "function") toast("Drucken nicht möglich: " + (e.message || e));
     }
+  }
+
+  // v1.99.103: Debug-Snapshot · komplette Konstellation als Text in Zwischenablage
+  // → Werker/Jan postet das in Claude-Chat → sofortiger Closed-Loop ohne PDF/Screenshot
+  function buildDebugSnapshot() {
+    const M = getMachine();
+    const trimMode = (typeof readTrimMode === "function") ? readTrimMode(M.id) : "sym";
+    const bahnOfsKey = "rr.bahnOffset." + M.id;
+    let bahnOfs = M.BAHN_MITTE_OFFSET_MM || 0;
+    try { const v = localStorage.getItem(bahnOfsKey); if (v != null) bahnOfs = parseFloat(v); } catch(_) {}
+    // Primary aus DOM
+    const primaryRaw = {
+      mr: (els.mutter && els.mutter.value) || "",
+      haupt: (els.schmal && els.schmal.value) || "",
+      flaeche: (els.flaeche && els.flaeche.value) || "",
+      lfm: (els.lfm && els.lfm.value) || "",
+    };
+    // Cluster aus clusterJobs
+    const clusterRaw = (typeof clusterJobs !== "undefined" && Array.isArray(clusterJobs))
+      ? clusterJobs.map((j, i) => ({
+          slot: `A${i+2}`,
+          mr: j.mr || "",
+          haupt: j.haupt || "",
+          nebenBreite: j.nebenBreite || "",
+          nebenAnz: j.nebenAnz || "",
+        }))
+      : [];
+    const lv = (typeof lastValid !== "undefined" && lastValid) ? lastValid : null;
+    const lm = (typeof lastMaster !== "undefined" && lastMaster) ? lastMaster : null;
+    const ts = new Date().toISOString().replace("T", " ").replace(/\..+/, "");
+    let txt = `═══ RR-DEBUG ${ts} · ${PRINT_VERSION} ═══\n`;
+    txt += `MACHINE: ${M.id} · Park ${M.PARK_PRO_SEITE}/Seite · Bestück ${M.BESTUECKUNGS_BREITE}mm · Welle ${M.WELLE}mm\n`;
+    txt += `SETTINGS: trim=${trimMode} · bahnOfs=${bahnOfs}mm · SE=${M.SCHNEIDEEINHEIT}mm · SchnittOfs=${M.SCHNITT_OFFSET}mm\n`;
+    txt += `\n— Primary (A1) —\n`;
+    txt += `INPUT: MR=${primaryRaw.mr || "—"} | Haupt=${primaryRaw.haupt || "—"} | Fläche=${primaryRaw.flaeche || "—"}qm | LFM=${primaryRaw.lfm || "—"}\n`;
+    if (lv && lv.ok) {
+      txt += `CALC:  N=${lv.nutzen} · restMM=${lv.restMM} (L=${lv.restL?.toFixed(1)}/R=${lv.restR?.toFixed(1)}) · innerLen ?\n`;
+      txt += `KPIs:  totalSaetze=${lv.totalSaetze} · huelsen=${lv.huelsen} · tNetto=${lv.tNettoMin?.toFixed(1)}min · tBrutto=${lv.tBruttoMin?.toFixed(1)}min\n`;
+    } else if (lv) {
+      txt += `CALC:  ungültig (ok=false)\n`;
+    } else {
+      txt += `CALC:  noch keine valid-berechnung (lastValid=null)\n`;
+    }
+    if (clusterRaw.length > 0) {
+      txt += `\n— Cluster (${clusterRaw.length} Folgejobs) —\n`;
+      clusterRaw.forEach(c => {
+        txt += `${c.slot}: MR=${c.mr || "—"} | Haupt=${c.haupt || "—"}`;
+        if (c.nebenBreite) txt += ` | Neben=${c.nebenBreite}×${c.nebenAnz || 0}`;
+        txt += `\n`;
+      });
+    }
+    if (lm && lm.ok) {
+      txt += `\n— Master-Welle (active) —\n`;
+      txt += `validJobs=${lm.validJobs?.length || 0} · mergedCount=${lm.mergedCount} · innerLen=${lm.innerLen?.toFixed(1)}\n`;
+      const seCount = (lm.innerSegs || []).filter(s => s.kind === "schneid").length;
+      const buCount = (lm.innerSegs || []).filter(s => s.kind === "buchse").length;
+      txt += `SE=${seCount} · Schneidbuchsen=${buCount} · cuts(Union)=${lm.cuts?.length || 0}\n`;
+      if (lm.validJobs) {
+        lm.validJobs.forEach(j => {
+          txt += `  J${j.idx}: MR=${j.mr} H=${j.haupt} N=${j.N} · besL=${j.besaeumungL?.toFixed(1)}/besR=${j.besaeumungR?.toFixed(1)} · versatz=${j.versatz}${j.asymmetric ? " ASYM" : ""}\n`;
+        });
+      }
+    } else if (lm) {
+      txt += `\n— Master-Welle: KEIN gültiger Master (ok=false)\n`;
+    }
+    // localStorage-Keys (relevant)
+    txt += `\n— localStorage —\n`;
+    const lsKeys = ["rr.trimMode."+M.id, "rr.bahnOffset."+M.id, "rr.clusterJobs."+M.id, "rr.primaryJobId."+M.id];
+    lsKeys.forEach(k => {
+      try {
+        const v = localStorage.getItem(k);
+        if (v != null) {
+          const trim = v.length > 80 ? v.slice(0, 77) + "…" : v;
+          txt += `${k} = ${trim}\n`;
+        }
+      } catch(_) {}
+    });
+    // JSON-Block für maschinen-parsing
+    txt += `\n═══ JSON ═══\n`;
+    const jsonData = {
+      v: PRINT_VERSION, ts, machine: M.id,
+      park: M.PARK_PRO_SEITE, trim: trimMode, bahnOfs,
+      primary: primaryRaw,
+      cluster: clusterRaw,
+      lastValid: lv ? { ok: lv.ok, nutzen: lv.nutzen, restMM: lv.restMM, totalSaetze: lv.totalSaetze, huelsen: lv.huelsen } : null,
+      master: lm && lm.ok ? {
+        ok: true, mergedCount: lm.mergedCount, innerLen: lm.innerLen,
+        SE: (lm.innerSegs || []).filter(s => s.kind === "schneid").length,
+        Buchsen: (lm.innerSegs || []).filter(s => s.kind === "buchse").length,
+        cuts: lm.cuts?.length || 0,
+        validJobs: lm.validJobs?.map(j => ({ idx: j.idx, mr: j.mr, haupt: j.haupt, N: j.N, besL: +(j.besaeumungL?.toFixed(2)), besR: +(j.besaeumungR?.toFixed(2)), versatz: j.versatz, asym: j.asymmetric || false })),
+      } : null,
+    };
+    txt += JSON.stringify(jsonData);
+    txt += `\n═══ END ═══`;
+    return txt;
+  }
+  const debugBtnEl = document.getElementById("debugSnapshotBtn");
+  if (debugBtnEl) {
+    debugBtnEl.addEventListener("click", async () => {
+      const snap = buildDebugSnapshot();
+      const ok = await copyText(snap);
+      if (ok) toast("Debug-Snapshot in Zwischenablage · ins Claude-Chat einfügen");
+      else toast("Copy fehlgeschlagen — Snap in Konsole", "err");
+      console.log("[DEBUG-SNAPSHOT]\n" + snap);
+    });
   }
 
   const printBtnEl = document.getElementById("printWelleBtn");
