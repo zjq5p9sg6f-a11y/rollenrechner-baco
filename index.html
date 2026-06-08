@@ -8118,11 +8118,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const w = seg.breite * pxPerMM;
 
       if (seg.kind === "rest") {
-        // v1.95 Polish: Rest-Bereich dezent (nicht mehr knall-grüne Diagonal-Streifen)
-        svgW(g, "rect", { x: x, y: barTop + 8, width: w, height: barH - 16, rx: 2,
+        // v1.99.91: Rest auf gleiche Höhe wie SE + Distanz (barTop+4, barH-8).
+        // Vorher (v1.95): barTop+8, barH-16 → Rest stand 4px unter/über SE eingerückt.
+        // Werker-Spec: Rest = Trim-Bereich auf der Welle hat physikalisch dieselbe
+        // Bestückungs-Höhe wie SE/Distanzringe (nur leer).
+        svgW(g, "rect", { x: x, y: barTop + 4, width: w, height: barH - 8, rx: 2,
           fill: "rgba(255,255,255,0.025)", stroke: "rgba(0,230,118,0.18)",
           "stroke-width": "0.6", "stroke-dasharray": "4 3" });
-        svgW(g, "rect", { x: x, y: barTop + 8, width: w, height: barH - 16, rx: 2,
+        svgW(g, "rect", { x: x, y: barTop + 4, width: w, height: barH - 8, rx: 2,
           fill: "url(#pRest)", opacity: "0.55" });
         if (w > 30) {
           // v1.95: Stack-Auflösung direkt in der Zeichnung anzeigen — Werker sieht
@@ -14956,7 +14959,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.90";
+    const PRINT_VERSION = "v1.99.91";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
