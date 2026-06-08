@@ -1561,6 +1561,83 @@ header.bar {
   color: var(--kpi-accent, #00e676);
   flex-shrink: 0;
 }
+/* v1.99.95: ⓘ-Info-Buttons für Onboarding-Hintergründe */
+.info-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: rgba(255,255,255,0.85);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 6px;
+  vertical-align: middle;
+  transition: background 180ms ease, border-color 180ms ease;
+  font-family: ui-monospace, SF Mono, monospace;
+  line-height: 1;
+}
+.info-btn:hover {
+  background: rgba(0,212,255,0.20);
+  border-color: rgba(0,212,255,0.55);
+  color: #00d4ff;
+}
+.info-btn:focus {
+  outline: 2px solid rgba(0,212,255,0.5);
+  outline-offset: 1px;
+}
+.info-popover {
+  position: absolute;
+  z-index: 9000;
+  max-width: 360px;
+  min-width: 240px;
+  padding: 14px 16px 12px;
+  background: linear-gradient(180deg, #1c1f24 0%, #14171b 100%);
+  border: 1px solid rgba(0,212,255,0.35);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px -8px rgba(0,0,0,0.65), 0 0 24px -8px rgba(0,212,255,0.25);
+  color: #e5e5e5;
+  font-size: 12.5px;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  pointer-events: auto;
+  animation: infoPopIn 180ms ease;
+}
+@keyframes infoPopIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.info-popover-title {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #00d4ff;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0,212,255,0.18);
+}
+.info-popover-body strong { color: #ffd166; font-weight: 700; }
+.info-popover-body code { background: rgba(0,0,0,0.4); padding: 1px 5px; border-radius: 3px; font-size: 11.5px; color: #b4f8a0; }
+.info-popover-body ul { margin: 4px 0 4px 16px; padding: 0; }
+.info-popover-body li { margin-bottom: 2px; }
+.info-popover-close {
+  position: absolute;
+  top: 6px; right: 8px;
+  background: transparent;
+  border: 0;
+  color: rgba(255,255,255,0.5);
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+.info-popover-close:hover { color: #ff6b35; }
 .kpi-tile-val {
   font-size: 40px; font-weight: 900; line-height: 1;
   letter-spacing: -0.02em;
@@ -13276,6 +13353,59 @@ audio.team-player-audio::-webkit-media-controls-panel {
   }
 
   // ---------- toast ----------
+  // v1.99.95: Info-Popover-System für Onboarding-Hintergründe.
+  // attachInfoBtn(parentEl, "Titel", "<html>"): hängt einen ⓘ-Button neben das
+  // Element. Klick öffnet Popover; ESC oder Klick außerhalb schließt es.
+  // Nur ein Popover gleichzeitig sichtbar.
+  let _infoOpenPopover = null;
+  function closeInfoPopover() {
+    if (_infoOpenPopover) { _infoOpenPopover.remove(); _infoOpenPopover = null; }
+  }
+  document.addEventListener("click", (e) => {
+    if (!_infoOpenPopover) return;
+    if (_infoOpenPopover.contains(e.target)) return;
+    if (e.target.classList && e.target.classList.contains("info-btn")) return;
+    closeInfoPopover();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && _infoOpenPopover) closeInfoPopover();
+  });
+  function attachInfoBtn(parentEl, title, html) {
+    if (!parentEl) return;
+    const btn = document.createElement("button");
+    btn.className = "info-btn";
+    btn.type = "button";
+    btn.textContent = "i";
+    btn.setAttribute("aria-label", `Info: ${title}`);
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (_infoOpenPopover && _infoOpenPopover.dataset.owner === title) {
+        closeInfoPopover(); return;
+      }
+      closeInfoPopover();
+      const pop = document.createElement("div");
+      pop.className = "info-popover";
+      pop.dataset.owner = title;
+      pop.innerHTML = `<button class="info-popover-close" type="button" aria-label="Schließen">×</button>
+        <div class="info-popover-title">${title}</div>
+        <div class="info-popover-body">${html}</div>`;
+      pop.querySelector(".info-popover-close").addEventListener("click", closeInfoPopover);
+      // Position: unter dem Button, rechts ausgerichtet wenn nahe rechts
+      const rect = btn.getBoundingClientRect();
+      document.body.appendChild(pop);
+      const popRect = pop.getBoundingClientRect();
+      let leftPx = rect.left + window.scrollX - 8;
+      if (leftPx + popRect.width > window.innerWidth - 12) {
+        leftPx = window.innerWidth - popRect.width - 12;
+      }
+      if (leftPx < 8) leftPx = 8;
+      pop.style.left = `${leftPx}px`;
+      pop.style.top = `${rect.bottom + window.scrollY + 8}px`;
+      _infoOpenPopover = pop;
+    });
+    parentEl.appendChild(btn);
+  }
+
   function toast(msg, kind = "ok") {
     const t = document.createElement("div");
     t.className = "toast";
@@ -13395,6 +13525,91 @@ audio.team-player-audio::-webkit-media-controls-panel {
     calc();
     toast("Beispielwerte geladen");
   });
+
+  // v1.99.95: ⓘ-Info-Buttons an die wichtigsten Stellen anhängen (Onboarding).
+  // Inhalte sind Werker-Sprache: was misst es, wie wird's berechnet, wann ist's gut.
+  (function attachInfoButtons() {
+    // 1. KPI · Werker-Mass
+    const massHead = document.querySelector(".kpi-tile-mass .kpi-tile-head");
+    if (massHead) {
+      attachInfoBtn(massHead, "Werker-Mass · 1. Schneidkante v. rechts", `
+        <p><strong>Was misst es:</strong> Abstand vom rechten Wellenrand bis zur ersten (rechtesten) Schneidkante.</p>
+        <p><strong>Wofür der Werker es nutzt:</strong> Vor dem Schnitt-Start am Schneidring rechts kontrollieren — Soll-Mass muss mit Ist-Mass übereinstimmen, sonst sitzt die Schneideeinheit falsch.</p>
+        <p><strong>Berechnung:</strong> <code>Welle-Breite − Position(rechtester Cut)</code></p>
+        <p><strong>Maschinen-Spezifika:</strong></p>
+        <ul>
+          <li>DCM Panther: Welle 1472 mm · Schnitt-Versatz 13 mm v.l. der SE</li>
+          <li>Euromac: Welle 1320 mm · Schnitt-Versatz 10 mm v.l. der SE</li>
+        </ul>
+        <p>Inkl. Park-Ringe rechts (DCM: 4× 59 mm; Euromac: 2× 50 mm), bei breiter MR automatisch reduziert.</p>
+      `);
+    }
+    // 2. KPI · Material-Ausnutzung
+    const yieldHead = document.querySelector(".kpi-tile-yield .kpi-tile-head");
+    if (yieldHead) {
+      attachInfoBtn(yieldHead, "Material-Ausnutzung · Nutzen pro Mutterrolle", `
+        <p><strong>Was misst es:</strong> Prozent der MR-Breite die tatsächlich in Schmalrollen umgesetzt wird (Rest = Besäumung/Trim).</p>
+        <p><strong>Berechnung:</strong> <code>(N × Schmal + Σ Neben-Slots) ÷ MR × 100</code></p>
+        <p><strong>Bewertung-Skala:</strong></p>
+        <ul>
+          <li><strong>≥ 99 %</strong> perfekt (kein Material-Verlust)</li>
+          <li>95 – 99 % gut</li>
+          <li>88 – 95 % ok</li>
+          <li>&lt; 88 % prüfen — evtl. Schmal/MR-Kombination ungeschickt</li>
+        </ul>
+        <p>Bei asymmetrischer Besäumung wird Trim ungleich auf L/R verteilt, um eine zusätzliche Schneideeinheit zu sparen.</p>
+      `);
+    }
+    // 3. KPI · Schmalrollen / MR
+    const countHead = document.querySelector(".kpi-tile-count .kpi-tile-head");
+    if (countHead) {
+      attachInfoBtn(countHead, "Schmalrollen pro Mutterrolle · Nutzen N", `
+        <p><strong>Was misst es:</strong> Wie viele Schmal-Bahnen entstehen aus EINER Mutterrolle bei der angegebenen Schmal-Breite.</p>
+        <p><strong>Berechnung:</strong> <code>N = ⌊ MR-Breite ÷ Schmal-Breite ⌋</code></p>
+        <p>Bei <strong>Hetero-Aufträgen</strong> (Haupt + Neben-Slots) wird Summe aller Schmal-Bahnen pro MR gezeigt. Die Schneideeinheiten-Zahl entspricht der Anzahl Cuts.</p>
+        <p><strong>Beispiel:</strong> MR 1000 mm, Schmal 122 mm → ⌊ 1000/122 ⌋ = 8 Schmal, Trim 24 mm gesamt.</p>
+      `);
+    }
+    // 4. KPI · Hülsen-Bedarf · Brodbeck UNI 1000
+    const huelseHead = document.querySelector(".kpi-tile-huelse .kpi-tile-head");
+    if (huelseHead) {
+      attachInfoBtn(huelseHead, "Hülsen-Bedarf · Brodbeck UNI 1000", `
+        <p><strong>Was ist UNI 1000:</strong> Hülsenschneider von Brodbeck. Verarbeitet Pappkern-Rohhülsen der Länge <strong>1035 mm unbeschnitten</strong>. Pro Schnitt verliert man <strong>12 mm Reststück</strong>, nutzbar bleiben also <code>1023 mm</code> pro Rohhülse.</p>
+        <p><strong>Zwei Werte sichtbar:</strong></p>
+        <ul>
+          <li><strong>Stk:</strong> wie viele Schmal-Hülsen werden GESCHNITTEN (= Auftrags-Output)</li>
+          <li><strong>Rohh.:</strong> wie viele Rohhülsen muss der Werker einkaufen/aus dem Lager holen</li>
+        </ul>
+        <p><strong>Berechnung:</strong></p>
+        <ul>
+          <li>Hülsen pro Rohr: <code>⌊ 1023 ÷ Schmal-Breite ⌋</code></li>
+          <li>Rohhülsen nötig: <code>⌈ Total-Hülsen ÷ Hülsen-pro-Rohr ⌉</code></li>
+        </ul>
+        <p><strong>Beispiel:</strong> 208 Schmal-Hülsen à 30 mm → 34 Hülsen pro Rohr → 7 Rohhülsen einkaufen (Verschnitt 3 mm/Rohr).</p>
+      `);
+    }
+    // 5. Maschinen-Bar (Profile-Unterschiede)
+    const machineBarLabel = document.querySelector(".machine-bar-label");
+    if (machineBarLabel) {
+      attachInfoBtn(machineBarLabel, "Maschinen-Profile · DCM vs Euromac", `
+        <p><strong>DCM Panther:</strong></p>
+        <ul>
+          <li>Welle 1472 mm gesamt · Bestückung max 1000 mm</li>
+          <li>4× Parkringe à 59 mm pro Seite (= 236 mm)</li>
+          <li>Schneideeinheit asymmetrisch: 13 mm Schnitt v.l.</li>
+          <li>Bei MR &gt; 1000 mm: Auto-Reduktion auf 2 Park (Best. 1236 mm), &gt; 1236: 1 Park (Best. 1354 mm)</li>
+        </ul>
+        <p><strong>Euromac:</strong></p>
+        <ul>
+          <li>Welle 1320 mm · Bestückung max 1120 mm</li>
+          <li>2× Parkringe à 50 mm pro Seite (= 100 mm)</li>
+          <li>SE 10 mm v.l. + optionale Schneidebuchse (Multi-Cut bis 6× pro Block)</li>
+          <li>Bei MR &gt; 1120 mm: Auto-Reduktion auf 1 Park</li>
+        </ul>
+        <p><strong>Wann welche?</strong> DCM für hohe Stückzahlen (4-Park-Stabilität, 0.5-mm-Distanzringe nicht nötig). Euromac für feinere Schnitt-Geometrien (Schneidebuchse) und schmalere Schmalrollen ab 25 mm.</p>
+      `);
+    }
+  })();
 
   // ---------- Maschinen-Toggle (DCM ↔ Euromac) ----------
   const machineBtns = document.querySelectorAll(".machine-btn[data-machine]");
@@ -15022,7 +15237,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.94";
+    const PRINT_VERSION = "v1.99.95";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
