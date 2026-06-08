@@ -44,6 +44,8 @@ const DCM = {
   MAX_MR_MM: 1000, BESAEUMUNG_MIN_SOFT: 2.5, BESAEUMUNG_MAX: 20
 };
 function getMachine() { return DCM; }
+let currentMrMm = null;
+function setCurrentMrMmForCalc(mr) { currentMrMm = mr; }
 function distanzringeForMachine(ziel, machine) {
   const M = machine || getMachine();
   const tol = 0.001;

@@ -7390,8 +7390,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
   }
   function getDcmAutoPark(mr) {
     if (mr == null) return MACHINES.DCM.PARK_PRO_SEITE;  // default 4
-    if (mr >= 1237 - 0.001) return 1;
-    if (mr >= 1001 - 0.001) return 2;
+    // v1.99.87: Schwellen geschärft. Vorher 'mr >= 1001 - 0.001' ließ MR 1000.5 in
+    // Park-4-Setup (Bestueckung 1000mm), wo die Rolle nicht passt. Jetzt: jede
+    // MR die die aktuelle Bestueckung überschreitet triggert die nächste Reduktion.
+    //   Park 4 → Bestueckung 1000mm → reicht für MR ≤ 1000
+    //   Park 2 → Bestueckung 1236mm → reicht für MR 1000.001 .. 1236
+    //   Park 1 → Bestueckung 1354mm → reicht für MR 1236.001 .. 1354
+    if (mr > 1236 + 0.001) return 1;
+    if (mr > 1000 + 0.001) return 2;
     return MACHINES.DCM.PARK_PRO_SEITE;
   }
   function getMachine() {
@@ -14937,7 +14943,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.86";
+    const PRINT_VERSION = "v1.99.87";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
