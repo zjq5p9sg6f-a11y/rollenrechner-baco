@@ -8171,13 +8171,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
         }
       } else if (seg.kind === "distanz") {
         if (w > 0.5) {
-          // v1.99.88: Distanzringe haben gleichen Durchmesser wie Schneideeinheiten
-          // (beide sitzen im Bestückungs-Bereich auf demselben Geometrie-Niveau).
-          // Volle barH statt barH-16. Park-Ringe sind die einzigen mit reduziertem
-          // Durchmesser (Messer-Parkebene).
-          svgW(g, "rect", { x: x, y: barTop, width: w, height: barH, rx: 2,
+          // v1.99.89: Distanzringe AUF EINER HÖHE mit Schneideeinheiten — beide
+          // teilen den gleichen Innen-Rahmen y=barTop+4, h=barH-8 (= SE.innerY/innerH).
+          // Vorher v1.99.88: y=barTop, h=barH → Distanz stand 4px über SE raus = falsch.
+          const distY = barTop + 4;
+          const distH = barH - 8;
+          svgW(g, "rect", { x: x, y: distY, width: w, height: distH, rx: 2,
             fill: "url(#gDistanz)", stroke: "rgba(0,255,138,0.55)", "stroke-width": "0.5" });
-          svgW(g, "rect", { x: x, y: barTop, width: w, height: barH * 0.35, rx: 2,
+          svgW(g, "rect", { x: x, y: distY, width: w, height: distH * 0.35, rx: 2,
             fill: "url(#gDistanzHi)" });
           if (w > 22) {
             // Bei Mehrring-Distanzen (z.B. 102 mm = 100 + 2) Auflösung darunter
@@ -8196,7 +8197,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
             }
           }
         } else {
-          svgW(g, "rect", { x: x, y: barTop, width: Math.max(1, w), height: barH,
+          svgW(g, "rect", { x: x, y: barTop + 4, width: Math.max(1, w), height: barH - 8,
             fill: "var(--accent-primary)", opacity: "0.7" });
         }
       } else if (seg.kind === "schneid" || seg.kind === "neben") {
@@ -14953,7 +14954,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.88";
+    const PRINT_VERSION = "v1.99.89";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
