@@ -8138,11 +8138,27 @@ audio.team-player-audio::-webkit-media-controls-panel {
                   "stroke-width": "0.5", opacity: "0.75" });
                 svgW(g, "rect", { x: subX, y: distY, width: ringW, height: distH * 0.35, rx: 1.5,
                   fill: "url(#gDistanzHi)", opacity: "0.6" });
+                // v1.99.93: Label-Threshold gestuft — auch schmale Ringe (5/2/1 mm) sollen Maß zeigen
                 if (ringW > 18) {
                   svgW(g, "text", { x: subX + ringW/2, y: distY + distH/2 + 4,
                     "text-anchor": "middle",
                     fill: "rgba(4,30,14,0.85)", "font-size": "10", "font-weight": "800",
                     "font-family": "inherit" }, fmtW2(ringSize));
+                } else if (ringW > 9) {
+                  // Mittel-schmaler Ring: kleinere Schrift in der Mitte
+                  svgW(g, "text", { x: subX + ringW/2, y: distY + distH/2 + 3,
+                    "text-anchor": "middle",
+                    fill: "rgba(4,30,14,0.85)", "font-size": "8", "font-weight": "800",
+                    "font-family": "inherit" }, fmtW2(ringSize));
+                } else if (ringW > 3.5) {
+                  // Sehr schmaler Ring: rotiertes Label oben außerhalb der Welle
+                  const labelX = subX + ringW/2;
+                  const labelY = barTop - 4;
+                  svgW(g, "text", { x: labelX, y: labelY,
+                    "text-anchor": "start",
+                    fill: "rgba(0,230,118,0.85)", "font-size": "8", "font-weight": "700",
+                    "font-family": "ui-monospace, SF Mono, monospace",
+                    transform: `rotate(-55 ${labelX} ${labelY})` }, fmtW2(ringSize));
                 }
               }
               subX += ringW;
@@ -8203,6 +8219,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
             fill: "url(#gDistanz)", stroke: "rgba(0,255,138,0.55)", "stroke-width": "0.5" });
           svgW(g, "rect", { x: x, y: distY, width: w, height: distH * 0.35, rx: 2,
             fill: "url(#gDistanzHi)" });
+          // v1.99.93: Label-Threshold gestuft — auch schmale Distanzringe (5/2/1 mm) zeigen Maß
           if (w > 22) {
             // Bei Mehrring-Distanzen (z.B. 102 mm = 100 + 2) Auflösung darunter
             const distFill = distanzringeForMachine(seg.breite, M);
@@ -8218,6 +8235,21 @@ audio.team-player-audio::-webkit-media-controls-panel {
                 "letter-spacing": "0.02em",
                 "font-family": "ui-monospace, SF Mono, monospace" }, stackTxt);
             }
+          } else if (w > 11) {
+            // Mittel-schmal: kleinere Schrift in der Mitte
+            svgW(g, "text", { x: x + w/2, y: barTop + barH/2 + 3,
+              "text-anchor": "middle",
+              fill: "rgba(4,30,14,0.95)", "font-size": "8.5", "font-weight": "800",
+              "font-family": "inherit" }, fmtW2(seg.breite));
+          } else if (w > 3.5) {
+            // Sehr schmal: rotiertes Label oberhalb der Welle (Bemaßungs-Style)
+            const labelX = x + w/2;
+            const labelY = barTop - 4;
+            svgW(g, "text", { x: labelX, y: labelY,
+              "text-anchor": "start",
+              fill: "rgba(0,230,118,0.95)", "font-size": "8", "font-weight": "700",
+              "font-family": "ui-monospace, SF Mono, monospace",
+              transform: `rotate(-55 ${labelX} ${labelY})` }, fmtW2(seg.breite));
           }
         } else {
           svgW(g, "rect", { x: x, y: barTop + 4, width: Math.max(1, w), height: barH - 8,
@@ -14979,7 +15011,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // === Header ===
     // v1.89: Version + Zeitstempel sichtbar damit Jan im PDF sieht ob der
     // Browser-Cache die neueste Version liefert.
-    const PRINT_VERSION = "v1.99.92";
+    const PRINT_VERSION = "v1.99.93";
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
     // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
