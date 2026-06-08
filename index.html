@@ -5995,6 +5995,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:14px;height:14px"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
           <span>Handbuch</span>
         </a>
+        <!-- v1.99.104: Schneidbuchsen-Bypass für Debug/Test (Verdacht: Buchsen-Pfad ist Bug-Quelle) -->
+        <button type="button" id="buchsenBypassToggle" class="machine-handbuch-link"
+           style="background:rgba(255,107,53,0.10);border-color:rgba(255,107,53,0.40);color:#ff8a00"
+           title="DEBUG: Schneidbuchsen-Auflösung deaktivieren. Cluster-Konflikte werden dann hart als Fail behandelt statt durch Buchsen aufgelöst. Nutzen wenn Buchsen-Pfad fehlerhafte Master baut.">
+          <span id="buchsenBypassLabel">⚙ Buchsen: ON</span>
+        </button>
       </div>
       <div class="bahn-eich-bar" title="Bahn-Mitte-Offset (mm): Verschiebung der Stack-Mitte gegenüber der operativen Welle-Mitte. Positiv = Stack nach rechts. Pro Maschine separat einstellbar und gespeichert.">
         <label for="bahnOffsetInput" class="bahn-eich-label">
@@ -6624,7 +6630,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.104";
+  const APP_VERSION = "v1.99.104.1";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -10697,7 +10703,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // 5 mm-Raster zusammenfassen lassen. Dann ersetzt 1x Buchse die N×SEs.
     // Standard-SE bleibt Default — Buchse nur bei Konflikt-Auflösung.
     const M_master = getMachine();
-    const buchseSpec = (M_master.SE_SORTIMENT || []).find(s => s.id === "schneidebuchse");
+    // v1.99.104: Buchsen-Bypass-Flag (Debug-Modus für Werker-Test-Validation).
+    // User-Verdacht: Schneidbuchsen-Pfad ist Bug-Quelle bei Material-Kontamination.
+    // localStorage.rr.disableBuchsen = '1' → Buchsen werden NICHT genutzt,
+    // Cluster-Konflikte werden hart als Master-Fail behandelt.
+    let _disableBuchsen = false;
+    try { _disableBuchsen = localStorage.getItem("rr.disableBuchsen") === "1"; } catch(_) {}
+    const buchseSpec = _disableBuchsen
+      ? null
+      : (M_master.SE_SORTIMENT || []).find(s => s.id === "schneidebuchse");
     let buchsenBlocks = []; // [{ start, end, cuts: [absPos,...] }]
     let unresolvedConflicts = conflicts;
 
@@ -16586,6 +16600,34 @@ body > *:not(#printMaster) { display: none !important; }
     txt += `\n═══ END ═══`;
     return txt;
   }
+  // v1.99.104: Schneidbuchsen-Bypass-Toggle
+  (function setupBuchsenBypassToggle() {
+    const btn = document.getElementById("buchsenBypassToggle");
+    const lbl = document.getElementById("buchsenBypassLabel");
+    if (!btn || !lbl) return;
+    const sync = () => {
+      let off = false;
+      try { off = localStorage.getItem("rr.disableBuchsen") === "1"; } catch(_) {}
+      lbl.textContent = off ? "⚙ Buchsen: OFF (Debug)" : "⚙ Buchsen: ON";
+      btn.style.background = off ? "rgba(255,107,53,0.30)" : "rgba(255,107,53,0.10)";
+      btn.style.borderColor = off ? "#ff6b35" : "rgba(255,107,53,0.40)";
+    };
+    sync();
+    btn.addEventListener("click", () => {
+      let off = false;
+      try { off = localStorage.getItem("rr.disableBuchsen") === "1"; } catch(_) {}
+      try {
+        if (off) localStorage.removeItem("rr.disableBuchsen");
+        else localStorage.setItem("rr.disableBuchsen", "1");
+      } catch(_) {}
+      sync();
+      if (typeof toast === "function") {
+        toast(off ? "Schneidbuchsen wieder AKTIV" : "Schneidbuchsen DEAKTIVIERT (Debug-Modus)");
+      }
+      if (typeof calc === "function") calc();
+    });
+  })();
+
   const debugBtnEl = document.getElementById("debugSnapshotBtn");
   console.log("[DEBUG-BTN] gefunden:", !!debugBtnEl);
   if (debugBtnEl) {
