@@ -8775,7 +8775,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         svgW(g, "path", { d: `M${xMeasureRight} ${dimWerkerY} L${xMeasureRight - 7} ${dimWerkerY - 3} L${xMeasureRight - 7} ${dimWerkerY + 3} Z`,
           fill: warnCol });
         const valTxt = isDCM_M
-          ? `${fmtW(distMm, 1)} mm · ab letztem Park-R bis 1. SE v. rechts (DCM)`
+          ? `${fmtW(distMm, 1)} mm · 1. Park-R (n. Distanzr.) → 1. SE v. rechts (DCM)`
           : `${fmtW(distMm, 1)} mm · 1. Schneidkante v. rechts`;
         const lblW = valTxt.length * 6 + 24;
         let lblCx = (xCut + xRight) / 2;
@@ -12403,7 +12403,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       massValEl.textContent = fmtW(distMm, 1);
       setEmpty(massValEl, false);
       massSubEl.textContent = isDCM
-        ? `ab letztem Park-Ring rechts · ohne ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Park`
+        ? `ab Kante 1. Park-Ring rechts (nach den Distanzringen) bis 1. SE v. rechts`
         : `vom rechten Wellenrand · inkl. ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Park-R`;
     } else {
       massValEl.textContent = "—"; setEmpty(massValEl, true);
