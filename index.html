@@ -3416,6 +3416,55 @@ header.bar {
 }
 
 /* Cluster-Actions-Row: Add + Bulk nebeneinander */
+/* v1.99.109 · Firefox-Windows Click-Fix · SVG-Kinder fangen sonst Click vor Button-Parent ab */
+.cluster-toggle > *, .cluster-add-btn > *, .cluster-bulk-toggle > *,
+.cluster-save-btn > *, .cluster-migrate-btn > *,
+.btn-print > *, .btn-debug-snapshot > *,
+#clusterBulkOptimize > *, #clusterBulkApply > *,
+.cluster-job-remove > * {
+  pointer-events: none;
+}
+
+/* v1.99.109 · DR-Anker-Toggle Style */
+.dr-anchor-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; margin-top: 8px;
+  background: rgba(48, 209, 88, 0.06);
+  border: 1px solid rgba(48, 209, 88, 0.20);
+  border-radius: 8px;
+  font-size: 13px;
+}
+.dr-anchor-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 99px;
+  background: transparent; border: 1px solid currentColor;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  color: var(--text-secondary, #555);
+  transition: all 0.15s;
+}
+.dr-anchor-toggle.active {
+  background: rgb(48, 209, 88); color: #fff; border-color: rgb(48, 209, 88);
+}
+.dr-anchor-toggle:hover { opacity: 0.85; }
+.dr-anchor-toggle:active { transform: scale(0.96); }
+.dr-anchor-label { font-weight: 600; color: rgb(48, 160, 70); }
+.dr-anchor-explain { font-size: 11px; color: var(--text-muted, #888); margin-left: 6px; }
+.dr-anchor-explain b { color: rgb(48, 160, 70); }
+
+/* Welle-Anker-Marker (links/rechts wenn DR-Anker) */
+.welle-anchor-marker {
+  fill: rgb(48, 209, 88);
+  opacity: 0.92;
+}
+.welle-anchor-label {
+  font-family: -apple-system, system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: rgb(48, 160, 70);
+}
+
 .cluster-actions-row {
   display: flex; flex-wrap: wrap; gap: 8px;
   margin-top: 10px;
@@ -6440,6 +6489,17 @@ audio.team-player-audio::-webkit-media-controls-panel {
           </div>
           <div class="cluster-auto-results" id="clusterAutoResults" hidden></div>
         </div>
+        <!-- v1.99.109 · DR-Anker-Orientierung (Werker-Lean-Tipp 2026-06-09): -->
+        <!-- Statt SE als linke Anker-Kante einen Distanzring nutzen → 1 SE-Slot mehr für Cluster -->
+        <div class="dr-anchor-row" id="drAnchorRow" hidden>
+          <span class="dr-anchor-label">Anker-Strategie</span>
+          <button type="button" class="dr-anchor-toggle" id="drAnchorToggle" tabindex="-1" aria-pressed="false" title="Statt SE-Kante als Mutterrollen-Orientierung einen Distanzring nutzen — spart 1 SE-Slot für Folgeaufträge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+            <span>Distanzring als Anker</span>
+          </button>
+          <span class="dr-anchor-explain" id="drAnchorExplain">Klassisch (SE-Anker) · spart bei DR-Anker <b>+1 SE-Slot</b> pro Cluster</span>
+        </div>
+
         <!-- Tages-Aggregat: Σ Hülsen / Σ Maschinenzeit / Σ Sätze / Σ MR-Menge über Primary + alle Cluster-Aufträge -->
         <div class="cluster-aggregate" id="clusterAggregate" hidden></div>
       </div>
@@ -6630,7 +6690,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.108";
+  const APP_VERSION = "v1.99.109";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -7955,7 +8015,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // sonst stacken sich Track-Markers + Linien bei jedem Schreiben.
     // User: 'sowas kommt manchmal wenn man mehrfach ändert' — extra Marker
     // in A4 row waren Stack-Up aus mehrfachen Re-Renders.
-    svgEl.querySelectorAll(".welle-track-group, .welle-master-rails, .welle-track-cut-projection").forEach(el => el.remove());
+    svgEl.querySelectorAll(".welle-track-group, .welle-master-rails, .welle-track-cut-projection, .welle-dr-anchor").forEach(el => el.remove());
 
     const W = 1500;
     const padX = 60;
@@ -8996,6 +9056,27 @@ audio.team-player-audio::-webkit-media-controls-panel {
           fill: "rgba(180,180,180,0.7)", "font-size": "9", "font-weight": "600", "font-family": "inherit" }, statsTxt2);
       });
     }
+
+    // v1.99.109 · DR-Anker-Marker (Werker-Lean-Tipp): zeigt visuell dass linke Mutterrollen-
+    // Anfangskante an einem Distanzring orientiert wird statt an einer SE → 1 SE-Slot mehr frei
+    try {
+      if (isMaster && typeof window.getDrAnchor === "function" && window.getDrAnchor()) {
+        const aGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        aGroup.setAttribute("class", "welle-dr-anchor");
+        // Marker links · DR-Ringsymbol + Label "↪ DR-ANKER"
+        const ax = padX - 6;
+        const ay = (typeof welleAnchorY === "number") ? welleAnchorY : 200;
+        // Distanzring-Symbol (zwei konzentrische Kreise)
+        aGroup.innerHTML = `
+          <circle cx="${ax}" cy="${ay}" r="10" class="welle-anchor-marker"/>
+          <circle cx="${ax}" cy="${ay}" r="4" fill="#000" opacity="0.4"/>
+          <path d="M${ax+12} ${ay} l8 -4 v8 z" class="welle-anchor-marker"/>
+          <text x="${ax}" y="${ay - 16}" class="welle-anchor-label" text-anchor="middle">DR-ANKER</text>
+          <text x="${ax}" y="${ay + 24}" class="welle-anchor-label" text-anchor="middle" font-size="8" opacity="0.8">↪ MR-Start</text>
+        `;
+        svgEl.appendChild(aGroup);
+      }
+    } catch(e) { /* DR-Anker-Marker fehlerhaft — Tool funktioniert ohne weiter */ }
   }
 
   // Helper: Distanzring-Stack-Aufschlüsselung für Sequenz-Detail
@@ -14649,10 +14730,45 @@ audio.team-player-audio::-webkit-media-controls-panel {
         saveClusterJobs();
         renderClusterJobs();
       }
+      // DR-Anker-Row sichtbar wenn Cluster offen
+      const drRow = document.getElementById("drAnchorRow");
+      if (drRow) drRow.hidden = isOpen;  // isOpen ist VOR dem Toggle
       // Aggregat-Anzeige aktualisieren (zeigt/versteckt sich je nach Cluster-State)
       if (typeof renderClusterAggregate === "function") renderClusterAggregate();
     });
   }
+
+  // v1.99.109 · DR-Anker-Toggle (Werker-Lean: Distanzring statt SE als Mutterrollen-Orientierung)
+  function getDrAnchor() {
+    return localStorage.getItem("rr.drAnchor") === "1";
+  }
+  function setDrAnchor(on) {
+    localStorage.setItem("rr.drAnchor", on ? "1" : "0");
+    const btn = document.getElementById("drAnchorToggle");
+    const exp = document.getElementById("drAnchorExplain");
+    if (btn) {
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+      btn.querySelector("span").textContent = on ? "Distanzring-Anker AKTIV" : "Distanzring als Anker";
+    }
+    if (exp) {
+      exp.innerHTML = on
+        ? "<b>+1 SE-Slot frei</b> für Folgeaufträge · Welle wird mit DR-Kante an Mutterrollen-Start orientiert"
+        : "Klassisch (SE-Anker) · spart bei DR-Anker <b>+1 SE-Slot</b> pro Cluster";
+    }
+    // Re-Render Welle
+    if (typeof calc === "function") calc();
+  }
+  window.getDrAnchor = getDrAnchor;
+  const drAnchorBtn = document.getElementById("drAnchorToggle");
+  if (drAnchorBtn) {
+    setDrAnchor(getDrAnchor());  // Initial-State aus localStorage
+    drAnchorBtn.addEventListener("click", () => setDrAnchor(!getDrAnchor()));
+  }
+  // Initial: DR-Row sichtbar wenn Cluster bereits offen
+  const _clOpen = document.getElementById("clusterToggle")?.getAttribute("aria-expanded") === "true";
+  const _drRow = document.getElementById("drAnchorRow");
+  if (_drRow) _drRow.hidden = !_clOpen;
   const clusterAddBtn = document.getElementById("clusterAddBtn");
   if (clusterAddBtn) {
     clusterAddBtn.addEventListener("click", () => {
