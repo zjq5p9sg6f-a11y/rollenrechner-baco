@@ -6277,7 +6277,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
             <svg class="kpi-tile-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12H7"/><path d="m11 16-4-4 4-4"/><circle cx="20" cy="12" r="1"/></svg>
           </div>
           <div class="kpi-tile-val"><span id="kpiMassVal">—</span><span class="kpi-tile-unit">mm</span></div>
-          <div class="kpi-tile-lbl">1. Schneidkante v. rechts</div>
+          <div class="kpi-tile-lbl" id="kpiMassLbl">1. Schneidkante v. rechts</div>
           <div class="kpi-tile-sub" id="kpiMassSub">inkl. Park-Ringe rechts</div>
         </div>
         <div class="kpi-tile kpi-tile-yield" data-kpi="yield">
@@ -6690,7 +6690,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.110";
+  const APP_VERSION = "v1.99.110.2";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -12405,6 +12405,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
       massSubEl.textContent = isDCM
         ? `ab Kante 1. Park-Ring rechts (nach den Distanzringen) bis 1. SE v. rechts`
         : `vom rechten Wellenrand · inkl. ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Park-R`;
+      // v1.99.110.2 · Label im KPI-Tile dynamisch
+      const lblEl = document.getElementById("kpiMassLbl");
+      if (lblEl) {
+        lblEl.textContent = isDCM
+          ? "1. Park-R → 1. SE v. rechts"
+          : "1. Schneidkante v. rechts";
+      }
     } else {
       massValEl.textContent = "—"; setEmpty(massValEl, true);
       massSubEl.textContent = "keine Schneidkante (Auftrag prüfen)";
