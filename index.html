@@ -6690,7 +6690,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.109";
+  const APP_VERSION = "v1.99.110";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -8751,24 +8751,32 @@ audio.team-player-audio::-webkit-media-controls-panel {
       if (rightmostCutMm != null) {
         const xCut = xAt(rightmostCutMm);
         const xRight = W - padX;
-        const distMm = M.WELLE - rightmostCutMm;
+        // v1.99.110 · DCM-Werker-Variante: ab letztem Park-Ring rechts statt vom Welle-Rand
+        const isDCM_M = (typeof activeMachineId !== "undefined" && activeMachineId === "DCM") || (M && M.id === "DCM");
+        const parkMm = (M.PARK_PRO_SEITE || 0) * (M.PARK_RING || 0);
+        // Park-Bereich rechts = letzten N Ringe vor dem Welle-Rand
+        // X-Position des letzten Park-Rings = xRight - xAt-Skalierung(parkMm)
+        const xParkEnd = isDCM_M ? xAt(M.WELLE - parkMm) : xRight;
+        const xMeasureRight = isDCM_M ? xParkEnd : xRight;
+        const distMm = isDCM_M ? Math.max(0, M.WELLE - rightmostCutMm - parkMm) : (M.WELLE - rightmostCutMm);
         const warnCol = "#ff8a00";
 
         // v1.95.1: Werker-Bemaßung OBERHALB der Welle (statt unter).
         // Vertikale Guides gehen NACH UNTEN von der Bemaßungs-Linie bis zum Bar-Top.
         svgW(g, "line", { x1: xCut, y1: dimWerkerY + 6, x2: xCut, y2: barTop - 2,
           stroke: warnCol, "stroke-width": "1.2", "stroke-dasharray": "3 3", opacity: "0.7" });
-        svgW(g, "line", { x1: xRight, y1: dimWerkerY + 6, x2: xRight, y2: barTop - 2,
+        svgW(g, "line", { x1: xMeasureRight, y1: dimWerkerY + 6, x2: xMeasureRight, y2: barTop - 2,
           stroke: warnCol, "stroke-width": "1.2", "stroke-dasharray": "3 3", opacity: "0.55" });
-        // v1.99.76: Bemaßungs-Linie ist UNTER der Box, mit 8px Luft.
-        // Pfeilköpfe kleiner (3px height statt 4.5) damit sie nicht in Box ragen.
-        svgW(g, "line", { x1: xCut + 1, y1: dimWerkerY, x2: xRight - 1, y2: dimWerkerY,
+        // Bemaßungs-Linie (kann jetzt kürzer sein bei DCM, da Park-Ring-Bereich abgezogen)
+        svgW(g, "line", { x1: xCut + 1, y1: dimWerkerY, x2: xMeasureRight - 1, y2: dimWerkerY,
           stroke: warnCol, "stroke-width": "1.3", opacity: "0.9" });
         svgW(g, "path", { d: `M${xCut} ${dimWerkerY} L${xCut + 7} ${dimWerkerY - 3} L${xCut + 7} ${dimWerkerY + 3} Z`,
           fill: warnCol });
-        svgW(g, "path", { d: `M${xRight} ${dimWerkerY} L${xRight - 7} ${dimWerkerY - 3} L${xRight - 7} ${dimWerkerY + 3} Z`,
+        svgW(g, "path", { d: `M${xMeasureRight} ${dimWerkerY} L${xMeasureRight - 7} ${dimWerkerY - 3} L${xMeasureRight - 7} ${dimWerkerY + 3} Z`,
           fill: warnCol });
-        const valTxt = `${fmtW(distMm, 1)} mm · 1. Schneidkante v. rechts`;
+        const valTxt = isDCM_M
+          ? `${fmtW(distMm, 1)} mm · ab letztem Park-R bis 1. SE v. rechts (DCM)`
+          : `${fmtW(distMm, 1)} mm · 1. Schneidkante v. rechts`;
         const lblW = valTxt.length * 6 + 24;
         let lblCx = (xCut + xRight) / 2;
         lblCx = Math.max(padX + lblW / 2 + 4, Math.min(W - padX - lblW / 2 - 4, lblCx));
@@ -12384,10 +12392,19 @@ audio.team-player-audio::-webkit-media-controls-panel {
       cur += seg.breite;
     }
     if (rightmostCut != null) {
-      const distMm = M.WELLE - rightmostCut;
+      const fullDist = M.WELLE - rightmostCut;
+      // v1.99.110 · DCM-Werker-Variante (2026-06-09):
+      // DCM-Werker misst NICHT vom Welle-Rand sondern vom letzten Park-Ring
+      // (= Park-Ring-Bereich abziehen). Euromac bleibt klassisch (Welle-Rand).
+      const isDCM = (typeof activeMachineId !== "undefined" && activeMachineId === "DCM")
+                    || (M && M.id === "DCM");
+      const parkMm = (M.PARK_PRO_SEITE || 0) * (M.PARK_RING || 0);
+      const distMm = isDCM ? Math.max(0, fullDist - parkMm) : fullDist;
       massValEl.textContent = fmtW(distMm, 1);
       setEmpty(massValEl, false);
-      massSubEl.textContent = `vom rechten Wellenrand · inkl. ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Park-R`;
+      massSubEl.textContent = isDCM
+        ? `ab letztem Park-Ring rechts · ohne ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Park`
+        : `vom rechten Wellenrand · inkl. ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Park-R`;
     } else {
       massValEl.textContent = "—"; setEmpty(massValEl, true);
       massSubEl.textContent = "keine Schneidkante (Auftrag prüfen)";
