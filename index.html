@@ -6690,7 +6690,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.112";
+  const APP_VERSION = "v1.99.113";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -16697,8 +16697,16 @@ body > *:not(#printMaster) { display: none !important; }
 #printMaster { display: block !important; position: static !important; left: auto !important; top: auto !important; width: 190mm !important; max-width: 190mm !important; margin: 0 auto !important; }
 }`;
     document.head.appendChild(inlineCssEl);
+    // v1.99.113 BLACK-AREAS-FIX: body.classList.add("printing") aktivieren —
+    // Web-CSS hat 'body.printing > * { display: none }' Regel, die ohne diesen
+    // Class-Trigger NIE feuerte. Daher leakten Web-DOM-Elemente mit dunklem
+    // Background-Theme durchs Print (schwarze Fläche zwischen Welle-Plan und
+    // Stückliste im PDF 2026-06-10). Inline-CSS hilft nur bei Button-Klick,
+    // nicht bei direktem Cmd+P. printing-Class greift bei beiden.
+    document.body.classList.add("printing");
     function cleanupPrint() {
       try {
+        document.body.classList.remove("printing");
         const s = document.getElementById("printActiveCss");
         if (s) s.remove();
         if (typeof teardownPrintMaster === "function") teardownPrintMaster();
