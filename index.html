@@ -6513,7 +6513,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
             <div class="info-row"><span>Bestückungsbereich</span><strong id="mcBestückung">1000 mm</strong></div>
             <div class="info-row" id="mcParkRow"><span>Park-Ring</span><strong id="mcParkRing">59 mm · 4/Seite</strong></div>
             <div class="info-row"><span>Schneideeinheit</span><strong id="mcSeLen">20 mm</strong></div>
-            <div class="info-row"><span>Schneidkante in SE</span><strong id="mcSchnitt">13 mm v. SE-l</strong></div>
+            <div class="info-row"><span>Schneidkante in SE</span><strong id="mcSchnitt">10 mm v. SE-l (= SE-Mitte · symm.)</strong></div>
             <div class="info-row"><span>Distanzringe</span><strong id="mcDistRings">0,3 / 0,5 / 1 / 2 / 5 / 10 / 20 / 30 / 50 / 100 / 200 / 300 mm</strong></div>
             <div class="info-row" id="mcMrCenterRow" style="display:none"><span>MR-Center-Versatz</span><strong id="mcMrCenter">±20 mm Standard · ±50 mm Trick</strong></div>
             <div class="info-row" id="mcKlemmRow" style="display:none"><span>Klemm-Distanzring</span><strong id="mcKlemm">5–20 mm links auf Gewinde · Werker-Wahl</strong></div>
@@ -6525,7 +6525,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <summary><h4 id="seSortimentHead">Schneideeinheit</h4></summary>
           <div class="welle-info-box-body">
             <div class="info-row"><span>Gesamt-Länge</span><strong id="seGesamtLen">20 mm</strong></div>
-            <div class="info-row"><span>Schneidkante</span><strong id="seSchnitt">13 mm v. SE-l · 7 mm v. SE-r · asymm.</strong></div>
+            <div class="info-row"><span>Schneidkante</span><strong id="seSchnitt">10 mm v. SE-l (= SE-Mitte · symm.)</strong></div>
             <div class="info-row" id="seCompositionRow" style="display:none"><span>Aufbau</span><strong id="seComposition">—</strong></div>
             <div class="info-row"><span>Anzahl je Welle</span><strong>N + 1 (für N Nutzen)</strong></div>
             <div class="info-row" id="seBuchseRow" style="display:none"><span>Schneidebuchse</span><strong id="seBuchse">30 mm · 6 Schnitte alle 5 mm (Multi-Cut)</strong></div>
@@ -6690,7 +6690,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.115";
+  const APP_VERSION = "v1.99.116";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -7474,9 +7474,18 @@ audio.team-player-audio::-webkit-media-controls-panel {
       BAHN_MITTE_OFFSET_MM: 0,         // siehe Euromac-Definition; pro Maschine eichbar
       DISTANZRINGE: [300, 200, 100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
       SCHNEIDEEINHEIT: 20,
-      SCHNITT_OFFSET: 13,
+      // v1.99.116 Jan-Korrektur 2026-06-10: DCM-SE-Aufbau ist IDENTISCH zur Euromac.
+      // Frühere Annahme "10 Schneidring + 10 Nutmesser, SCHNITT 13" basierte auf einer
+      // falschen technischen Zeichnung — DCM nutzt denselben Aufbau wie Euromac:
+      //   Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9 mm (= 20 mm gesamt)
+      //   Schnittebene = linke Klingenkante = 10 mm v. SE-l (= SE-Mitte, symm.)
+      // Die alte CAD-Zeichnung bleibt im Code (NICHT gelöscht, Jan analysiert noch
+      // warum sie falsch war), Button im UI aber ausgeblendet damit Werker sie
+      // nicht sieht.
+      SCHNITT_OFFSET: 10,
       SE_SORTIMENT: [
-        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 13, cuts: 1 }
+        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 10, cuts: 1,
+          composition: "Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9 mm" }
       ],
       MAX_MR_MM: 1000,                // DCM Panther Limit
       MAX_SPEED_MMIN: 500,
@@ -7746,7 +7755,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     const N = out.nutzen;
     const SE = M.SCHNEIDEEINHEIT;
-    const SCHNITT = M.SCHNITT_OFFSET; // asymmetrische Schnittkante v.l. (DCM 13 / Euromac 11)
+    const SCHNITT = M.SCHNITT_OFFSET; // Schnittkante v. SE-l (10 mm beide Maschinen, Werker-verifiziert 2026-06-10)
     const innerSegs = [];
 
     // Trim-Logic: SE-L und SE-R sind nur nötig wenn echter Trim-Cut existiert.
@@ -7885,9 +7894,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
       else roleCounts.inner++;
     }
     const totalSE = innerSEs.length;
-    const seSpec = (activeMachineId === "EUROMAC")
-      ? "20 mm (Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9)"
-      : "20 mm (10 Schneidring + 10 Nutmesser)";
+    // v1.99.116: Beide Maschinen haben jetzt identischen SE-Aufbau (Jan-Korrektur 2026-06-10)
+    const seSpec = "20 mm (Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9)";
     const holliste = [];
     // Besäumungs-SE zuerst (Werker muss diese explizit als Trim-Schnitte erkennen,
     // sonst werden Außen-Schmalrollen mit dem Trim-Anteil zu breit).
@@ -8741,8 +8749,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     //   Werker-verifiziert 2026-06-01 (670-488=182) UND 2026-06-10 (MR 1240 = 55 mm).
     //   v1.99.114 hatte 11 mm versucht (theor. rechte Klingenkante) → Werker
     //   widerlegte das vor Ort, in v1.99.115 zurückgerollt.
-    // DCM: SE 20 (= 10 Schneidring + 3 Übergang + 7 Nutmesser), SCHNITT 13 (echt asymmetrisch)
-    //   Schnittkante sitzt 13 mm v. welle-links = 7 mm v. welle-rechts (Aufschiebe-Sicht)
+    // DCM: SE 20, SCHNITT 10 — IDENTISCH zur Euromac (Jan-Korrektur 2026-06-10).
+    //   Frühere Annahme "10 Schneidring + 3 Übergang + 7 Nutmesser, asymm. 13" war falsch.
+    //   Realität: Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9, Cut bei 10 mm v. SE-l.
     {
       let rightmostCutMm = null;
       let cur = 0;
@@ -9201,7 +9210,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
             : "linear-gradient(90deg,#ff5544 0%,#ff5544 50%,#ffd54f 50%,#ffd54f 100%)";
         // Cut welle-coord = SE_x_left + SCHNITT_OFFSET (Konvention "v. welle-LINKS").
         // Sequenz-pos (= welle-coord-from-RECHTS): WELLE - cut_welle = kumPos + (SE - SCHNITT_OFFSET).
-        // Wichtig fuer DCM, wo SCHNITT_OFFSET=13 asymmetrisch ist (Euromac SCHNITT_OFFSET=10
+        // Hinweis: SCHNITT_OFFSET ist jetzt 10 für beide Maschinen (vorher DCM=13 falsch,
         // ist SE-Mitte → beide Konventionen gleich).
         const _M = getMachine();
         const cutPosFromSeqLeft = _M.SCHNEIDEEINHEIT - _M.SCHNITT_OFFSET;  // 7 DCM, 10 Euromac
@@ -14086,10 +14095,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
     setShow("seBuchseRow",     !!buchse);
     if (buchse) setTxt("seBuchse", `${buchse.length} mm · ${buchse.cuts} Schnitte alle ${buchse.cutSpacing} mm (Multi-Cut)`);
     setTxt("seCadBtnSub", "Schneidring · Nutmesser · DIN ISO 128 Werkstattzeichnung");
-    // CAD-Detail-Button bei Euromac komplett ausblenden — Geometrie ist DCM-spezifisch,
-    // Verwechslungsgefahr bei Euromac (andere SE-Aufbau: Distanzhülse + Messerscheibe + Gegenstück)
+    // v1.99.116 Jan-Korrektur 2026-06-10: CAD-Button komplett ausblenden (Euromac UND DCM).
+    // Begründung: Die alte CAD-Zeichnung zeigt einen falschen DCM-SE-Aufbau (10 Schneidring
+    // + 10 Nutmesser, asymm. 13 mm). Realität laut Jan: DCM hat identischen Aufbau wie
+    // Euromac (Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9, Cut bei 10 mm v. SE-l).
+    // Zeichnung wird vorerst NICHT gelöscht (Jan analysiert noch warum sie falsch war),
+    // aber Werker soll sie nicht zu sehen bekommen — verwirrend.
     const cadBtnEl = $("seCadOpenBtn");
-    if (cadBtnEl) cadBtnEl.style.display = isEuro ? "none" : "";
+    if (cadBtnEl) cadBtnEl.style.display = "none";
 
     // Welle-Head-Label (gut sichtbar VOR der bestückten Welle)
     setTxt("welleHeadMachine",
@@ -14113,12 +14126,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const m = activeMachineId;
     if (m === "DCM") {
       txtEl.innerHTML =
-        `<strong>Wussten Sie?</strong> Die DCM-Schneideeinheit ist <strong>asymmetrisch</strong>: ` +
-        `Schnittkante sitzt <strong>13 mm v. links · 7 mm v. rechts</strong> der SE (3 mm Versatz von Mitte). ` +
-        `Das Tool berücksichtigt das automatisch in allen Maßen + Print. ` +
+        `<strong>Wussten Sie?</strong> Die DCM-Schneideeinheit ist <strong>symmetrisch</strong> ` +
+        `und identisch zur Euromac-SE aufgebaut: Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9 mm. ` +
+        `Schnittkante sitzt bei <strong>10 mm v. SE-l (= SE-Mitte)</strong>. ` +
         `Bestückungsbereich: 1000 mm zwischen 2× 4 Parkringen (Welle gesamt 1472 mm). ` +
-        `<br><strong>Park-Auto-Reduzierung bei großer MR:</strong> ab 1001 mm → 2 Ringe/Seite (1236 mm Bestückung), ab 1237 mm → 1 Ring/Seite (1354 mm). ` +
-        `<br><button type="button" class="mit-cad-link" id="mitCadLink" tabindex="-1">📐 Technische Zeichnung der DCM-Schneideeinheit öffnen ↗</button>`;
+        `<br><strong>Park-Auto-Reduzierung bei großer MR:</strong> ab 1001 mm → 2 Ringe/Seite (1236 mm Bestückung), ab 1237 mm → 1 Ring/Seite (1354 mm).`;
       tipEl.hidden = false;
       // Re-wire das Button-Event nach jeder innerHTML-Aktualisierung
       const linkBtn = document.getElementById("mitCadLink");
