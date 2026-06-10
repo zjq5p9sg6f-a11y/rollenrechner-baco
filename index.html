@@ -6690,7 +6690,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.111";
+  const APP_VERSION = "v1.99.112";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -15565,6 +15565,25 @@ audio.team-player-audio::-webkit-media-controls-panel {
     } else {
       txt("printMR", "—"); txt("printSchmal", "—"); txt("printNutzen", "—");
     }
+    // v1.99.112 BUGFIX: phMachine (Print-Sub-Header) zeigte veraltete Default-Konfig
+    // weil nur bei Maschinen-Toggle aktualisiert. Bei MR > 1120 (Euromac) / > 1000
+    // (DCM) reduziert getMachine() Park-Ringe + erweitert BESTUECKUNGS_BREITE — der
+    // Print muss die JETZIGE Konfig zeigen, nicht den Default. PDF 2026-06-10 mit
+    // MR 1240 zeigte fälschlich "1120 mm Bestückungsbereich · 2× 50 mm Park" obwohl
+    // tatsächlich 1320 mm Bestückung + 0 Park gefahren wurde.
+    try {
+      const Mnow = (typeof getMachine === "function") ? getMachine() : null;
+      if (Mnow) {
+        const isEuroNow = (Mnow.id === "EUROMAC");
+        const parkPart = Mnow.PARK_PRO_SEITE > 0
+          ? `${Mnow.PARK_PRO_SEITE}× ${Mnow.PARK_RING} mm Messer-Park pro Seite`
+          : `Messer-Park entfernt (MR > 1220 mm)`;
+        const phText = isEuroNow
+          ? `Euromac · ${Mnow.WELLE_PHYSISCH_MM} mm physisch (${Mnow.WELLE_LEFT_OF_GEO_CENTER}/${Mnow.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${Mnow.BESTUECKUNGS_BREITE} mm Bestückungsbereich · ${parkPart} · ${Mnow.KLEMM_DISTANZRING_MM} mm Klemm links`
+          : `DCM Untermesserwelle · ${Mnow.WELLE} mm · Bestückungsbereich ${Mnow.BESTUECKUNGS_BREITE} mm`;
+        txt("phMachine", phText);
+      }
+    } catch (_) {}
     // Datei-Name dynamisch via document.title — Maschinen-spezifisch (v1.94)
     const safe = s => String(s).replace(/[^a-zA-Z0-9_\-äöüÄÖÜß]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
     const dateShort = datum.replace(/-/g, "");
@@ -15665,8 +15684,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
       ? welleData.validJobs[0].N
       : (welleData.N || 0);
     const N = primaryN + (out.nebenAnzTotal || 0);
+    // v1.99.112: 0-Park-Special-Case (MR > 1220 mm Euromac) — "0× 50 mm Park" liest sich verwirrend
+    const _parkPartML = isEuro && M.PARK_PRO_SEITE > 0
+      ? `zwischen ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Messer-Park pro Seite`
+      : (isEuro ? `· Messer-Park entfernt (MR > 1220 mm)` : "");
     const machineLine = isEuro
-      ? `${M.label} · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.BESTUECKUNGS_BREITE} mm Bestückung zwischen ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Messer-Park pro Seite`
+      ? `${M.label} · ${M.WELLE_PHYSISCH_MM} mm physisch (${M.WELLE_LEFT_OF_GEO_CENTER}/${M.WELLE_RIGHT_OF_GEO_CENTER} asymm.) · ${M.BESTUECKUNGS_BREITE} mm Bestückung ${_parkPartML}`
       : `${M.label} · Welle ${M.WELLE} mm · Bestückungsbereich ${M.BESTUECKUNGS_BREITE} mm`;
 
     const root = document.createElement("div");
