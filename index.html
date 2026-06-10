@@ -6690,7 +6690,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.119";
+  const APP_VERSION = "v1.99.120";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -8509,29 +8509,38 @@ audio.team-player-audio::-webkit-media-controls-panel {
             fill: "var(--accent-primary)", opacity: "0.7" });
         }
       } else if (seg.kind === "schneid" || seg.kind === "neben") {
-        // v1.99.32 SEITENANSICHT — zwei MASSIVE Blöcke mit schmalem Spalt:
-        //   [Schneidring 10mm rot, voll-Höhe] [3mm Spalt] [Nutmesser 7mm gelb, voll-Höhe]
-        //   Cut sitzt in der MITTE des Spalts (3 mm = Schnitt-Geometrie)
-        //   Keine Welle durch Mitte — wie ein massiver Bauteil seitlich gesehen.
+        // v1.99.120 SEITENANSICHT · DREI Komponenten der SE explizit sichtbar
+        // (Jan-Spec 2026-06-10 + Werker-Skizze IMG_4186):
+        //   [10 mm Distanzhülse · bronze] [1 mm Schneidring · weiß] [9 mm Einheit · ROT]
+        // Die 9 mm Einheit (Gegenstück) hat die Durchmesser-Verringerung (Eintauchbereich
+        // für Obermesser) — daher rot markiert. Schneidring zwischen beiden Blöcken als
+        // dünnes weißes Element.
+        // Topologie identisch für Euromac und DCM (10+1+9). Unterschied liegt in der
+        // Einbaurichtung: Euromac wird beim Einbau gedreht, DCM nicht.
         const isNeben = seg.kind === "neben";
-        const isDcm = M.id === "DCM";
         const SE_LEN = M.SCHNEIDEEINHEIT;
-        const partA = 10;
-        const partB = isDcm ? 3 : 1;
-        const partC = isDcm ? 7 : 9;
+        const partA = 10;   // Distanzhülse (variabel, default 10 mm)
+        const partB = 1;    // Schneidring (FEST 1 mm · Schneidkante)
+        const partC = 9;    // 9 mm Einheit / Gegenstück mit Durchmesser-Verringerung
         const aPx = (partA / SE_LEN) * w;
         const bPx = (partB / SE_LEN) * w;
         const cPx = (partC / SE_LEN) * w;
         const innerY = barTop + 4;
         const innerH = barH - 8;
         const rr = Math.min(3, aPx * 0.20, cPx * 0.20);
-        // Farb-Palette (satt, mit Gradient für 3D-Tiefe)
-        const ringTop = isNeben ? "#ffc14d" : "#e54a4a";
-        const ringBot = isNeben ? "#a76a00" : "#7a1d1d";
-        const ringStroke = isNeben ? "#3a2400" : "#2a0a0a";
-        const messerTop = isDcm ? (isNeben ? "#ffe082" : "#fde047") : "#cdd6e0";
-        const messerBot = isDcm ? (isNeben ? "#b8862d" : "#a87a00") : "#5d6a7d";
-        const messerStroke = isDcm ? (isNeben ? "#3a2400" : "#3a2a00") : "#1a2030";
+        // Farb-Palette pro SE-Komponente (Jan-Spec 2026-06-10):
+        //   partA Distanzhülse: bronze/orange · variabel
+        //   partB Schneidring:  weiß · die Schneidkante
+        //   partC 9er-Einheit:  ROT · trägt die Durchmesser-Verringerung
+        // Neben-SE differenzierter: Distanzhülse goldener Ton, 9er-Einheit dunkleres Rot
+        const ringTop    = isNeben ? "#e6a85a" : "#c89060";  // Distanzhülse bronze
+        const ringBot    = isNeben ? "#8a5a1a" : "#7a4a2a";
+        const ringStroke = isNeben ? "#3a2400" : "#3a1f08";
+        const messerTop  = isNeben ? "#c93030" : "#e54a4a";  // 9er-Einheit rot
+        const messerBot  = isNeben ? "#7a1010" : "#7a1d1d";
+        const messerStroke = isNeben ? "#2a0808" : "#2a0a0a";
+        const blattCol     = "#ffffff";                       // Schneidring weiß
+        const blattStroke  = "#222222";                       // dunkler Stroke für Kontrast
 
         // Eindeutige Gradient-IDs pro Segment
         const gradRingId = `seR-${segIdx}-${isNeben ? "n" : "s"}`;
@@ -8567,23 +8576,24 @@ audio.team-player-audio::-webkit-media-controls-panel {
             fill: "rgba(255,255,255,0.32)", rx: 1
           });
         }
-        // B+C · Nutmesser als zusammenhängende Form (3mm Spalt-Bereich + 7mm Hauptkörper).
-        // v1.99.90: Stufen-Höhen-Unterschied entfernt — alle Bestückungs-Komponenten
-        // (Schneidring, Nutmesser, Distanzring) haben jetzt EINE Höhe. Werker-Spec:
-        // physikalische Bestückung sitzt auf gleichem Durchmesser, nur Park-Ringe sind
-        // kleiner. Der ehemalige L-Form-Höhensprung (innerH × 0.94) zeigte die Schnitt-
-        // Geometrie an, war aber irreführend (sah aus wie Durchmesser-Unterschied).
-        // Cut-Position bleibt durch die weiße Cut-Marker-Linie (Z. 8313) klar lesbar.
-        if ((bPx + cPx) > 0.5) {
-          const xStufe = x + aPx;
+        // B · Schneidring (1 mm) · WEISS · v1.99.120 Jan-Spec
+        // Schmales weißes Element zwischen partA (Distanzhülse) und partC (9er-Einheit).
+        // Die Schneidkante wird durch das Obermesser an der rechten Kante des Schneidrings
+        // gebildet (siehe Werker-Skizze IMG_4186).
+        if (bPx > 0.4) {
+          const xB = x + aPx;
+          svgW(g, "rect", {
+            x: xB, y: innerY, width: bPx, height: innerH,
+            fill: blattCol, stroke: blattStroke, "stroke-width": "0.8"
+          });
+        }
+        // C · 9 mm Einheit (Gegenstück) · ROT · trägt die Durchmesser-Verringerung
+        // Rechteck mit abgerundeter RECHTER Kante (linke Kante gerade gegen Schneidring).
+        // Eine kleine dunkle Markierung in der Mitte zeigt die Eintauch-Aussparung an,
+        // in die das Obermesser greift, um an den Schneidring anzuschlagen.
+        if (cPx > 0.5) {
           const xMain = x + aPx + bPx;
           const xR = x + w;
-          const stufeH = innerH;       // war innerH * 0.94 → jetzt gleiche Höhe
-          const stufeY = innerY;       // war innerY + (innerH - stufeH) / 2
-          // L-Form path: erst entlang oben des Hauptteils (xMain → xR), runde Ecke
-          // rechts oben, runter, runde Ecke rechts unten, zurück zu xMain unten,
-          // hoch bis Stufe-unten, links bis xStufe (Stufe-unten), hoch bis Stufe-oben,
-          // rechts zurück zu xMain.
           const r = Math.min(rr, cPx * 0.20);
           svgW(g, "path", {
             d: `M${xMain},${innerY}
@@ -8592,28 +8602,23 @@ audio.team-player-audio::-webkit-media-controls-panel {
                 L${xR},${innerY + innerH - r}
                 Q${xR},${innerY + innerH} ${xR - r},${innerY + innerH}
                 L${xMain},${innerY + innerH}
-                L${xMain},${stufeY + stufeH}
-                L${xStufe},${stufeY + stufeH}
-                L${xStufe},${stufeY}
-                L${xMain},${stufeY}
                 Z`,
             fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7",
             "stroke-linejoin": "miter"
           });
-          // Top-Highlight nur über Nutmesser-Hauptteil
+          // Top-Highlight (3D-Glanz auf 9er-Einheit)
           svgW(g, "rect", {
             x: xMain + 0.5, y: innerY + 1, width: Math.max(0, cPx - r - 1), height: innerH * 0.12,
             fill: "rgba(255,255,255,0.32)", rx: 1
           });
-          // Nut-Detail · innere Kante am Stufen-Übergang (zeigt Schnittposition strukturell)
-          if (isDcm) {
-            // dünne dunkle Linie an der Stufen-Innenkante
-            svgW(g, "line", {
-              x1: xMain + 0.2, y1: stufeY + 0.2,
-              x2: xMain + 0.2, y2: stufeY + stufeH - 0.2,
-              stroke: "rgba(0,0,0,0.45)", "stroke-width": "0.5"
-            });
-          }
+          // Durchmesser-Verringerung · subtile dunkle Rinne in der Mitte der 9er-Einheit
+          // (zeigt wo Obermesser eintaucht um den Schneidring zu treffen)
+          const rinneY = innerY + innerH * 0.30;
+          const rinneH = innerH * 0.40;
+          svgW(g, "rect", {
+            x: xMain + 1, y: rinneY, width: Math.max(0, cPx - 2), height: rinneH,
+            fill: "rgba(0,0,0,0.22)", rx: 0.5
+          });
         }
 
         // CUT-Marker: weiße Linie in der Spalt-Mitte (= SCHNITT_OFFSET)
