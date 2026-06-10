@@ -6690,7 +6690,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.118";
+  const APP_VERSION = "v1.99.119";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -7484,7 +7484,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
       //     9 mm Einheit @ X+11 bis X+20
       //   → Schneidkante = rechte Kante des Schneidrings = X+11 = SE-l + 11
       // Anders als Euromac: dort sitzt die 9er-Einheit links, hier rechts der SE-Mitte.
-      SCHNEIDEEINHEIT: 20,
+      SCHNEIDEEINHEIT: 20,             // Slot-Reservierung (= SE_CORE + SE_DISTANZ_DEFAULT)
+      SE_CORE_LENGTH: 10,              // v1.99.119 · physikalische SE = 9 mm Einheit + 1 mm Schneidring
+      SE_DISTANZ_DEFAULT: 10,          // v1.99.119 · variabler Distanzring an der SE (Default 10 mm, vor Schneidring bei DCM)
       SCHNITT_OFFSET: 11,              // Schneidkante = 11 mm v. SE-l (DCM: Hülse + Schneidring + 9er)
       SE_SORTIMENT: [
         { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 11, cuts: 1,
@@ -7566,7 +7568,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
       // Tool-Slot bleibt 20 mm pro SE (für Layout-Stabilität; der dazugehörige
       // Distanzring der ehemaligen "Hülse" wird im Slot mit reserviert, ist aber
       // konzeptuell ein separater variabler Distanzring).
-      SCHNEIDEEINHEIT: 20,             // Slot-Reservierung 20 mm (= 10 mm SE + 10 mm Default-Distanzring vorher)
+      SCHNEIDEEINHEIT: 20,             // Slot-Reservierung (= SE_CORE + SE_DISTANZ_DEFAULT)
+      SE_CORE_LENGTH: 10,              // v1.99.119 · physikalische SE = 9 mm Einheit + 1 mm Schneidring
+      SE_DISTANZ_DEFAULT: 10,          // v1.99.119 · variabler Distanzring an der SE (Default 10 mm, nach Schneidring bei Euromac)
       SCHNITT_OFFSET: 10,              // Schneidkante = 10 mm v. SE-l (Euromac: 9er+Schneidring auf rechter Slot-Hälfte)
       SE_SORTIMENT: [
         { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 10, cuts: 1,
@@ -7901,10 +7905,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
       else roleCounts.inner++;
     }
     const totalSE = innerSEs.length;
-    // v1.99.118: SE-Topologie maschinen-spezifisch (Bestückungsrichtung Euromac vs Laufrichtung DCM)
+    // v1.99.119: SE physikalisch 10 mm (9er + 1mm Schneidring) + variabler Distanzring (default 10 mm).
+    // Werker kann den Distanzring aus dem ganzen Sortiment wählen für Mehrfach-Bestückung.
     const seSpec = (activeMachineId === "EUROMAC")
-      ? "20 mm Slot (= 9 mm Einheit + 1 mm Schneidring + 10 mm var. Distanzring)"
-      : "20 mm Slot (= 10 mm var. Distanzring + 1 mm Schneidring + 9 mm Einheit)";
+      ? "10 mm SE-fest (9 mm Einheit + 1 mm Schneidring) + var. Distanzring (Default 10 mm)"
+      : "var. Distanzring (Default 10 mm) + 10 mm SE-fest (1 mm Schneidring + 9 mm Einheit)";
     const holliste = [];
     // Besäumungs-SE zuerst (Werker muss diese explizit als Trim-Schnitte erkennen,
     // sonst werden Außen-Schmalrollen mit dem Trim-Anteil zu breit).
@@ -14067,7 +14072,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
       ? `${M.BESTUECKUNGS_BREITE} mm zwischen ${M.PARK_PRO_SEITE}× ${M.PARK_RING} mm Park-Ringen pro Seite · Stack auf geo-center (Bahn-Offset ${M.BAHN_MITTE_OFFSET_MM} mm)`
       : `${M.BESTUECKUNGS_BREITE} mm`);
     setTxt("mcParkRing",       `${M.PARK_RING} mm · ${M.PARK_PRO_SEITE}/Seite${isEuro ? " (Messer-Park)" : ""}`);
-    setTxt("mcSeLen",          `${M.SCHNEIDEEINHEIT} mm`);
+    // v1.99.119: SE-Slot ist Aggregat aus physikalischer SE (10 mm) + variablem Distanzring (default 10 mm)
+    setTxt("mcSeLen",          (M.SE_CORE_LENGTH && M.SE_DISTANZ_DEFAULT)
+      ? `${M.SE_CORE_LENGTH} mm fest + ${M.SE_DISTANZ_DEFAULT} mm var. Distanzring (Default · variabel) = ${M.SCHNEIDEEINHEIT} mm Slot`
+      : `${M.SCHNEIDEEINHEIT} mm`);
     setTxt("mcSchnitt",        (() => {
       const sym = M.SCHNITT_OFFSET === M.SCHNEIDEEINHEIT / 2;
       const sFromR = M.SCHNEIDEEINHEIT - M.SCHNITT_OFFSET;
@@ -14092,7 +14100,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const std = (M.SE_SORTIMENT && M.SE_SORTIMENT.find(s => s.id === "standard")) || {};
     const buchse = (M.SE_SORTIMENT && M.SE_SORTIMENT.find(s => s.id === "schneidebuchse"));
     setTxt("seSortimentHead",  `Schneideeinheit${isEuro ? "-Sortiment" : ""}`);
-    setTxt("seGesamtLen",      `${std.length || M.SCHNEIDEEINHEIT} mm`);
+    // v1.99.119: SE-Länge zeigt physikalische 10 mm (fest) + variabler Distanzring (default 10 mm)
+    setTxt("seGesamtLen",      (M.SE_CORE_LENGTH && M.SE_DISTANZ_DEFAULT)
+      ? `${M.SE_CORE_LENGTH} mm fest (9 mm Einheit + 1 mm Schneidring) + var. Distanzring (Default ${M.SE_DISTANZ_DEFAULT} mm)`
+      : `${std.length || M.SCHNEIDEEINHEIT} mm`);
     setTxt("seSchnitt",        (() => {
       const ce = std.cutEdgeFromLeft || M.SCHNITT_OFFSET;
       const sym = ce === M.SCHNEIDEEINHEIT / 2;
@@ -14135,11 +14146,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const m = activeMachineId;
     if (m === "DCM") {
       txtEl.innerHTML =
-        `<strong>Wussten Sie?</strong> Die DCM-Schneideeinheit besteht physikalisch nur aus ` +
-        `<strong>1 mm Schneidring + 9 mm Einheit</strong>. Davor sitzt ein <strong>variabler ` +
-        `Distanzring</strong> (default 10 mm, kann aber für Mehrfach-Rüstung andere Größen haben). ` +
-        `Schneidkante bei <strong>11 mm v. SE-l</strong> (= rechte Kante des Schneidrings, Übergang ` +
-        `zur 9er-Einheit). ` +
+        `<strong>Wussten Sie?</strong> Die DCM-SE besteht physikalisch nur aus <strong>10 mm</strong> ` +
+        `(= 1 mm Schneidring + 9 mm Einheit). Davor sitzt ein <strong>VARIABLER Distanzring</strong>: ` +
+        `Default 10 mm, aber bei Mehrfach-Rüstung kann der Werker JEDEN Distanzring aus dem Sortiment ` +
+        `(0,3 / 0,5 / 1 / 2 / 5 / 10 / 20 / 30 / 50 / 100 / 200 / 300 mm) ans Schneidring legen — ` +
+        `das gibt massiv mehr Flexibilität als die alte 20-mm-fix-Annahme. ` +
+        `Schneidkante bei <strong>11 mm v. SE-l</strong> (= rechte Kante des Schneidrings, Übergang zur 9er-Einheit). ` +
         `Bestückungsbereich: 1000 mm zwischen 2× 4 Parkringen (Welle gesamt 1472 mm). ` +
         `<br><strong>Park-Auto-Reduzierung bei großer MR:</strong> ab 1001 mm → 2 Ringe/Seite (1236 mm Bestückung), ab 1237 mm → 1 Ring/Seite (1354 mm).`;
       tipEl.hidden = false;
