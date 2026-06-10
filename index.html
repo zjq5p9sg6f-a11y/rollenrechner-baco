@@ -6690,7 +6690,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.113";
+  const APP_VERSION = "v1.99.114";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -7539,13 +7539,19 @@ audio.team-player-audio::-webkit-media-controls-panel {
       // 10 Stufen — kein 200/300 mm (Lücken muss Operator durch Kombi 100+X lösen)
       DISTANZRINGE: [100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
       SCHNEIDEEINHEIT: 20,             // Standard-SE: Distanzhülse 10 + Messer 1 + Gegenstück 9
-      // v1.94 Werker-Korrektur 2026-06-01: SCHNITT_OFFSET 11 → 10. Werker zaehlt die
-      // "Schneidkante" als LINKE Kante der Klinge (= Uebergang Distanzhuelse→Messer bei
-      // 10 mm), nicht die rechte Kante. Sein Beispiel 670-488=182 mm setzt cut bei
-      // SE-Mitte voraus. Mit 11 lieferte Tool 183, mit 10 jetzt 182 ✓
-      SCHNITT_OFFSET: 10,              // Schnittkante 10 mm v.l. (= linke Klingen-Edge / SE-Mitte)
+      // v1.99.114 Jan-Korrektur 2026-06-10: SCHNITT_OFFSET 10 → 11 (ASYMMETRISCH).
+      // Frühere Annahme (10 mm = SE-Mitte, symm.) war geometrisch falsch.
+      // Aufbau: Distanzhülse 10 mm + Messerscheibe 1 mm + Gegenstück 9 mm
+      //   0–10 mm: Distanzhülse
+      //  10–11 mm: Messerscheibe (1 mm dünn)
+      //  11–20 mm: Gegenstück (Untermesser-Kontakt)
+      // Schnittebene = RECHTE Kante der Messerscheibe = wo Untermesser anfängt
+      // = 11 mm v. SE-l (9 mm v. SE-r). Vorherige Werker-Probe vom 2026-06-01
+      // (670-488=182, mit 10 mm) war Werker-Vereinfachung — physikalisch korrekt
+      // ist 11 mm v. SE-l. (Werker-Beispiel 1240-MR liefert dann 56 mm statt 55.)
+      SCHNITT_OFFSET: 11,              // 11 mm v. SE-l · 9 mm v. SE-r (asymm.)
       SE_SORTIMENT: [
-        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 10, cuts: 1,
+        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 11, cuts: 1,
           composition: "Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9 mm" },
         { id: "schneidebuchse", label: "Schneidebuchse (Multi-Cut)", length: 30, cuts: 6,
           cutSpacing: 5, cutPositions: [2.5, 7.5, 12.5, 17.5, 22.5, 27.5],
@@ -8729,8 +8735,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     //   SCHNITT_OFFSET = "Schnittkante v. welle-LINKS der SE" (in welle-coord)
     //   Cut welle-coord = SE_x_left + SCHNITT_OFFSET
     //
-    // Euromac: SE 20, SCHNITT 10 (=SE-Mitte, symmetrisch)
-    //   Werker-Beispiel 8×122/MR1000: cut bei SE_x_left+10, ergibt 182 mm v. welle-rechts
+    // Euromac: SE 20, SCHNITT 11 (ASYMMETRISCH · 11 v. SE-l, 9 v. SE-r)
+    //   Distanzhülse 10 + Messerscheibe 1 + Gegenstück 9 → Cut bei rechter Kante
+    //   der Messerscheibe = 11 mm v. SE-l. Jan-Korrektur 2026-06-10 (v1.99.114).
     // DCM: SE 20 (= 10 Schneidring + 3 Übergang + 7 Nutmesser), SCHNITT 13 (echt asymmetrisch)
     //   Schnittkante sitzt 13 mm v. welle-links = 7 mm v. welle-rechts (Aufschiebe-Sicht)
     {
