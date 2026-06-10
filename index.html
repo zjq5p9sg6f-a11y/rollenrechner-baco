@@ -6690,7 +6690,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.110.2";
+  const APP_VERSION = "v1.99.111";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -7592,6 +7592,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
   // erkennen und zurückzusetzen (Bug-Fix: nach breiter MR wurde Park-Reduktion via
   // Button gesetzt; bei späterer schmaler MR blieb sie aktiv obwohl Auto nicht mehr griff)
   function getEuroAutoPark(mr) {
+    // v1.99.111 · Werker-Empirie 2026-06-10: bis 1240 mm wird gefahren — beide Park-Ringe weg
+    //   2 Park (default) → Bestueckung 1120 → MR ≤ 1120
+    //   1 Park           → Bestueckung 1220 → MR 1120.001 .. 1220
+    //   0 Park (Werker entfernt komplett) → Bestueckung 1320 → MR 1220.001 .. 1320
+    if (mr != null && mr > 1220 + 0.001) return 0;
     if (mr != null && mr > 1120 + 0.001) return 1;
     return MACHINES.EUROMAC.PARK_PRO_SEITE;  // default 2
   }
