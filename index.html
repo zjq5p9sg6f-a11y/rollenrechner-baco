@@ -6763,7 +6763,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.123";
+  const APP_VERSION = "v1.99.124";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -8664,67 +8664,50 @@ audio.team-player-audio::-webkit-media-controls-panel {
             fill: blattCol, stroke: blattStroke, "stroke-width": "0.8"
           });
         }
-        // C · 9 mm Einheit (Gegenstück) · ROT · v1.99.123 H-Form mit Eintauch-Aussparung
-        // Skizze IMG_4186 zeigt: linke + rechte Schulter mit voller Höhe (= voller Durchmesser),
-        // dazwischen abgesenkter Mittelbereich (= Durchmesser-Verringerung wo Obermesser eintaucht).
-        // Obermesser senkt sich in die Aussparung und legt sich gegen den 1 mm Schneidring an.
+        // C · 9 mm Einheit (Gegenstück) · ROT · v1.99.124 Γ-Form mit Aussparung zum Schneidring
+        // Jan-Korrektur 2026-06-11: die 9er hat NUR EINE Schulter (rechts in LR-Sicht).
+        // Der "zweite H-Strich" wird durch den angelegten 1 mm Schneidring (partB) gebildet.
+        // Form-Beschreibung in LR-Sicht: links Aussparung-Boden (Durchmesser verringert) +
+        // rechts Schulter (voller Durchmesser). Aussparung-Oben ist offen (dort taucht das
+        // Obermesser ein und legt sich gegen den Schneidring an).
         if (cPx > 0.5) {
           const xMain = x + aPx + bPx;
           const xR = x + w;
           const r = Math.min(rr, cPx * 0.20);
-          // Schulter-Geometrie (links + rechts der Aussparung)
-          // Bei sehr kleinem cPx fallback auf einfaches Rechteck
-          const useDetail = cPx > 4.5;  // genug Platz für H-Form?
-          const shoulderW = useDetail ? Math.max(1.2, cPx * 0.16) : 0;
-          const cutoutTop = innerY + innerH * 0.28;
-          const cutoutBot = innerY + innerH * 0.72;
+          const useDetail = cPx > 4;
+          const shoulderW = useDetail ? Math.max(1.5, cPx * 0.30) : 0;  // rechte Schulter
+          const cutoutBot = innerY + innerH * 0.72;     // Boden-Oberkante der Aussparung
           const innerBot = innerY + innerH;
           if (useDetail) {
-            // H-Form path · zeigt Durchmesser-Verringerung in der Mitte
-            const xShL = xMain + shoulderW;
-            const xShR = xR - shoulderW - r * 0.5;
+            // Γ-Form path · linke Aussparung (offen nach oben zum Obermesser) + rechte Schulter
+            const xShR = xR - shoulderW - r * 0.3;
             svgW(g, "path", {
-              d: `M${xMain},${innerY}
-                  L${xShL},${innerY}
-                  L${xShL},${cutoutTop}
-                  L${xShR},${cutoutTop}
+              d: `M${xMain},${cutoutBot}
+                  L${xShR},${cutoutBot}
                   L${xShR},${innerY}
                   L${xR - r},${innerY}
                   Q${xR},${innerY} ${xR},${innerY + r}
                   L${xR},${innerBot - r}
                   Q${xR},${innerBot} ${xR - r},${innerBot}
-                  L${xShR},${innerBot}
-                  L${xShR},${cutoutBot}
-                  L${xShL},${cutoutBot}
-                  L${xShL},${innerBot}
                   L${xMain},${innerBot}
                   Z`,
               fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7",
               "stroke-linejoin": "miter"
             });
-            // Aussparung-Hintergrund · dunkel · zeigt Eintauch-Tiefe für Obermesser
-            svgW(g, "rect", {
-              x: xShL + 0.2, y: cutoutTop + 0.3, width: Math.max(0, xShR - xShL - 0.4), height: cutoutBot - cutoutTop - 0.6,
-              fill: "rgba(0,0,0,0.55)", rx: 0.3
-            });
-            // Linke Schulter · Top-Highlight (3D-Glanz)
-            svgW(g, "rect", {
-              x: xMain + 0.4, y: innerY + 1, width: Math.max(0, shoulderW - 0.8), height: innerH * 0.12,
-              fill: "rgba(255,255,255,0.32)", rx: 0.5
-            });
-            // Rechte Schulter · Top-Highlight
+            // Top-Highlight nur auf der rechten Schulter (3D-Glanz)
             svgW(g, "rect", {
               x: xShR + 0.4, y: innerY + 1, width: Math.max(0, shoulderW - 0.8 - r * 0.3), height: innerH * 0.12,
               fill: "rgba(255,255,255,0.32)", rx: 0.5
             });
-            // Schmale Schatten an der Innenkante der Aussparung · zeigt Tiefen-Übergang
+            // Schatten an der Aussparung-Oberkante (Tiefen-Effekt für den Boden)
             svgW(g, "line", {
-              x1: xShL + 0.2, y1: cutoutTop + 0.5, x2: xShL + 0.2, y2: cutoutBot - 0.5,
-              stroke: "rgba(0,0,0,0.7)", "stroke-width": "0.6"
+              x1: xMain + 0.3, y1: cutoutBot + 0.2, x2: xShR - 0.2, y2: cutoutBot + 0.2,
+              stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.5"
             });
+            // Innen-Kante zwischen Aussparung-Boden und Schulter (linke Schulter-Innenseite)
             svgW(g, "line", {
-              x1: xShR - 0.2, y1: cutoutTop + 0.5, x2: xShR - 0.2, y2: cutoutBot - 0.5,
-              stroke: "rgba(0,0,0,0.7)", "stroke-width": "0.6"
+              x1: xShR - 0.2, y1: cutoutBot + 0.3, x2: xShR - 0.2, y2: innerY + 1,
+              stroke: "rgba(0,0,0,0.65)", "stroke-width": "0.6"
             });
           } else {
             // Fallback bei kleinem cPx: einfaches Rechteck mit Rinne
@@ -8739,7 +8722,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
               fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7"
             });
             svgW(g, "rect", {
-              x: xMain + 1, y: cutoutTop, width: Math.max(0, cPx - 2), height: cutoutBot - cutoutTop,
+              x: xMain + 1, y: innerY + innerH * 0.28, width: Math.max(0, cPx - 2), height: innerH * 0.44,
               fill: "rgba(0,0,0,0.4)", rx: 0.5
             });
           }
