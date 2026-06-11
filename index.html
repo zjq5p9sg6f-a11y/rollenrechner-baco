@@ -6279,7 +6279,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
               <path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 9 8 9"/>
             </svg>
-            <span id="welleViewToggleLabel">Sicht: Laufrichtung</span>
+            <span id="welleViewToggleLabel">Sicht: Bestückung</span>
           </button>
           <!-- v1.99.103: Closed-Loop Debug-Snapshot · kompakter Text in Zwischenablage -->
           <button class="btn-debug-snapshot" id="debugSnapshotBtn" type="button" tabindex="-1" title="Komplette Konstellation als Text in Zwischenablage kopieren · zum Posten in Claude-Chat für sofortigen Kontext">
@@ -6433,7 +6433,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       <!-- v1.99.13: Wrapper für welle-svg. Position:relative bleibt für innere
            absolute-positionierte Hilfs-Elemente (welle-detail-overlay, touch-hint). -->
       <div class="welle-stage-wrap" id="welleStageWrap">
-      <div class="welle-view-badge" id="welleViewBadge">Bestückungsposition · Rüstdorn</div>
+      <div class="welle-view-badge" id="welleViewBadge">Laufrichtung · Maschine (gedreht)</div>
       <svg id="welleSvg" viewBox="0 0 1500 460" preserveAspectRatio="xMidYMid meet" aria-label="Bestückte Welle">
         <defs>
           <!-- v1.95 Premium-Detailing: tieferer Stahl-Look, metallische Highlights, weichere Glows -->
@@ -6792,7 +6792,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.137";
+  const APP_VERSION = "v1.99.138";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -14324,10 +14324,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
         `<strong>Wussten Sie?</strong> Die Euromac-Welle ist <strong>asymmetrisch geteilt</strong>: ` +
         `650 mm links · 670 mm rechts der geometrischen Mitte. Bahn-Mitte muss bei Bedarf manuell geeicht werden ` +
         `(siehe Feld oben). Bestückungsbereich: 1120 mm zwischen 2× 2 Parkringen.` +
-        `<br><br>⚠️ <strong>Welle wird beim Einbau GEDREHT:</strong> Das Tool zeigt die Welle in <strong>Laufrichtung</strong> ` +
-        `(wie sie in der Maschine sitzt). Am Rüstdorn baut der Werker in <strong>umgekehrter Reihenfolge</strong> auf. ` +
-        `SE-Aufbau (Laufrichtung): variable Distanzringe → 1 mm Schneidring → 9 mm Einheit. ` +
-        `Obermesser drückt von rechts gegen Schneidring nach links → Cut an rechter Kante des Schneidrings.`;
+        `<br><br>⚠️ <strong>Welle wird beim Einbau GEDREHT:</strong> Das Tool zeigt die Welle in <strong>Bestückungsposition</strong> ` +
+        `(wie sie auf dem Rüstdorn liegt — Werker baut von rechts nach links auf). ` +
+        `Beim Einbau in die Maschine wird die Welle 180° gedreht (Laufrichtung). ` +
+        `SE-Aufbau am Rüstdorn (von Welle-Rand-rechts): variable Distanzringe → Distanzhülse → 1 mm Schneidring → 9 mm Einheit. ` +
+        `Mit dem Toggle <strong>"Sicht: Laufrichtung"</strong> oben rechts kannst du die Maschinen-Sicht (gedreht) sehen.`;
       tipEl.hidden = false;
     } else {
       tipEl.hidden = true;
@@ -17063,10 +17064,14 @@ body > *:not(#printMaster) { display: none !important; }
   // Nur für Euromac sichtbar (Welle wird beim Einbau gedreht).
   // Persistenz: localStorage 'rr.welleView' = 'laufrichtung' | 'bestueckung'
   function getWelleView() {
+    // v1.99.138 Jan-Korrektur: Default-Sicht im Tool IST Bestückung (Rüstdorn).
+    // "laufrichtung-mirrored" = Toggle aktiv = Welle gespiegelt → Maschinen-Sicht.
     try {
       const v = localStorage.getItem("rr.welleView");
-      return (v === "bestueckung") ? "bestueckung" : "laufrichtung";
-    } catch (_) { return "laufrichtung"; }
+      // Backward-compat: alte "bestueckung"-Werte sind jetzt der Default ("bestueckung")
+      if (v === "laufrichtung-mirrored") return "laufrichtung-mirrored";
+      return "bestueckung";
+    } catch (_) { return "bestueckung"; }
   }
   function setWelleView(view) {
     try { localStorage.setItem("rr.welleView", view); } catch (_) {}
@@ -17079,14 +17084,18 @@ body > *:not(#printMaster) { display: none !important; }
     const M = (typeof getMachine === "function") ? getMachine() : null;
     const isEuro = M && M.id === "EUROMAC";
     const view = getWelleView();
-    if (wrap) wrap.classList.toggle("is-mirrored", isEuro && view === "bestueckung");
+    // v1.99.138: Mirror wird aktiviert wenn Sicht auf "laufrichtung-mirrored" steht
+    // (= Werker will Maschinen-Sicht sehen, Tool muss Welle spiegeln zur Drehung)
+    if (wrap) wrap.classList.toggle("is-mirrored", isEuro && view === "laufrichtung-mirrored");
     if (btn) {
-      btn.setAttribute("aria-pressed", view === "bestueckung" ? "true" : "false");
+      btn.setAttribute("aria-pressed", view === "laufrichtung-mirrored" ? "true" : "false");
     }
     if (label) {
-      label.textContent = (view === "bestueckung")
-        ? "Sicht: Bestückung"
-        : "Sicht: Laufrichtung";
+      // v1.99.138 Jan-Korrektur: Default-Sicht im Tool IST Bestückung (Rüstdorn).
+      // Beim Aktivieren des Toggles wird gespiegelt → Laufrichtung (Maschine).
+      label.textContent = (view === "laufrichtung-mirrored")
+        ? "Sicht: Laufrichtung"
+        : "Sicht: Bestückung";
     }
   }
   function syncWelleViewToggleUI() {
@@ -17101,9 +17110,10 @@ body > *:not(#printMaster) { display: none !important; }
   if (welleViewBtnEl) {
     welleViewBtnEl.addEventListener("click", () => {
       const cur = getWelleView();
-      const next = (cur === "bestueckung") ? "laufrichtung" : "bestueckung";
+      // v1.99.138: Default ist Bestückung, Toggle wechselt zu laufrichtung-mirrored (Maschinen-Sicht)
+      const next = (cur === "laufrichtung-mirrored") ? "bestueckung" : "laufrichtung-mirrored";
       setWelleView(next);
-      try { toast(`Welle-Sicht: ${next === "bestueckung" ? "Bestückungsposition (Rüstdorn)" : "Laufrichtung (Maschine)"}`); } catch(_) {}
+      try { toast(`Welle-Sicht: ${next === "laufrichtung-mirrored" ? "Laufrichtung (Maschine · gedreht)" : "Bestückungsposition (Rüstdorn)"}`); } catch(_) {}
     });
   }
   // Initial-Sync nach Page-Load
