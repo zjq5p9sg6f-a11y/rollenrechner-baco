@@ -6763,7 +6763,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.131";
+  const APP_VERSION = "v1.99.132";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -8639,45 +8639,52 @@ audio.team-player-audio::-webkit-media-controls-panel {
         svgW(gM, "stop", { offset: "50%", "stop-color": messerTop });
         svgW(gM, "stop", { offset: "100%", "stop-color": messerBot });
 
-        // A · 9 mm Einheit ROT · Distanzhülse mit eingedrehter Vertiefung auf der LINKEN Seite
-        // v1.99.130 Jan-Spec 2026-06-11: die 9er-Einheit ist im Prinzip eine Distanzhülse
-        // (voll-bedeckt) mit einer EINGEDREHTEN VERTIEFUNG auf der LINKEN Seite — dort wo
-        // das Obermesser eintauchen kann um sich gegen den Schneidring anzulegen.
-        // Die Vertiefung ist als zwei kleine Stufen-Aussparungen oben links + unten links
-        // sichtbar. Der Hauptkörper bleibt komplett rot bedeckt.
+        // A · 9 mm Einheit ROT · Distanzhülse mit Eindrehung links oben + links unten
+        // v1.99.132 Jan-Mockup-Match 2026-06-11 (Bild #11):
+        // Symmetrische Aussparungen oben links + unten links (etwa 18% Höhe × 30% Breite).
+        // Hauptkörper voll bedeckt rot. Linke Außenkante zwischen Aussparungen GERADE
+        // (kein Rundung) damit die Stufen klar erkennbar sind.
         if (aPx > 0.5) {
           const xL = x;
-          const xA_right = x + aPx;  // rechte Kante der 9er-Einheit (= Übergang zum Schneidring)
+          const xA_right = x + aPx;
           const useDetailA = aPx > 4;
-          // Eindrehung-Geometrie (kleine Aussparungen auf der LINKEN Seite)
-          const stepH = innerH * 0.13;       // Aussparung-Höhe ≈ 13% der inner-Höhe
-          const stepW = useDetailA ? Math.max(1.5, aPx * 0.40) : 0;  // Eindrehungs-Tiefe ≈ 40% der 9er-Breite
-          const xLStep = xL + stepW;         // rechte Kante der Aussparungen (linke Seite)
+          // Eindrehung-Geometrie · grosser + symmetrisch
+          const stepH = innerH * 0.18;       // Aussparung-Höhe ≈ 18% (deutlich sichtbar)
+          const stepW = useDetailA ? Math.max(1.5, aPx * 0.30) : 0;  // Aussparung-Breite ≈ 30%
+          const xLStep = xL + stepW;
           const innerBot = innerY + innerH;
           if (useDetailA) {
-            // Voll-bedecktes Rechteck mit Eindrehung links oben + links unten
+            // Path: voll-Rechteck mit 2 ausgesparten Ecken links oben + links unten.
+            // Linke Außenkante der mittleren Säule ist GERADE (= deutliche Stufen).
             svgW(g, "path", {
               d: `M${xLStep},${innerY}
                   L${xA_right},${innerY}
                   L${xA_right},${innerBot}
                   L${xLStep},${innerBot}
                   L${xLStep},${innerBot - stepH}
-                  L${xL + rr},${innerBot - stepH}
-                  Q${xL},${innerBot - stepH} ${xL},${innerBot - stepH - rr}
-                  L${xL},${innerY + stepH + rr}
-                  Q${xL},${innerY + stepH} ${xL + rr},${innerY + stepH}
+                  L${xL},${innerBot - stepH}
+                  L${xL},${innerY + stepH}
                   L${xLStep},${innerY + stepH}
                   Z`,
-              fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7",
+              fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.8",
               "stroke-linejoin": "miter"
             });
-            // Top-Highlight auf dem rechten voll-Höhe-Bereich (3D-Glanz auf Distanzhülsen-Außenseite)
+            // Top-Highlight auf rechtem voll-Höhe-Bereich (3D-Glanz)
             svgW(g, "rect", {
-              x: xLStep + 0.5, y: innerY + 1, width: Math.max(0, xA_right - xLStep - 1), height: innerH * 0.12,
+              x: xLStep + 0.4, y: innerY + 1, width: Math.max(0, xA_right - xLStep - 0.8), height: innerH * 0.12,
               fill: "rgba(255,255,255,0.32)", rx: 0.5
             });
+            // Schatten an den Stufen-Innenkanten (Tiefen-Effekt)
+            svgW(g, "line", {
+              x1: xLStep - 0.1, y1: innerY + 0.2, x2: xLStep - 0.1, y2: innerY + stepH - 0.2,
+              stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.5"
+            });
+            svgW(g, "line", {
+              x1: xLStep - 0.1, y1: innerBot - stepH + 0.2, x2: xLStep - 0.1, y2: innerBot - 0.2,
+              stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.5"
+            });
           } else {
-            // Fallback bei kleinem aPx: einfaches Rechteck
+            // Fallback bei sehr kleinem aPx: einfaches Rechteck
             svgW(g, "path", {
               d: `M${xA_right},${innerY}
                   L${xL + rr},${innerY}
