@@ -6763,7 +6763,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.135";
+  const APP_VERSION = "v1.99.136";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -11816,12 +11816,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
         eyebrow = isTrim
           ? `Besäumungs-SE ${role === "trim-L" ? "links" : "rechts"}`
           : (isUeber ? "Übergangs-SE" : (kind === "neben" ? "Neben-Schneideeinheit" : "Schneideeinheit"));
-        titleNum = "20"; unit = "mm";
-        const sym = M.SCHNITT_OFFSET === M.SCHNEIDEEINHEIT / 2;
-        const cutFromR = M.SCHNEIDEEINHEIT - M.SCHNITT_OFFSET;
-        const cutGeomTxt = sym
-          ? `Schneidkante bei <em>${M.SCHNITT_OFFSET} mm</em> = SE-Mitte (symmetrisch)`
-          : `Schneidkante <em>${M.SCHNITT_OFFSET} mm</em> v. SE-l · <em>${cutFromR} mm</em> v. SE-r (asymm.)`;
+        // v1.99.136: Slide-Over zeigt nur die ECHTE SE (9 mm Einheit + 1 mm Schneidring = 10 mm).
+        // Die 10 mm Distanzhülse ist konzeptuell ein separater variabler Distanzring.
+        const seCoreLen = M.SE_CORE_LENGTH || 10;
+        titleNum = String(seCoreLen); unit = "mm";
+        // Cut-Position relativ zur SE_CORE-Linke-Kante (= Anfang der 9er-Einheit):
+        // In v1.99.131-Topologie sitzt 9er bei SE-l+0..9, SR bei SE-l+9..10.
+        // SCHNITT_OFFSET = 9 (linke Kante SR) → Cut bei SE_CORE-Mitte = 9 mm v. SE_CORE-l.
+        const cutGeomTxt = `Schneidkante = rechte Kante des 1 mm Schneidrings (Übergang Schneidring → 9er-Einheit)`;
         const trimTxt = isFinite(trim) && trim > 0
           ? ` <strong style="color:#ffd28a">${fmtW(trim, 1)} mm Trim weg</strong> — Außen-Schmalrolle-Kante.`
           : "";
@@ -11830,11 +11832,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
           : (isUeber
             ? `Übergangs-Schnitt zwischen Haupt- und Nebenrolle. ${cutGeomTxt}.`
             : `Trennungs-Schnitt zwischen zwei Schmalrollen. ${cutGeomTxt}.`));
-        const composition = (M.SE_SORTIMENT && M.SE_SORTIMENT[0] && M.SE_SORTIMENT[0].composition) || "Schneidring + Nutmesser";
         extras = `
           <dt>Position</dt><dd>${posTxt}</dd>
           <dt>Schneidkante</dt><dd>@ <em>${fmtW(cut, 1)} mm</em> Welle · ${fromMitteTxt}</dd>
-          <dt>Aufbau</dt><dd>${composition}</dd>
+          <dt>Aufbau</dt><dd>9 mm Einheit (Gegenstück, ROT) + 1 mm Schneidring (WEISS)</dd>
+          <dt>Distanzhülse</dt><dd style="color:#c89060">Davor (in Laufrichtung) sitzt ein <strong>variabler Distanzring</strong> (Default 10 mm · BRONZE) — bei Mehrfach-Bestückung beliebige Größe wählbar.</dd>
         `;
       } else if (kind === "rest") {
         eyebrow = "Distanzring-Auffüllung";
