@@ -2384,43 +2384,15 @@ header.bar {
 }
 .btn-welle-view:active { transform: translateY(1px); }
 
-/* Welle-Spiegelung bei aktiver Bestückungsposition-Sicht.
-   v1.99.137: erweitert · counter-transform für Text + Tag-Boxen + Pfeile damit
-   alle Bemaßungs- und KPI-Elemente lesbar/richtig orientiert bleiben.
-   Strategie: SVG-Wurzel wird gespiegelt → Welle-Geometrie ist in Bestückungs-
-   Sicht. Alles was "Annotation" ist (Text, Tag-Boxen, Pfeil-Spitzen, KPI-
-   Markierungen) bekommt ein zusätzliches scaleX(-1) damit Inhalt + Pfeil-Form
-   wieder normal orientiert sind aber Position gespiegelt ist. */
+/* v1.99.139 Welle-Drehung: CSS-scaleX(-1) auf das ganze SVG plus Counter-Transform
+   nur für Text-Elemente damit sie lesbar bleiben. Pfeile/Tags bleiben mit der Welle
+   gespiegelt (= konsistent mit der gedrehten Sicht).
+   KPI-Tag-Texte werden im JS dynamisch angepasst ("v. rechts" ↔ "v. links"). */
 .welle-stage-wrap.is-mirrored #welleSvg {
   transform: scaleX(-1);
   transform-origin: center;
 }
-/* Text-Elemente lesbar halten */
 .welle-stage-wrap.is-mirrored #welleSvg text {
-  transform: scaleX(-1);
-  transform-box: fill-box;
-  transform-origin: center;
-}
-/* Pfeil-Polygone (Cut-Marker, KPI-Pfeilspitzen) richtig orientieren */
-.welle-stage-wrap.is-mirrored #welleSvg polygon {
-  transform: scaleX(-1);
-  transform-box: fill-box;
-  transform-origin: center;
-}
-/* Pfeil-Pfade (path mit fill ohne stroke = typisch Pfeilspitzen) */
-.welle-stage-wrap.is-mirrored #welleSvg path.welle-arrow,
-.welle-stage-wrap.is-mirrored #welleSvg path.welle-tag-bg,
-.welle-stage-wrap.is-mirrored #welleSvg path.cut-arrow {
-  transform: scaleX(-1);
-  transform-box: fill-box;
-  transform-origin: center;
-}
-/* Welle-Tag-Boxen (Container für Beschriftungen) bekommen Counter-Transform
-   damit Inhalt + Hintergrund gemeinsam an der gespiegelten Position erscheinen
-   aber wieder normal orientiert sind. */
-.welle-stage-wrap.is-mirrored #welleSvg .welle-tag,
-.welle-stage-wrap.is-mirrored #welleSvg .welle-tag-group,
-.welle-stage-wrap.is-mirrored #welleSvg .welle-kpi-tag {
   transform: scaleX(-1);
   transform-box: fill-box;
   transform-origin: center;
@@ -6792,7 +6764,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.138";
+  const APP_VERSION = "v1.99.139";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -8223,6 +8195,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     const pxPerMM = innerW / M.WELLE;
     const xAt = (mm) => padX + mm * pxPerMM;
+    // v1.99.139: Welle-Drehung via CSS-scaleX. Bei aktivem Mirror werden KPI-Tag-Texte
+    // dynamisch angepasst ("v. rechts" ↔ "v. links") damit Bemaßungen semantisch
+    // konsistent mit der gespiegelten Sicht bleiben.
+    const isMirroredView = (M.id === "EUROMAC") &&
+      (typeof getWelleView === "function") && (getWelleView() === "laufrichtung-mirrored");
+    const directionLabel = isMirroredView ? "links" : "rechts";
     const layoutLR = d.layoutLR || [];
 
     // ============ Welle-Träger 3D-Look (v1.95 Premium-Polish) ============
@@ -8967,7 +8945,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           fill: warnCol });
         const valTxt = isDCM_M
           ? `${fmtW(distMm, 1)} mm · 1. Park-R (n. Distanzr.) → 1. SE v. rechts (DCM)`
-          : `${fmtW(distMm, 1)} mm · 1. Schneidkante v. rechts`;
+          : `${fmtW(distMm, 1)} mm · 1. Schneidkante v. ${directionLabel}`;
         const lblW = valTxt.length * 6 + 24;
         let lblCx = (xCut + xRight) / 2;
         lblCx = Math.max(padX + lblW / 2 + 4, Math.min(W - padX - lblW / 2 - 4, lblCx));
@@ -9054,8 +9032,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
           fill: mj.color });
         // Label-Box ÜBER der Bemaßungs-Linie mit 5px Luft
         const lblTxt = mj.slotLabel
-          ? `${fmtW(distMrMm, 1)} mm · MR-Bahn r. ${mj.slotLabel}`
-          : `${fmtW(distMrMm, 1)} mm · MR-Bahn rechts`;
+          ? `${fmtW(distMrMm, 1)} mm · MR-Bahn ${isMirroredView ? "l" : "r"}. ${mj.slotLabel}`
+          : `${fmtW(distMrMm, 1)} mm · MR-Bahn ${directionLabel}`;
         const lblW = lblTxt.length * 5.2 + 14;
         let lblCx = (xMr + xRight) / 2;
         lblCx = Math.max(padX + lblW / 2 + 4, Math.min(W - padX - lblW / 2 - 4, lblCx));
@@ -17113,6 +17091,8 @@ body > *:not(#printMaster) { display: none !important; }
       // v1.99.138: Default ist Bestückung, Toggle wechselt zu laufrichtung-mirrored (Maschinen-Sicht)
       const next = (cur === "laufrichtung-mirrored") ? "bestueckung" : "laufrichtung-mirrored";
       setWelleView(next);
+      // v1.99.139: calc() neu aufrufen damit KPI-Tag-Texte (v. rechts ↔ v. links) aktualisiert werden
+      try { if (typeof calc === "function") calc(); } catch(_) {}
       try { toast(`Welle-Sicht: ${next === "laufrichtung-mirrored" ? "Laufrichtung (Maschine · gedreht)" : "Bestückungsposition (Rüstdorn)"}`); } catch(_) {}
     });
   }
