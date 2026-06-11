@@ -2354,6 +2354,69 @@ header.bar {
 }
 .btn-print svg { width: 16px; height: 16px; }
 
+/* v1.99.122: Welle-Ansichts-Toggle · orange/cyan Akzent · nur Euromac sichtbar */
+.btn-welle-view {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px solid rgba(255,138,0,0.55);
+  border-radius: 7px;
+  color: #ff8a00;
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--t-fast);
+  margin-right: 8px;
+}
+.btn-welle-view:hover {
+  background: rgba(255,138,0,0.12);
+  border-color: #ff8a00;
+  box-shadow: 0 0 12px rgba(255,138,0,0.35);
+}
+.btn-welle-view[aria-pressed="true"] {
+  background: rgba(255,138,0,0.20);
+  color: #ffae50;
+  border-color: #ffae50;
+  box-shadow: 0 0 14px rgba(255,138,0,0.45) inset, 0 0 8px rgba(255,138,0,0.25);
+}
+.btn-welle-view:active { transform: translateY(1px); }
+
+/* Welle-Spiegelung bei aktiver Bestückungsposition-Sicht.
+   transform-origin = center damit die Welle um ihre Mitte gespiegelt wird.
+   Text-Elemente bekommen Counter-Transform damit sie lesbar bleiben. */
+.welle-stage-wrap.is-mirrored #welleSvg {
+  transform: scaleX(-1);
+  transform-origin: center;
+}
+.welle-stage-wrap.is-mirrored #welleSvg text {
+  transform: scaleX(-1);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Sicht-Indikator · oben rechts in der Welle-Stage */
+.welle-view-badge {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  padding: 4px 10px;
+  background: rgba(255,138,0,0.18);
+  border: 1px solid rgba(255,138,0,0.55);
+  border-radius: 5px;
+  color: #ffae50;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  z-index: 5;
+  pointer-events: none;
+  display: none;
+}
+.welle-stage-wrap.is-mirrored .welle-view-badge { display: block; }
+
 /* v1.99.103: Debug-Snapshot Button · cyan-Akzent für Dev-Tools */
 .btn-debug-snapshot {
   display: inline-flex; align-items: center; gap: 6px;
@@ -6180,6 +6243,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
           <div class="welle-sub" id="welleSubtitle">Werte eingeben um Bestückung zu berechnen</div>
         </div>
         <div class="welle-head-actions">
+          <!-- v1.99.122: Welle-Ansichts-Toggle (nur Euromac · Welle wird beim Einbau gedreht) -->
+          <button class="btn-welle-view" id="welleViewToggleBtn" type="button" tabindex="-1" hidden
+                  title="Welle gedreht betrachten · zwischen Laufrichtung (Maschine) und Bestückungsposition (Rüstdorn) wechseln"
+                  aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+              <path d="M3 12a9 9 0 1 0 9-9"/><polyline points="3 4 3 9 8 9"/>
+            </svg>
+            <span id="welleViewToggleLabel">Sicht: Laufrichtung</span>
+          </button>
           <!-- v1.99.103: Closed-Loop Debug-Snapshot · kompakter Text in Zwischenablage -->
           <button class="btn-debug-snapshot" id="debugSnapshotBtn" type="button" tabindex="-1" title="Komplette Konstellation als Text in Zwischenablage kopieren · zum Posten in Claude-Chat für sofortigen Kontext">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M8 2v4M16 2v4M3 10h18M5 6h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"/><path d="M9 16l2 2 4-4"/></svg>
@@ -6332,6 +6404,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
       <!-- v1.99.13: Wrapper für welle-svg. Position:relative bleibt für innere
            absolute-positionierte Hilfs-Elemente (welle-detail-overlay, touch-hint). -->
       <div class="welle-stage-wrap" id="welleStageWrap">
+      <div class="welle-view-badge" id="welleViewBadge">Bestückungsposition · Rüstdorn</div>
       <svg id="welleSvg" viewBox="0 0 1500 460" preserveAspectRatio="xMidYMid meet" aria-label="Bestückte Welle">
         <defs>
           <!-- v1.95 Premium-Detailing: tieferer Stahl-Look, metallische Highlights, weichere Glows -->
@@ -6690,7 +6763,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.121";
+  const APP_VERSION = "v1.99.122";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -14192,6 +14265,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
     updateMachineToggleUI();
     updateMachineInfoUI();
     updateMachineInfoTip();
+    if (typeof syncWelleViewToggleUI === "function") syncWelleViewToggleUI();
     if (typeof syncBahnOffsetUI === "function") syncBahnOffsetUI();
     if (typeof syncTrimModeUI === "function") syncTrimModeUI();
     // v1.99.13/18: clusterJobs + activeJob für neue Maschine laden + applyen
@@ -16911,6 +16985,56 @@ body > *:not(#printMaster) { display: none !important; }
       if (typeof calc === "function") calc();
     });
   })();
+
+  // ============== v1.99.122 · Welle-Ansichts-Toggle (Laufrichtung ↔ Bestückungsposition) ==============
+  // Nur für Euromac sichtbar (Welle wird beim Einbau gedreht).
+  // Persistenz: localStorage 'rr.welleView' = 'laufrichtung' | 'bestueckung'
+  function getWelleView() {
+    try {
+      const v = localStorage.getItem("rr.welleView");
+      return (v === "bestueckung") ? "bestueckung" : "laufrichtung";
+    } catch (_) { return "laufrichtung"; }
+  }
+  function setWelleView(view) {
+    try { localStorage.setItem("rr.welleView", view); } catch (_) {}
+    applyWelleViewToDom();
+  }
+  function applyWelleViewToDom() {
+    const wrap = document.getElementById("welleStageWrap");
+    const btn = document.getElementById("welleViewToggleBtn");
+    const label = document.getElementById("welleViewToggleLabel");
+    const M = (typeof getMachine === "function") ? getMachine() : null;
+    const isEuro = M && M.id === "EUROMAC";
+    const view = getWelleView();
+    if (wrap) wrap.classList.toggle("is-mirrored", isEuro && view === "bestueckung");
+    if (btn) {
+      btn.setAttribute("aria-pressed", view === "bestueckung" ? "true" : "false");
+    }
+    if (label) {
+      label.textContent = (view === "bestueckung")
+        ? "Sicht: Bestückung"
+        : "Sicht: Laufrichtung";
+    }
+  }
+  function syncWelleViewToggleUI() {
+    const btn = document.getElementById("welleViewToggleBtn");
+    const M = (typeof getMachine === "function") ? getMachine() : null;
+    const isEuro = M && M.id === "EUROMAC";
+    const needsToggle = isEuro && M.WELLE_DREHRICHTUNG === "umgekehrt";
+    if (btn) btn.hidden = !needsToggle;
+    applyWelleViewToDom();
+  }
+  const welleViewBtnEl = document.getElementById("welleViewToggleBtn");
+  if (welleViewBtnEl) {
+    welleViewBtnEl.addEventListener("click", () => {
+      const cur = getWelleView();
+      const next = (cur === "bestueckung") ? "laufrichtung" : "bestueckung";
+      setWelleView(next);
+      try { toast(`Welle-Sicht: ${next === "bestueckung" ? "Bestückungsposition (Rüstdorn)" : "Laufrichtung (Maschine)"}`); } catch(_) {}
+    });
+  }
+  // Initial-Sync nach Page-Load
+  setTimeout(() => { try { syncWelleViewToggleUI(); } catch(_) {} }, 100);
 
   const debugBtnEl = document.getElementById("debugSnapshotBtn");
   console.log("[DEBUG-BTN] gefunden:", !!debugBtnEl);
