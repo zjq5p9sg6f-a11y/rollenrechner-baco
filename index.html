@@ -6763,7 +6763,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.129";
+  const APP_VERSION = "v1.99.130";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -8637,41 +8637,41 @@ audio.team-player-audio::-webkit-media-controls-panel {
         svgW(gM, "stop", { offset: "50%", "stop-color": messerTop });
         svgW(gM, "stop", { offset: "100%", "stop-color": messerBot });
 
-        // A · 9 mm Einheit ROT (LR-LINKS · voll bedecktes Material mit kleinen Stufen-Aussparungen)
-        // v1.99.129 Jan-Photoshop-Mockup 2026-06-11: die 9er-Einheit ist im Wesentlichen
-        // ein VOLL-Höhe-Rechteck. Nur an der RECHTEN OBEREN und RECHTEN UNTEREN Ecke gibt
-        // es KLEINE Stufen-Aussparungen — dort wo das Material für den Obermesser-Eintaucht
-        // entfernt wurde. Der Hauptkörper bleibt komplett rot bedeckt.
+        // A · 9 mm Einheit ROT · Distanzhülse mit eingedrehter Vertiefung auf der LINKEN Seite
+        // v1.99.130 Jan-Spec 2026-06-11: die 9er-Einheit ist im Prinzip eine Distanzhülse
+        // (voll-bedeckt) mit einer EINGEDREHTEN VERTIEFUNG auf der LINKEN Seite — dort wo
+        // das Obermesser eintauchen kann um sich gegen den Schneidring anzulegen.
+        // Die Vertiefung ist als zwei kleine Stufen-Aussparungen oben links + unten links
+        // sichtbar. Der Hauptkörper bleibt komplett rot bedeckt.
         if (aPx > 0.5) {
           const xL = x;
           const xA_right = x + aPx;  // rechte Kante der 9er-Einheit (= Übergang zum Schneidring)
           const useDetailA = aPx > 4;
-          // Stufen-Aussparungs-Geometrie (klein, nur rechts oben + rechts unten)
+          // Eindrehung-Geometrie (kleine Aussparungen auf der LINKEN Seite)
           const stepH = innerH * 0.13;       // Aussparung-Höhe ≈ 13% der inner-Höhe
-          const stepW = useDetailA ? Math.max(1.5, aPx * 0.32) : 0;  // Aussparung-Breite ≈ 32% der 9er-Breite
-          const xRStep = xA_right - stepW;   // linke Kante der Aussparungen
+          const stepW = useDetailA ? Math.max(1.5, aPx * 0.40) : 0;  // Eindrehungs-Tiefe ≈ 40% der 9er-Breite
+          const xLStep = xL + stepW;         // rechte Kante der Aussparungen (linke Seite)
           const innerBot = innerY + innerH;
           if (useDetailA) {
-            // Voll-bedecktes Rechteck mit Stufen-Aussparungen oben+unten an der rechten Kante
+            // Voll-bedecktes Rechteck mit Eindrehung links oben + links unten
             svgW(g, "path", {
-              d: `M${xL + rr},${innerY}
-                  L${xRStep},${innerY}
-                  L${xRStep},${innerY + stepH}
-                  L${xA_right},${innerY + stepH}
-                  L${xA_right},${innerBot - stepH}
-                  L${xRStep},${innerBot - stepH}
-                  L${xRStep},${innerBot}
-                  L${xL + rr},${innerBot}
-                  Q${xL},${innerBot} ${xL},${innerBot - rr}
-                  L${xL},${innerY + rr}
-                  Q${xL},${innerY} ${xL + rr},${innerY}
+              d: `M${xLStep},${innerY}
+                  L${xA_right},${innerY}
+                  L${xA_right},${innerBot}
+                  L${xLStep},${innerBot}
+                  L${xLStep},${innerBot - stepH}
+                  L${xL + rr},${innerBot - stepH}
+                  Q${xL},${innerBot - stepH} ${xL},${innerBot - stepH - rr}
+                  L${xL},${innerY + stepH + rr}
+                  Q${xL},${innerY + stepH} ${xL + rr},${innerY + stepH}
+                  L${xLStep},${innerY + stepH}
                   Z`,
               fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7",
               "stroke-linejoin": "miter"
             });
-            // Top-Highlight auf voll-Höhe-Bereich (3D-Glanz auf Welle-Außenseite)
+            // Top-Highlight auf dem rechten voll-Höhe-Bereich (3D-Glanz auf Distanzhülsen-Außenseite)
             svgW(g, "rect", {
-              x: xL + rr * 0.5, y: innerY + 1, width: Math.max(0, xRStep - xL - rr * 0.5 - 0.5), height: innerH * 0.12,
+              x: xLStep + 0.5, y: innerY + 1, width: Math.max(0, xA_right - xLStep - 1), height: innerH * 0.12,
               fill: "rgba(255,255,255,0.32)", rx: 0.5
             });
           } else {
