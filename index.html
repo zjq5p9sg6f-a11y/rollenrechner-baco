@@ -6763,7 +6763,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.133";
+  const APP_VERSION = "v1.99.134";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -8648,8 +8648,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
           const xA_right = x + aPx;
           const useDetailA = aPx > 4;
           // Eindrehung-Geometrie auf der RECHTEN Seite (zum Schneidring hin)
-          const stepH = innerH * 0.18;
-          const stepW = useDetailA ? Math.max(1.5, aPx * 0.30) : 0;
+          // v1.99.134: kleinere Aussparungen damit die Welle nicht "durchschimmert"
+          const stepH = innerH * 0.10;   // Aussparung-Höhe ≈ 10% (subtile Stufe)
+          const stepW = useDetailA ? Math.max(1.2, aPx * 0.20) : 0;  // Aussparung-Breite ≈ 20%
           const xRStep = xA_right - stepW;   // linke Kante der Aussparungen (Aussparung von xRStep bis xA_right)
           const innerBot = innerY + innerH;
           if (useDetailA) {
