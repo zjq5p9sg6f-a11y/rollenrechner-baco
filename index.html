@@ -2355,6 +2355,7 @@ header.bar {
 .btn-print svg { width: 16px; height: 16px; }
 
 /* v1.99.122: Welle-Ansichts-Toggle · orange/cyan Akzent · nur Euromac sichtbar */
+.btn-welle-view[hidden] { display: none !important; }
 .btn-welle-view {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 8px 12px;
@@ -6764,7 +6765,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.141";
+  const APP_VERSION = "v1.99.142";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
