@@ -6763,7 +6763,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.127";
+  const APP_VERSION = "v1.99.128";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -8637,77 +8637,66 @@ audio.team-player-audio::-webkit-media-controls-panel {
         svgW(gM, "stop", { offset: "50%", "stop-color": messerTop });
         svgW(gM, "stop", { offset: "100%", "stop-color": messerBot });
 
-        // A · 9 mm Einheit ROT (LR-LINKS · VOLL-bedecktes Material mit Vertiefung als Schatten)
-        // v1.99.127 Jan-Korrektur 2026-06-11: das rote Material überdeckt die ganze Welle
-        // (keine schwarzen Streifen mehr · Vertiefung nur als DUNKLERE rote Schatten oben+unten).
+        // A · 9 mm Einheit ROT (LR-LINKS · H-Form-Hälfte: linke Schulter + Verbindungsstrich)
+        // v1.99.128 Jan-Korrektur 2026-06-11: in Draufsicht ist die 9er+Schneidring zusammen
+        // ein H. Der horizontale Verbindungsstrich der Schultern ist etwas DICKER als die Welle
+        // (sonst könnte man den Ring nicht aufschieben). Aussparungen oben+unten sind ECHT
+        // ausgespart (transparent · zeigen den Hintergrund/Welle).
         // Form in LR-Sicht:
-        //   - Voll-Höhe rotes Rechteck (komplettes Material, abgerundete linke Außenkante)
-        //   - Mittel-Bereich (rechts der linken Schulter): oben+unten dunkleres rot
-        //     visualisiert die Vertiefung (= Welle mit verringertem Durchmesser)
-        //   - Top-Highlight nur auf linker Schulter (zeigt vollen Durchmesser)
+        //   - linke Schulter: voll-Höhe rot mit abgerundeter Außenkante
+        //   - Verbindungsstrich (mittig auf Welle-Achse): rot, etwas dicker als Welle
+        //   - oben+unten des Verbindungsstrichs: AUSSPARUNG (kein Material · Hintergrund)
         if (aPx > 0.5) {
           const xL = x;
           const xA_right = x + aPx;  // rechte Kante der 9er-Einheit
           const useDetailA = aPx > 4;
-          const shoulderWA = useDetailA ? Math.max(1.5, aPx * 0.30) : 0;
-          const cutoutTopA = innerY + innerH * 0.20;  // Vertiefung-Oberkante (näher an oben)
-          const cutoutBotA = innerY + innerH * 0.80;  // Vertiefung-Unterkante (näher an unten)
+          const shoulderWA = useDetailA ? Math.max(1.5, aPx * 0.32) : 0;
+          // Verbindungsstrich nur leicht dicker als die hypothetische Welle (~30% innerH)
+          const verbHoehe = innerH * 0.32;
+          const cutoutTopA = innerY + (innerH - verbHoehe) / 2;
+          const cutoutBotA = cutoutTopA + verbHoehe;
           const innerBot = innerY + innerH;
-          // Voll-Höhen-Rechteck der 9er-Einheit (komplettes rotes Material, KEIN Loch)
-          svgW(g, "path", {
-            d: `M${xA_right},${innerY}
-                L${xL + rr},${innerY}
-                Q${xL},${innerY} ${xL},${innerY + rr}
-                L${xL},${innerBot - rr}
-                Q${xL},${innerBot} ${xL + rr},${innerBot}
-                L${xA_right},${innerBot}
-                Z`,
-            fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7",
-            "stroke-linejoin": "miter"
-          });
           if (useDetailA) {
-            const xShL = xL + shoulderWA + rr * 0.3;
-            // Dunkler Schatten-Streifen OBEN im Mittel-Bereich (zeigt Vertiefung von oben)
-            svgW(g, "rect", {
-              x: xShL, y: innerY + 0.4,
-              width: Math.max(0, xA_right - xShL - 0.3),
-              height: cutoutTopA - innerY,
-              fill: "rgba(0,0,0,0.42)"
-            });
-            // Dunkler Schatten-Streifen UNTEN im Mittel-Bereich (zeigt Vertiefung von unten)
-            svgW(g, "rect", {
-              x: xShL, y: cutoutBotA,
-              width: Math.max(0, xA_right - xShL - 0.3),
-              height: innerBot - cutoutBotA - 0.4,
-              fill: "rgba(0,0,0,0.42)"
+            // H-Hälfte: voll-Höhe-Schulter LINKS + dünner Verbindungsstrich nach rechts
+            // Aussparungen oben+unten sind transparent (zeigen Hintergrund)
+            const xShL = xL + shoulderWA;
+            svgW(g, "path", {
+              d: `M${xL + rr},${innerY}
+                  L${xShL},${innerY}
+                  L${xShL},${cutoutTopA}
+                  L${xA_right},${cutoutTopA}
+                  L${xA_right},${cutoutBotA}
+                  L${xShL},${cutoutBotA}
+                  L${xShL},${innerBot}
+                  L${xL + rr},${innerBot}
+                  Q${xL},${innerBot} ${xL},${innerBot - rr}
+                  L${xL},${innerY + rr}
+                  Q${xL},${innerY} ${xL + rr},${innerY}
+                  Z`,
+              fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7",
+              "stroke-linejoin": "miter"
             });
             // Top-Highlight nur auf der linken Schulter (3D-Glanz, voller Durchmesser)
             svgW(g, "rect", {
               x: xL + rr * 0.5, y: innerY + 1, width: Math.max(0, shoulderWA - 0.5), height: innerH * 0.12,
               fill: "rgba(255,255,255,0.32)", rx: 0.5
             });
-            // Mittel-Strich Top-Highlight (heller Glanz auf dünnerem Mittel-Material)
+            // Verbindungsstrich Top-Highlight (heller Glanz auf dem dickeren Mittel-Material)
             svgW(g, "rect", {
-              x: xShL + 0.5, y: cutoutTopA + 0.5, width: Math.max(0, xA_right - xShL - 1), height: (cutoutBotA - cutoutTopA) * 0.18,
-              fill: "rgba(255,255,255,0.22)", rx: 0.3
+              x: xShL + 0.5, y: cutoutTopA + 0.5, width: Math.max(0, xA_right - xShL - 1), height: verbHoehe * 0.22,
+              fill: "rgba(255,255,255,0.20)", rx: 0.3
             });
-            // Stufen-Linien oben + unten (klare Tiefen-Übergänge)
-            svgW(g, "line", {
-              x1: xShL + 0.1, y1: cutoutTopA, x2: xA_right - 0.3, y2: cutoutTopA,
-              stroke: "rgba(0,0,0,0.7)", "stroke-width": "0.5"
-            });
-            svgW(g, "line", {
-              x1: xShL + 0.1, y1: cutoutBotA, x2: xA_right - 0.3, y2: cutoutBotA,
-              stroke: "rgba(0,0,0,0.7)", "stroke-width": "0.5"
-            });
-            // Vertikale Innen-Kante (Schulter → Mittel-Strich · oben + unten)
-            svgW(g, "line", {
-              x1: xShL, y1: innerY + 0.5, x2: xShL, y2: cutoutTopA,
-              stroke: "rgba(0,0,0,0.5)", "stroke-width": "0.5"
-            });
-            svgW(g, "line", {
-              x1: xShL, y1: cutoutBotA, x2: xShL, y2: innerBot - 0.5,
-              stroke: "rgba(0,0,0,0.5)", "stroke-width": "0.5"
+          } else {
+            // Fallback bei kleinem aPx: einfaches Rechteck mit Rinne
+            svgW(g, "path", {
+              d: `M${xA_right},${innerY}
+                  L${xL + rr},${innerY}
+                  Q${xL},${innerY} ${xL},${innerY + rr}
+                  L${xL},${innerBot - rr}
+                  Q${xL},${innerBot} ${xL + rr},${innerBot}
+                  L${xA_right},${innerBot}
+                  Z`,
+              fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7"
             });
           }
         }
