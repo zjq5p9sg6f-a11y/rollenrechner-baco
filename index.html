@@ -6764,7 +6764,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.140";
+  const APP_VERSION = "v1.99.139";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -8595,19 +8595,19 @@ audio.team-player-audio::-webkit-media-controls-panel {
             fill: "var(--accent-primary)", opacity: "0.7" });
         }
       } else if (seg.kind === "schneid" || seg.kind === "neben") {
-        // v1.99.140 SE-Topologie maschinen-spezifisch:
-        //   Euromac (default Bestückungs-Sicht): 9er-LINKS, SR-mittig, Distanzhülse-RECHTS
-        //   DCM (Laufrichtungs-Sicht): Distanzhülse-LINKS, SR-mittig, 9er-RECHTS
-        //
-        // Bei DCM ist Bestückung = Laufrichtung, daher zeigt das Tool DIE LAUFRICHTUNG.
-        // Wir spiegeln visuell die SE-Komponenten via SVG-Transform damit DCM korrekt aussieht.
-        // Cut-Marker wird in der gespiegelten Gruppe gerendert → bleibt visuell konsistent.
-        // (Math/Welle-Pos der Cut bleibt unverändert weil SCHNITT_OFFSET nicht angefasst wird —
-        // die Spiegelung ist rein visuell für die SE-Komponenten in dem 20-mm-Slot.)
-        const flipSE = (M.id === "DCM");
-        const seG = flipSE
-          ? svgW(seG, "g", { transform: `translate(${2*x + w} 0) scale(-1 1)` })
-          : g;
+        // v1.99.120 SEITENANSICHT · DREI Komponenten der SE explizit sichtbar
+        // (Jan-Spec 2026-06-10 + Werker-Skizze IMG_4186):
+        //   [10 mm Distanzhülse · bronze] [1 mm Schneidring · weiß] [9 mm Einheit · ROT]
+        // Die 9 mm Einheit (Gegenstück) hat die Durchmesser-Verringerung (Eintauchbereich
+        // für Obermesser) — daher rot markiert. Schneidring zwischen beiden Blöcken als
+        // dünnes weißes Element.
+        // Topologie in LR-Sicht (Laufrichtung) für beide Maschinen IDENTISCH:
+        //   partA = 9 mm Einheit ROT (Γ-Form mit Schulter LINKS + Aussparung RECHTS)
+        //   partB = 1 mm Schneidring WEISS
+        //   partC = 10 mm Distanzhülse BRONZE (variabel, einfaches Rechteck)
+        // Cut = rechte Kante Schneidring = SCHNITT_OFFSET 10 mm v. SE-l.
+        // v1.99.125 Jan-Korrektur 2026-06-11: vorher war Reihenfolge verkehrt
+        // (Distanzhülse links statt rechts) — das war die Wurzel der Math-Verwirrung.
         const isNeben = seg.kind === "neben";
         const SE_LEN = M.SCHNEIDEEINHEIT;
         const partA = 9;    // 9 mm Einheit (LR-LINKS in Laufrichtung) · Γ-Form mit Schulter links
@@ -8636,7 +8636,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         // Eindeutige Gradient-IDs pro Segment
         const gradRingId = `seR-${segIdx}-${isNeben ? "n" : "s"}`;
         const gradMsrId = `seM-${segIdx}-${isNeben ? "n" : "s"}`;
-        const localDefs = svgW(seG, "defs", {});
+        const localDefs = svgW(g, "defs", {});
         const gR = svgW(localDefs, "linearGradient", { id: gradRingId, x1: "0", y1: "0", x2: "0", y2: "1" });
         svgW(gR, "stop", { offset: "0%", "stop-color": ringTop });
         svgW(gR, "stop", { offset: "50%", "stop-color": ringTop });
@@ -8664,7 +8664,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
             // Path: voll-Rechteck mit 2 ausgesparten Ecken rechts oben + rechts unten.
             // Linke Außenkante des Hauptkörpers ist abgerundet (SE-Slot-Außenkante).
             // Rechte Innenkante (zum Schneidring) ist GERADE (= deutliche Stufen).
-            svgW(seG, "path", {
+            svgW(g, "path", {
               d: `M${xL + rr},${innerY}
                   L${xRStep},${innerY}
                   L${xRStep},${innerY + stepH}
@@ -8681,22 +8681,22 @@ audio.team-player-audio::-webkit-media-controls-panel {
               "stroke-linejoin": "miter"
             });
             // Top-Highlight auf linkem voll-Höhe-Bereich (3D-Glanz)
-            svgW(seG, "rect", {
+            svgW(g, "rect", {
               x: xL + rr * 0.5, y: innerY + 1, width: Math.max(0, xRStep - xL - rr * 0.5 - 0.4), height: innerH * 0.12,
               fill: "rgba(255,255,255,0.32)", rx: 0.5
             });
             // Schatten an den Stufen-Innenkanten (Tiefen-Effekt)
-            svgW(seG, "line", {
+            svgW(g, "line", {
               x1: xRStep + 0.1, y1: innerY + 0.2, x2: xRStep + 0.1, y2: innerY + stepH - 0.2,
               stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.5"
             });
-            svgW(seG, "line", {
+            svgW(g, "line", {
               x1: xRStep + 0.1, y1: innerBot - stepH + 0.2, x2: xRStep + 0.1, y2: innerBot - 0.2,
               stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.5"
             });
           } else {
             // Fallback bei sehr kleinem aPx: einfaches Rechteck
-            svgW(seG, "path", {
+            svgW(g, "path", {
               d: `M${xA_right},${innerY}
                   L${xL + rr},${innerY}
                   Q${xL},${innerY} ${xL},${innerY + rr}
@@ -8714,7 +8714,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         // gebildet (siehe Werker-Skizze IMG_4186).
         if (bPx > 0.4) {
           const xB = x + aPx;
-          svgW(seG, "rect", {
+          svgW(g, "rect", {
             x: xB, y: innerY, width: bPx, height: innerH,
             fill: blattCol, stroke: blattStroke, "stroke-width": "0.8"
           });
@@ -8729,7 +8729,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
           const r = Math.min(rr, cPx * 0.20);
           const innerBot = innerY + innerH;
           // Distanzhülse · einfaches Rechteck mit abgerundeter rechter Außenkante
-          svgW(seG, "path", {
+          svgW(g, "path", {
             d: `M${xMain},${innerY}
                 L${xR - r},${innerY}
                 Q${xR},${innerY} ${xR},${innerY + r}
@@ -8741,7 +8741,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
             "stroke-linejoin": "miter"
           });
           // Top-Highlight (3D-Glanz)
-          svgW(seG, "rect", {
+          svgW(g, "rect", {
             x: xMain + 0.5, y: innerY + 1, width: Math.max(0, cPx - r - 1), height: innerH * 0.12,
             fill: "rgba(255,255,255,0.32)", rx: 1
           });
@@ -8750,17 +8750,17 @@ audio.team-player-audio::-webkit-media-controls-panel {
         // CUT-Marker: weiße Linie in der Spalt-Mitte (= SCHNITT_OFFSET)
         const cutOffsetPx = (M.SCHNITT_OFFSET / SE_LEN) * w;
         const cutX = x + cutOffsetPx;
-        svgW(seG, "line", {
+        svgW(g, "line", {
           x1: cutX, y1: barTop, x2: cutX, y2: barTop + barH,
           stroke: "#ffffff", "stroke-width": "1.3", opacity: "0.95"
         });
         // Cut-Pfeil oben
-        svgW(seG, "path", {
+        svgW(g, "path", {
           d: `M${cutX} ${barTop - 1} L${cutX - 2.6} ${barTop - 6} L${cutX + 2.6} ${barTop - 6} Z`,
           fill: "#ffffff", opacity: "0.95"
         });
         // Cut-Pfeil unten (gespiegelt)
-        svgW(seG, "path", {
+        svgW(g, "path", {
           d: `M${cutX} ${barTop + barH + 1} L${cutX - 2.6} ${barTop + barH + 6} L${cutX + 2.6} ${barTop + barH + 6} Z`,
           fill: "#ffffff", opacity: "0.85"
         });
@@ -8769,10 +8769,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
         // Visuell abgesetzt von Standard-SE: cyan-Akzent + dunkle Stahl-Optik
         const cyanCol = "#00d4ff";
         // Body — abgesetzte Stahl-Look mit cyan-Rand
-        svgW(seG, "rect", { x: x + 0.5, y: barTop + 2, width: Math.max(0, w - 1), height: barH - 4, rx: 3,
+        svgW(g, "rect", { x: x + 0.5, y: barTop + 2, width: Math.max(0, w - 1), height: barH - 4, rx: 3,
           fill: "url(#gWelleBody)", stroke: cyanCol, "stroke-width": "1.4" });
         // Top-Highlight (metallisch)
-        svgW(seG, "rect", { x: x + 0.5, y: barTop + 2, width: Math.max(0, w - 1), height: (barH - 4) * 0.18, rx: 3,
+        svgW(g, "rect", { x: x + 0.5, y: barTop + 2, width: Math.max(0, w - 1), height: (barH - 4) * 0.18, rx: 3,
           fill: "url(#gWelleHi)" });
         // Cutter-Ticks alle 5mm im Buchsen-Body
         const cutsArr = Array.isArray(seg.cuts) ? seg.cuts : [];
