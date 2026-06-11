@@ -6763,7 +6763,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.124";
+  const APP_VERSION = "v1.99.125";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -7558,14 +7558,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
       // DCM-SPEZIFISCH: Bestückungsrichtung am Rüstdorn = Laufrichtung in Maschine.
       // Welle wird NICHT gedreht beim Einbau (anders als Euromac).
       // Werker baut am Rüstdorn in der gleichen Reihenfolge wie die Welle in der Maschine sitzt.
-      SCHNEIDEEINHEIT: 20,             // Slot-Reservierung (= 10 mm Distanzhülse + 1 mm Schneidring + 9 mm Einheit)
-      SE_CORE_LENGTH: 10,              // physikalische SE = 1 mm Schneidring + 9 mm Einheit
-      SE_DISTANZ_DEFAULT: 10,          // variabler Distanzring VOR der SE in Laufrichtung (Default 10 mm)
-      SCHNITT_OFFSET: 11,              // Schneidkante = 11 mm v. SE-l (= rechte Kante Schneidring)
+      SCHNEIDEEINHEIT: 20,             // Slot-Reservierung (= 9 mm Einheit + 1 mm Schneidring + 10 mm Distanzhülse)
+      SE_CORE_LENGTH: 10,              // physikalische SE = 9 mm Einheit + 1 mm Schneidring
+      SE_DISTANZ_DEFAULT: 10,          // variabler Distanzring NACH dem Schneidring in Laufrichtung (Default 10 mm)
+      SCHNITT_OFFSET: 10,              // v1.99.125 · Schneidkante = 10 mm v. SE-l (= rechte Kante Schneidring)
       WELLE_DREHRICHTUNG: "gleich",    // v1.99.121 · Bestückung = Laufrichtung (keine Welle-Drehung)
       SE_SORTIMENT: [
-        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 11, cuts: 1,
-          composition: "var. Distanzring (Default 10 mm) + 1 mm Schneidring + 9 mm Einheit (Laufrichtung)" }
+        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 10, cuts: 1,
+          composition: "9 mm Einheit + 1 mm Schneidring + var. Distanzring (Default 10 mm · Laufrichtung)" }
       ],
       MAX_MR_MM: 1000,                // DCM Panther Limit
       MAX_SPEED_MMIN: 500,
@@ -7644,14 +7644,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
       //   Tool zeigt LAUFRICHTUNG (Maschinen-Sicht).
       //
       // Bei DCM ist Bestückungsrichtung = Laufrichtung (keine Welle-Drehung).
-      SCHNEIDEEINHEIT: 20,             // Slot-Reservierung (= 10 mm Distanzhülse + 1 mm Schneidring + 9 mm Einheit)
-      SE_CORE_LENGTH: 10,              // physikalische SE = 1 mm Schneidring + 9 mm Einheit
-      SE_DISTANZ_DEFAULT: 10,          // variabler Distanzring VOR der SE in Laufrichtung (Default 10 mm)
-      SCHNITT_OFFSET: 11,              // Schneidkante = 11 mm v. SE-l (= rechte Kante Schneidring, gleich wie DCM)
+      SCHNEIDEEINHEIT: 20,             // Slot-Reservierung (= 9 mm Einheit + 1 mm Schneidring + 10 mm Distanzhülse)
+      SE_CORE_LENGTH: 10,              // physikalische SE = 9 mm Einheit + 1 mm Schneidring
+      SE_DISTANZ_DEFAULT: 10,          // variabler Distanzring NACH dem Schneidring in Laufrichtung (Default 10 mm)
+      SCHNITT_OFFSET: 10,              // v1.99.125 · Schneidkante = 10 mm v. SE-l (= rechte Kante Schneidring)
       WELLE_DREHRICHTUNG: "umgekehrt", // v1.99.121 · Welle wird beim Einbau gedreht (Bestückung ≠ Laufrichtung)
       SE_SORTIMENT: [
-        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 11, cuts: 1,
-          composition: "var. Distanzring (Default 10 mm) + 1 mm Schneidring + 9 mm Einheit (Laufrichtung)" },
+        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 10, cuts: 1,
+          composition: "9 mm Einheit + 1 mm Schneidring + var. Distanzring (Default 10 mm · Laufrichtung)" },
         { id: "schneidebuchse", label: "Schneidebuchse (Multi-Cut)", length: 30, cuts: 6,
           cutSpacing: 5, cutPositions: [2.5, 7.5, 12.5, 17.5, 22.5, 27.5],
           note: "30 mm Block · 6 Schnittkanten symmetrisch alle 5 mm" }
@@ -8592,13 +8592,18 @@ audio.team-player-audio::-webkit-media-controls-panel {
         // Die 9 mm Einheit (Gegenstück) hat die Durchmesser-Verringerung (Eintauchbereich
         // für Obermesser) — daher rot markiert. Schneidring zwischen beiden Blöcken als
         // dünnes weißes Element.
-        // Topologie identisch für Euromac und DCM (10+1+9). Unterschied liegt in der
-        // Einbaurichtung: Euromac wird beim Einbau gedreht, DCM nicht.
+        // Topologie in LR-Sicht (Laufrichtung) für beide Maschinen IDENTISCH:
+        //   partA = 9 mm Einheit ROT (Γ-Form mit Schulter LINKS + Aussparung RECHTS)
+        //   partB = 1 mm Schneidring WEISS
+        //   partC = 10 mm Distanzhülse BRONZE (variabel, einfaches Rechteck)
+        // Cut = rechte Kante Schneidring = SCHNITT_OFFSET 10 mm v. SE-l.
+        // v1.99.125 Jan-Korrektur 2026-06-11: vorher war Reihenfolge verkehrt
+        // (Distanzhülse links statt rechts) — das war die Wurzel der Math-Verwirrung.
         const isNeben = seg.kind === "neben";
         const SE_LEN = M.SCHNEIDEEINHEIT;
-        const partA = 10;   // Distanzhülse (variabel, default 10 mm)
-        const partB = 1;    // Schneidring (FEST 1 mm · Schneidkante)
-        const partC = 9;    // 9 mm Einheit / Gegenstück mit Durchmesser-Verringerung
+        const partA = 9;    // 9 mm Einheit (LR-LINKS in Laufrichtung) · Γ-Form mit Schulter links
+        const partB = 1;    // Schneidring (FEST 1 mm · die Schneidkante)
+        const partC = 10;   // Distanzhülse (LR-RECHTS in Laufrichtung · variabel default 10 mm)
         const aPx = (partA / SE_LEN) * w;
         const bPx = (partB / SE_LEN) * w;
         const cPx = (partC / SE_LEN) * w;
@@ -8632,26 +8637,65 @@ audio.team-player-audio::-webkit-media-controls-panel {
         svgW(gM, "stop", { offset: "50%", "stop-color": messerTop });
         svgW(gM, "stop", { offset: "100%", "stop-color": messerBot });
 
-        // A · Schneidring (links, voll-Höhe, AUSSEN gerundet, INNEN gerade gegen Spalt)
+        // A · 9 mm Einheit ROT (LR-LINKS · Γ-Form mit Schulter LINKS + Aussparung RECHTS)
+        // v1.99.125: Linke Schulter am SE-Slot-Außenrand (abgerundete linke Außenkante).
+        // Aussparung öffnet sich nach RECHTS zum Schneidring (partB) hin.
+        // Obermesser taucht in die Aussparung ein und legt sich gegen den Schneidring an.
         if (aPx > 0.5) {
           const xL = x;
-          const xRr = x + aPx;
-          svgW(g, "path", {
-            d: `M${xRr},${innerY}
-                L${xL + rr},${innerY}
-                Q${xL},${innerY} ${xL},${innerY + rr}
-                L${xL},${innerY + innerH - rr}
-                Q${xL},${innerY + innerH} ${xL + rr},${innerY + innerH}
-                L${xRr},${innerY + innerH}
-                Z`,
-            fill: `url(#${gradRingId})`, stroke: ringStroke, "stroke-width": "0.7",
-            "stroke-linejoin": "miter"
-          });
-          // Top-Highlight (3D-Glanz)
-          svgW(g, "rect", {
-            x: xL + rr * 0.5, y: innerY + 1, width: Math.max(0, aPx - rr - 1), height: innerH * 0.12,
-            fill: "rgba(255,255,255,0.32)", rx: 1
-          });
+          const xA_right = x + aPx;  // rechte Kante der 9er-Einheit (= Übergang zum Schneidring)
+          const useDetailA = aPx > 4;
+          const shoulderWA = useDetailA ? Math.max(1.5, aPx * 0.30) : 0;
+          const cutoutBotA = innerY + innerH * 0.72;
+          const innerBot = innerY + innerH;
+          if (useDetailA) {
+            // Γ-Form path · linke Schulter + Aussparung-Boden rechts
+            const xShL = xL + shoulderWA + rr * 0.3;
+            svgW(g, "path", {
+              d: `M${xA_right},${cutoutBotA}
+                  L${xShL},${cutoutBotA}
+                  L${xShL},${innerY}
+                  L${xL + rr},${innerY}
+                  Q${xL},${innerY} ${xL},${innerY + rr}
+                  L${xL},${innerBot - rr}
+                  Q${xL},${innerBot} ${xL + rr},${innerBot}
+                  L${xA_right},${innerBot}
+                  Z`,
+              fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7",
+              "stroke-linejoin": "miter"
+            });
+            // Top-Highlight nur auf der linken Schulter (3D-Glanz)
+            svgW(g, "rect", {
+              x: xL + rr * 0.5, y: innerY + 1, width: Math.max(0, shoulderWA - 0.5), height: innerH * 0.12,
+              fill: "rgba(255,255,255,0.32)", rx: 0.5
+            });
+            // Schatten an der Aussparung-Oberkante (Tiefen-Effekt)
+            svgW(g, "line", {
+              x1: xShL + 0.2, y1: cutoutBotA + 0.2, x2: xA_right - 0.3, y2: cutoutBotA + 0.2,
+              stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.5"
+            });
+            // Innen-Kante zwischen Schulter und Aussparung (rechte Schulter-Innenseite)
+            svgW(g, "line", {
+              x1: xShL + 0.2, y1: cutoutBotA + 0.3, x2: xShL + 0.2, y2: innerY + 1,
+              stroke: "rgba(0,0,0,0.65)", "stroke-width": "0.6"
+            });
+          } else {
+            // Fallback bei kleinem aPx: einfaches Rechteck mit Rinne
+            svgW(g, "path", {
+              d: `M${xA_right},${innerY}
+                  L${xL + rr},${innerY}
+                  Q${xL},${innerY} ${xL},${innerY + rr}
+                  L${xL},${innerBot - rr}
+                  Q${xL},${innerBot} ${xL + rr},${innerBot}
+                  L${xA_right},${innerBot}
+                  Z`,
+              fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7"
+            });
+            svgW(g, "rect", {
+              x: xL + 1, y: innerY + innerH * 0.28, width: Math.max(0, aPx - 2), height: innerH * 0.44,
+              fill: "rgba(0,0,0,0.4)", rx: 0.5
+            });
+          }
         }
         // B · Schneidring (1 mm) · WEISS · v1.99.120 Jan-Spec
         // Schmales weißes Element zwischen partA (Distanzhülse) und partC (9er-Einheit).
@@ -8664,68 +8708,32 @@ audio.team-player-audio::-webkit-media-controls-panel {
             fill: blattCol, stroke: blattStroke, "stroke-width": "0.8"
           });
         }
-        // C · 9 mm Einheit (Gegenstück) · ROT · v1.99.124 Γ-Form mit Aussparung zum Schneidring
-        // Jan-Korrektur 2026-06-11: die 9er hat NUR EINE Schulter (rechts in LR-Sicht).
-        // Der "zweite H-Strich" wird durch den angelegten 1 mm Schneidring (partB) gebildet.
-        // Form-Beschreibung in LR-Sicht: links Aussparung-Boden (Durchmesser verringert) +
-        // rechts Schulter (voller Durchmesser). Aussparung-Oben ist offen (dort taucht das
-        // Obermesser ein und legt sich gegen den Schneidring an).
+        // C · Distanzhülse BRONZE (LR-RECHTS · einfaches Rechteck mit abgerundeter rechter Außenkante)
+        // v1.99.125: Variable Default-Distanzhülse 10 mm (kann jeder Distanzring aus dem
+        // Sortiment sein bei Mehrfach-Bestückung). Im Gegensatz zur 9er-Einheit: glattes
+        // Bronze-Rechteck ohne Aussparung, klar visuell unterscheidbar.
         if (cPx > 0.5) {
-          const xMain = x + aPx + bPx;
+          const xMain = x + aPx + bPx;  // linke Kante der Distanzhülse (= rechte Kante Schneidring)
           const xR = x + w;
           const r = Math.min(rr, cPx * 0.20);
-          const useDetail = cPx > 4;
-          const shoulderW = useDetail ? Math.max(1.5, cPx * 0.30) : 0;  // rechte Schulter
-          const cutoutBot = innerY + innerH * 0.72;     // Boden-Oberkante der Aussparung
           const innerBot = innerY + innerH;
-          if (useDetail) {
-            // Γ-Form path · linke Aussparung (offen nach oben zum Obermesser) + rechte Schulter
-            const xShR = xR - shoulderW - r * 0.3;
-            svgW(g, "path", {
-              d: `M${xMain},${cutoutBot}
-                  L${xShR},${cutoutBot}
-                  L${xShR},${innerY}
-                  L${xR - r},${innerY}
-                  Q${xR},${innerY} ${xR},${innerY + r}
-                  L${xR},${innerBot - r}
-                  Q${xR},${innerBot} ${xR - r},${innerBot}
-                  L${xMain},${innerBot}
-                  Z`,
-              fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7",
-              "stroke-linejoin": "miter"
-            });
-            // Top-Highlight nur auf der rechten Schulter (3D-Glanz)
-            svgW(g, "rect", {
-              x: xShR + 0.4, y: innerY + 1, width: Math.max(0, shoulderW - 0.8 - r * 0.3), height: innerH * 0.12,
-              fill: "rgba(255,255,255,0.32)", rx: 0.5
-            });
-            // Schatten an der Aussparung-Oberkante (Tiefen-Effekt für den Boden)
-            svgW(g, "line", {
-              x1: xMain + 0.3, y1: cutoutBot + 0.2, x2: xShR - 0.2, y2: cutoutBot + 0.2,
-              stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.5"
-            });
-            // Innen-Kante zwischen Aussparung-Boden und Schulter (linke Schulter-Innenseite)
-            svgW(g, "line", {
-              x1: xShR - 0.2, y1: cutoutBot + 0.3, x2: xShR - 0.2, y2: innerY + 1,
-              stroke: "rgba(0,0,0,0.65)", "stroke-width": "0.6"
-            });
-          } else {
-            // Fallback bei kleinem cPx: einfaches Rechteck mit Rinne
-            svgW(g, "path", {
-              d: `M${xMain},${innerY}
-                  L${xR - r},${innerY}
-                  Q${xR},${innerY} ${xR},${innerY + r}
-                  L${xR},${innerBot - r}
-                  Q${xR},${innerBot} ${xR - r},${innerBot}
-                  L${xMain},${innerBot}
-                  Z`,
-              fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7"
-            });
-            svgW(g, "rect", {
-              x: xMain + 1, y: innerY + innerH * 0.28, width: Math.max(0, cPx - 2), height: innerH * 0.44,
-              fill: "rgba(0,0,0,0.4)", rx: 0.5
-            });
-          }
+          // Distanzhülse · einfaches Rechteck mit abgerundeter rechter Außenkante
+          svgW(g, "path", {
+            d: `M${xMain},${innerY}
+                L${xR - r},${innerY}
+                Q${xR},${innerY} ${xR},${innerY + r}
+                L${xR},${innerBot - r}
+                Q${xR},${innerBot} ${xR - r},${innerBot}
+                L${xMain},${innerBot}
+                Z`,
+            fill: `url(#${gradRingId})`, stroke: ringStroke, "stroke-width": "0.7",
+            "stroke-linejoin": "miter"
+          });
+          // Top-Highlight (3D-Glanz)
+          svgW(g, "rect", {
+            x: xMain + 0.5, y: innerY + 1, width: Math.max(0, cPx - r - 1), height: innerH * 0.12,
+            fill: "rgba(255,255,255,0.32)", rx: 1
+          });
         }
 
         // CUT-Marker: weiße Linie in der Spalt-Mitte (= SCHNITT_OFFSET)
