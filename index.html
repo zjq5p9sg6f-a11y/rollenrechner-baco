@@ -6763,7 +6763,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.130";
+  const APP_VERSION = "v1.99.131";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -7561,10 +7561,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
       SCHNEIDEEINHEIT: 20,             // Slot-Reservierung (= 9 mm Einheit + 1 mm Schneidring + 10 mm Distanzhülse)
       SE_CORE_LENGTH: 10,              // physikalische SE = 9 mm Einheit + 1 mm Schneidring
       SE_DISTANZ_DEFAULT: 10,          // variabler Distanzring NACH dem Schneidring in Laufrichtung (Default 10 mm)
-      SCHNITT_OFFSET: 10,              // v1.99.125 · Schneidkante = 10 mm v. SE-l (= rechte Kante Schneidring)
+      SCHNITT_OFFSET: 9,               // v1.99.131 · Schneidkante = 9 mm v. SE-l (LINKE Kante SR · zur 9er-Seite)
       WELLE_DREHRICHTUNG: "gleich",    // v1.99.121 · Bestückung = Laufrichtung (keine Welle-Drehung)
       SE_SORTIMENT: [
-        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 10, cuts: 1,
+        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 9, cuts: 1,
           composition: "9 mm Einheit + 1 mm Schneidring + var. Distanzring (Default 10 mm · Laufrichtung)" }
       ],
       MAX_MR_MM: 1000,                // DCM Panther Limit
@@ -7620,11 +7620,13 @@ audio.team-player-audio::-webkit-media-controls-panel {
       PARK_RING: 50,
       PARK_PRO_SEITE: 2,
       PARK_TOTAL: 100,                 // 2 × 50mm pro Seite
-      // Bahn-Mitte-Offset: -10mm wegen asymmetrischer Welle (650/670).
-      // Mit WELLE_MITTE=650 (vom linkem Rand) sitzt das Geo-Center 10mm links vom
-      // op-Center der Bestückungsbreite (= PARK_TOTAL + BESTUECKUNGS_BREITE/2 = 660).
-      // Stack auf Geo-Center: Stack-Mitte = -10 + 660 = 650 → fluchtet mit Cross-Mark.
-      BAHN_MITTE_OFFSET_MM: -10,
+      // v1.99.131 Werker-Verifikation 2026-06-11: bahnOffset von -10 auf -9 angepasst.
+      // Werker baut tatsächlich restR = 4+10+30 = 44 mm (statt 30+10+5 = 45).
+      // Mit bahnOffset = -9: restL = 26, restR = 44 (symmetrische Trim 5/5, asymm. Welle).
+      // Kombiniert mit SCHNITT_OFFSET = 9 (linke Kante Schneidring zur 9er-Seite):
+      //   Cut = SE-l + 9 = innerEnd - 11 = 1320 - 44 - 11 = 1265 LR-Koord
+      //   = Welle-Pos 55 vom Welle-Rand-rechts ✓ (Werker-Maßband matched)
+      BAHN_MITTE_OFFSET_MM: -9,
       // 10 Stufen — kein 200/300 mm (Lücken muss Operator durch Kombi 100+X lösen)
       DISTANZRINGE: [100, 50, 30, 20, 10, 5, 2, 1, 0.5, 0.3],
       // v1.99.121 FINAL · Jan-Klarstellung 2026-06-11:
@@ -7647,10 +7649,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
       SCHNEIDEEINHEIT: 20,             // Slot-Reservierung (= 9 mm Einheit + 1 mm Schneidring + 10 mm Distanzhülse)
       SE_CORE_LENGTH: 10,              // physikalische SE = 9 mm Einheit + 1 mm Schneidring
       SE_DISTANZ_DEFAULT: 10,          // variabler Distanzring NACH dem Schneidring in Laufrichtung (Default 10 mm)
-      SCHNITT_OFFSET: 10,              // v1.99.125 · Schneidkante = 10 mm v. SE-l (= rechte Kante Schneidring)
+      SCHNITT_OFFSET: 9,               // v1.99.131 · Schneidkante = 9 mm v. SE-l (LINKE Kante SR · zur 9er-Seite)
       WELLE_DREHRICHTUNG: "umgekehrt", // v1.99.121 · Welle wird beim Einbau gedreht (Bestückung ≠ Laufrichtung)
       SE_SORTIMENT: [
-        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 10, cuts: 1,
+        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 9, cuts: 1,
           composition: "9 mm Einheit + 1 mm Schneidring + var. Distanzring (Default 10 mm · Laufrichtung)" },
         { id: "schneidebuchse", label: "Schneidebuchse (Multi-Cut)", length: 30, cuts: 6,
           cutSpacing: 5, cutPositions: [2.5, 7.5, 12.5, 17.5, 22.5, 27.5],
