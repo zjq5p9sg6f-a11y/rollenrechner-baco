@@ -6763,7 +6763,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.125";
+  const APP_VERSION = "v1.99.126";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -8637,47 +8637,70 @@ audio.team-player-audio::-webkit-media-controls-panel {
         svgW(gM, "stop", { offset: "50%", "stop-color": messerTop });
         svgW(gM, "stop", { offset: "100%", "stop-color": messerBot });
 
-        // A · 9 mm Einheit ROT (LR-LINKS · Γ-Form mit Schulter LINKS + Aussparung RECHTS)
-        // v1.99.125: Linke Schulter am SE-Slot-Außenrand (abgerundete linke Außenkante).
-        // Aussparung öffnet sich nach RECHTS zum Schneidring (partB) hin.
-        // Obermesser taucht in die Aussparung ein und legt sich gegen den Schneidring an.
+        // A · 9 mm Einheit ROT (LR-LINKS · "T-um-90°"-Form mit linker Schulter + dünnem Mittel-Strich)
+        // v1.99.126 Jan-Korrektur 2026-06-11: die Welle bleibt in der Vertiefung ROT bedeckt
+        // (= dünneres Material auf der Welle-Achse). Vertiefung ist OBEN UND UNTEN sichtbar
+        // (Aussparung zeigt den Durchmesser-Übergang von Schulter zur dünneren Mitte).
+        // Form-Beschreibung in LR-Sicht:
+        //   - links: Schulter (voll-Höhe = voller Durchmesser, abgerundete Außenkante)
+        //   - rechts der Schulter: dünner roter Mittel-Strich (= Welle mit verringertem Durchmesser)
+        //   - oben + unten des Mittel-Strichs: AUSSPARUNG (Hintergrund schimmert durch)
+        //   - rechts: offen zum Schneidring (partB)
         if (aPx > 0.5) {
           const xL = x;
           const xA_right = x + aPx;  // rechte Kante der 9er-Einheit (= Übergang zum Schneidring)
           const useDetailA = aPx > 4;
           const shoulderWA = useDetailA ? Math.max(1.5, aPx * 0.30) : 0;
-          const cutoutBotA = innerY + innerH * 0.72;
+          const cutoutTopA = innerY + innerH * 0.28;  // Vertiefung-Oberkante
+          const cutoutBotA = innerY + innerH * 0.72;  // Vertiefung-Unterkante
           const innerBot = innerY + innerH;
           if (useDetailA) {
-            // Γ-Form path · linke Schulter + Aussparung-Boden rechts
+            // T-um-90°-Form path (linke Schulter voll-Höhe + dünner Mittel-Strich nach rechts)
             const xShL = xL + shoulderWA + rr * 0.3;
             svgW(g, "path", {
-              d: `M${xA_right},${cutoutBotA}
-                  L${xShL},${cutoutBotA}
+              d: `M${xL + rr},${innerY}
                   L${xShL},${innerY}
-                  L${xL + rr},${innerY}
-                  Q${xL},${innerY} ${xL},${innerY + rr}
-                  L${xL},${innerBot - rr}
-                  Q${xL},${innerBot} ${xL + rr},${innerBot}
-                  L${xA_right},${innerBot}
+                  L${xShL},${cutoutTopA}
+                  L${xA_right},${cutoutTopA}
+                  L${xA_right},${cutoutBotA}
+                  L${xShL},${cutoutBotA}
+                  L${xShL},${innerBot}
+                  L${xL + rr},${innerBot}
+                  Q${xL},${innerBot} ${xL},${innerBot - rr}
+                  L${xL},${innerY + rr}
+                  Q${xL},${innerY} ${xL + rr},${innerY}
                   Z`,
               fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7",
               "stroke-linejoin": "miter"
             });
-            // Top-Highlight nur auf der linken Schulter (3D-Glanz)
+            // Top-Highlight nur auf der linken Schulter (3D-Glanz, voller Durchmesser)
             svgW(g, "rect", {
               x: xL + rr * 0.5, y: innerY + 1, width: Math.max(0, shoulderWA - 0.5), height: innerH * 0.12,
               fill: "rgba(255,255,255,0.32)", rx: 0.5
             });
-            // Schatten an der Aussparung-Oberkante (Tiefen-Effekt)
+            // Mittel-Strich Top-Highlight (dünnere Reflexion auf dem dünneren Material)
+            svgW(g, "rect", {
+              x: xShL + 0.5, y: cutoutTopA + 0.5, width: Math.max(0, xA_right - xShL - 0.8), height: (cutoutBotA - cutoutTopA) * 0.18,
+              fill: "rgba(255,255,255,0.18)", rx: 0.3
+            });
+            // Schatten an der Vertiefung-Oberkante (Tiefen-Effekt · Stufe nach unten)
             svgW(g, "line", {
-              x1: xShL + 0.2, y1: cutoutBotA + 0.2, x2: xA_right - 0.3, y2: cutoutBotA + 0.2,
+              x1: xShL + 0.2, y1: cutoutTopA + 0.2, x2: xA_right - 0.2, y2: cutoutTopA + 0.2,
               stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.5"
             });
-            // Innen-Kante zwischen Schulter und Aussparung (rechte Schulter-Innenseite)
+            // Schatten an der Vertiefung-Unterkante (Stufe nach oben)
             svgW(g, "line", {
-              x1: xShL + 0.2, y1: cutoutBotA + 0.3, x2: xShL + 0.2, y2: innerY + 1,
-              stroke: "rgba(0,0,0,0.65)", "stroke-width": "0.6"
+              x1: xShL + 0.2, y1: cutoutBotA - 0.2, x2: xA_right - 0.2, y2: cutoutBotA - 0.2,
+              stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.5"
+            });
+            // Innen-Kante zwischen Schulter und Mittel-Strich (zeigt vertikalen Durchmesser-Übergang)
+            svgW(g, "line", {
+              x1: xShL + 0.2, y1: innerY + 0.5, x2: xShL + 0.2, y2: cutoutTopA - 0.2,
+              stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.5"
+            });
+            svgW(g, "line", {
+              x1: xShL + 0.2, y1: cutoutBotA + 0.2, x2: xShL + 0.2, y2: innerBot - 0.5,
+              stroke: "rgba(0,0,0,0.55)", "stroke-width": "0.5"
             });
           } else {
             // Fallback bei kleinem aPx: einfaches Rechteck mit Rinne
@@ -8690,10 +8713,6 @@ audio.team-player-audio::-webkit-media-controls-panel {
                   L${xA_right},${innerBot}
                   Z`,
               fill: `url(#${gradMsrId})`, stroke: messerStroke, "stroke-width": "0.7"
-            });
-            svgW(g, "rect", {
-              x: xL + 1, y: innerY + innerH * 0.28, width: Math.max(0, aPx - 2), height: innerH * 0.44,
-              fill: "rgba(0,0,0,0.4)", rx: 0.5
             });
           }
         }
