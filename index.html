@@ -6697,7 +6697,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.144";
+  const APP_VERSION = "v1.99.145";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -16517,9 +16517,16 @@ audio.team-player-audio::-webkit-media-controls-panel {
       </tr>`;
       kumPos += r;
     }
+    // v1.99.145: Werker baut klein-außen → groß-innen.
+    // RestR (vor erster SE in der Sequenz): ASCENDING (klein zuerst am Welle-Rand-rechts)
+    // RestL (nach letzter SE): DESCENDING (groß zuerst zur Welle-Mitte, klein zuletzt am Welle-Rand-links)
+    let seenSchneidInSeq = false;
     for (const seg of sequenz) {
+      if (seg.kind === "schneid" || seg.kind === "neben") seenSchneidInSeq = true;
       if (seg.kind === "rest" && seg.fill) {
-        const fillEntries = Object.entries(seg.fill).map(([k, v]) => [parseFloat(k), v]).sort((a, b) => b[0] - a[0]);
+        const ascending = !seenSchneidInSeq;  // RestR ascending, RestL descending
+        const fillEntries = Object.entries(seg.fill).map(([k, v]) => [parseFloat(k), v])
+          .sort((a, b) => ascending ? a[0] - b[0] : b[0] - a[0]);
         for (const [size, count] of fillEntries) {
           for (let i = 0; i < count; i++) {
             seqHtml += `<tr class="pm-distanz" style="page-break-inside:avoid;break-inside:avoid;">
@@ -16535,36 +16542,51 @@ audio.team-player-audio::-webkit-media-controls-panel {
         continue;
       }
       if (seg.kind === "schneid" || seg.kind === "neben") {
+        // v1.99.145: SE wird als 3 separate Bauteile gerendert (Werker-Bestückungs-Reihenfolge):
+        //   1. Distanzhülse 10 mm (variabel, BRONZE)
+        //   2. 1 mm Schneidring WEISS (= Schneidkante hier)
+        //   3. 9 mm Einheit ROT
+        // Cut sitzt bei der rechten Kante des Schneidrings = nach Distanzhülse + SR (= bei kumPos+11)
         const role = seg.role || "inner";
         const isTrim = (role === "trim-L" || role === "trim-R");
-        // Cut sequenz-pos = kumPos + (SE - SCHNITT_OFFSET) — DCM-asymmetrie-tauglich
         const cutPos = kumPos + (M.SCHNEIDEEINHEIT - M.SCHNITT_OFFSET);
-        const cutDelta = MITTE - cutPos;  // Werker-Vorzeichen: rechts = positiv
-        // v1.99.59: bei cutDelta≈0 (auf Welle-Mitte) → schnittPos = 'auf Welle-Mitte'
-        // (sonst doppeltes 'Schnitt Mitte Mitte' bei Render).
+        const cutDelta = MITTE - cutPos;
         const onMitte = Math.abs(cutDelta) < 0.4;
         const schnittTxt = onMitte ? "auf Welle-Mitte" : `Mitte ${cutDelta > 0 ? "+" : ""}${fmtW(cutDelta, 1)}`;
         const seClass = isTrim ? "pm-trim" : (seg.kind === "neben" ? "pm-neben" : "pm-schneid");
-        const badge = isTrim
-          ? `<span class="pm-badge-trim">BESÄUMUNG ${role === "trim-L" ? "L" : "R"}${typeof seg.trim === "number" ? " · " + seg.trim + " mm Trim" : ""}</span>`
-          : (role === "uebergang"
-            ? `<span class="pm-badge-uebergang">ÜBERGANG</span>`
-            : (seg.kind === "neben" ? `<span class="pm-badge-neben">Neben</span>` : `<span class="pm-badge-trennung">Trennung</span>`));
+        const seLabel = isTrim
+          ? `BESÄUMUNG ${role === "trim-L" ? "L" : "R"}`
+          : (role === "uebergang" ? "ÜBERGANG" : (seg.kind === "neben" ? "Neben" : "Trennung"));
+        const trimTxt = isTrim && typeof seg.trim === "number" ? ` · ${seg.trim} mm Trim` : "";
+        // 1. Distanzhülse (10 mm)
+        seqHtml += `<tr class="pm-distanz" style="page-break-inside:avoid;break-inside:avoid;">
+          <td class="check"></td>
+          <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
+          <td class="bauteil"><strong>Distanzhülse</strong> <span class="pm-badge-trennung">SE · ${seLabel}${trimTxt}</span><br><small>vor Schneidring · variabel (Default 10 mm) · ${fromMitte(kumPos, 10)}</small></td>
+          <td class="mass">10 mm</td>
+          <td class="pos">@ ${fmtW(kumPos, 1)} mm</td>
+        </tr>`;
+        kumPos += 10;
+        // 2. Schneidring (1 mm) · die echte Schneidkante
+        const cutPosRing = kumPos + 1;  // rechte Kante des Schneidrings = Schnittebene
         const warn = isTrim ? `<div class="pm-warn">⚠ Essentiell — ohne diesen Schnitt wird die Außen-Schmalrolle ${seg.trim || "?"} mm zu breit.</div>` : "";
         seqHtml += `<tr class="${seClass}" style="page-break-inside:avoid;break-inside:avoid;">
           <td class="check"></td>
           <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
-          <td class="bauteil"><strong>Schneideeinheit</strong> ${badge}<br><small>SE-Linke-Kante @ ${fmtW(kumPos, 1)} mm · ${(() => {
-            const sym = M.SCHNITT_OFFSET === M.SCHNEIDEEINHEIT / 2;
-            const sFromR = M.SCHNEIDEEINHEIT - M.SCHNITT_OFFSET;
-            return sym
-              ? `Schneidkante = SE-Mitte (${M.SCHNITT_OFFSET} mm v. SE-l · symmetrisch)`
-              : `Schneidkante: ${M.SCHNITT_OFFSET} mm v. SE-l · ${sFromR} mm v. SE-r · asymm. SE`;
-          })()}</small>${warn}</td>
-          <td class="mass">${M.SCHNEIDEEINHEIT} mm</td>
+          <td class="bauteil"><strong>Schneidring</strong> <span class="pm-badge-trennung">SE · ${seLabel}${trimTxt}</span><br><small>1 mm Scheibe · Obermesser legt sich rechts an (= Schneidkante)</small>${warn}</td>
+          <td class="mass">1 mm</td>
           <td class="pos"><strong>Schnitt ${schnittTxt}</strong><br><small>Welle-Pos ${fmtW(cutPos, 1)} mm</small></td>
         </tr>`;
-        kumPos += M.SCHNEIDEEINHEIT;
+        kumPos += 1;
+        // 3. 9 mm Einheit (Gegenstück mit Aussparung)
+        seqHtml += `<tr class="pm-distanz" style="page-break-inside:avoid;break-inside:avoid;">
+          <td class="check"></td>
+          <td class="nr"><span class="pm-nr-circle">${nr++}</span></td>
+          <td class="bauteil"><strong>9 mm Einheit</strong> <span class="pm-badge-trennung">SE · ${seLabel}${trimTxt}</span><br><small>Gegenstück mit Durchmesser-Verringerung für Obermesser-Eintauch</small></td>
+          <td class="mass">9 mm</td>
+          <td class="pos">@ ${fmtW(kumPos, 1)} mm</td>
+        </tr>`;
+        kumPos += 9;
         continue;
       }
       // Distanzring innerhalb innerSegs (mit name + breite)
