@@ -2385,13 +2385,42 @@ header.bar {
 .btn-welle-view:active { transform: translateY(1px); }
 
 /* Welle-Spiegelung bei aktiver Bestückungsposition-Sicht.
-   transform-origin = center damit die Welle um ihre Mitte gespiegelt wird.
-   Text-Elemente bekommen Counter-Transform damit sie lesbar bleiben. */
+   v1.99.137: erweitert · counter-transform für Text + Tag-Boxen + Pfeile damit
+   alle Bemaßungs- und KPI-Elemente lesbar/richtig orientiert bleiben.
+   Strategie: SVG-Wurzel wird gespiegelt → Welle-Geometrie ist in Bestückungs-
+   Sicht. Alles was "Annotation" ist (Text, Tag-Boxen, Pfeil-Spitzen, KPI-
+   Markierungen) bekommt ein zusätzliches scaleX(-1) damit Inhalt + Pfeil-Form
+   wieder normal orientiert sind aber Position gespiegelt ist. */
 .welle-stage-wrap.is-mirrored #welleSvg {
   transform: scaleX(-1);
   transform-origin: center;
 }
+/* Text-Elemente lesbar halten */
 .welle-stage-wrap.is-mirrored #welleSvg text {
+  transform: scaleX(-1);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+/* Pfeil-Polygone (Cut-Marker, KPI-Pfeilspitzen) richtig orientieren */
+.welle-stage-wrap.is-mirrored #welleSvg polygon {
+  transform: scaleX(-1);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+/* Pfeil-Pfade (path mit fill ohne stroke = typisch Pfeilspitzen) */
+.welle-stage-wrap.is-mirrored #welleSvg path.welle-arrow,
+.welle-stage-wrap.is-mirrored #welleSvg path.welle-tag-bg,
+.welle-stage-wrap.is-mirrored #welleSvg path.cut-arrow {
+  transform: scaleX(-1);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+/* Welle-Tag-Boxen (Container für Beschriftungen) bekommen Counter-Transform
+   damit Inhalt + Hintergrund gemeinsam an der gespiegelten Position erscheinen
+   aber wieder normal orientiert sind. */
+.welle-stage-wrap.is-mirrored #welleSvg .welle-tag,
+.welle-stage-wrap.is-mirrored #welleSvg .welle-tag-group,
+.welle-stage-wrap.is-mirrored #welleSvg .welle-kpi-tag {
   transform: scaleX(-1);
   transform-box: fill-box;
   transform-origin: center;
@@ -6763,7 +6792,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.136";
+  const APP_VERSION = "v1.99.137";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
