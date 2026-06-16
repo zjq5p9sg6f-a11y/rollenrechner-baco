@@ -6697,7 +6697,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.145";
+  const APP_VERSION = "v1.99.146";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -7492,14 +7492,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
       // DCM-SPEZIFISCH: Bestückungsrichtung am Rüstdorn = Laufrichtung in Maschine.
       // Welle wird NICHT gedreht beim Einbau (anders als Euromac).
       // Werker baut am Rüstdorn in der gleichen Reihenfolge wie die Welle in der Maschine sitzt.
-      SCHNEIDEEINHEIT: 20,             // Slot-Reservierung (= 10 mm Distanzhülse + 1 mm Schneidring + 9 mm Einheit)
-      SE_CORE_LENGTH: 10,              // physikalische SE = 1 mm Schneidring + 9 mm Einheit
-      SE_DISTANZ_DEFAULT: 10,          // variabler Distanzring VOR dem Schneidring in Laufrichtung (Default 10 mm)
-      SCHNITT_OFFSET: 11,              // v1.99.141 · DCM Laufrichtung: Distanzhülse(0-10) + SR(10-11) + 9er(11-20). Cut bei SE-l + 11 (rechte SR-Kante)
+      SCHNEIDEEINHEIT: 20,             // Slot-Reservierung (= 9 mm Einheit + 1 mm Schneidring + 10 mm Distanzhülse)
+      SE_CORE_LENGTH: 10,              // physikalische SE = 9 mm Einheit + 1 mm Schneidring
+      SE_DISTANZ_DEFAULT: 10,          // variabler Distanzring NACH dem Schneidring in Laufrichtung (Default 10 mm)
+      SCHNITT_OFFSET: 9,               // v1.99.146 · Cut bei SE-l + 9 (LINKE Kante SR, zur 9er-Seite). Obermesser drückt von LINKS gegen SR.
       WELLE_DREHRICHTUNG: "gleich",    // v1.99.121 · Bestückung = Laufrichtung (keine Welle-Drehung)
       SE_SORTIMENT: [
-        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 11, cuts: 1,
-          composition: "var. Distanzring (Default 10 mm) + 1 mm Schneidring + 9 mm Einheit (Laufrichtung)" }
+        { id: "standard", label: "Standard-SE", length: 20, cutEdgeFromLeft: 9, cuts: 1,
+          composition: "9 mm Einheit + 1 mm Schneidring + var. Distanzring (Default 10 mm · Laufrichtung)" }
       ],
       MAX_MR_MM: 1000,                // DCM Panther Limit
       MAX_SPEED_MMIN: 500,
@@ -8540,15 +8540,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
         // (Distanzhülse links statt rechts) — das war die Wurzel der Math-Verwirrung.
         const isNeben = seg.kind === "neben";
         const SE_LEN = M.SCHNEIDEEINHEIT;
-        // v1.99.141 Jan-Spec 2026-06-11: SE-Anordnung pro Maschine
-        //   Euromac (default Bestückungs-Sicht): 9er-LINKS, SR-mittig, Distanzhülse-RECHTS
-        //   DCM (Laufrichtungs-Sicht): Distanzhülse-LINKS, SR-mittig, 9er-RECHTS
-        // Bei DCM ist Bestückung = Laufrichtung, daher zeigt das Tool die Maschinen-Sicht.
-        const flipSE = (M.id === "DCM");
-        const partA = flipSE ? 10 : 9;   // partA-Größe: Distanzhülse(10) bei DCM, 9er(9) bei Euromac
-        const partB = 1;                 // Schneidring (FEST 1 mm · die Schneidkante)
-        const partC = flipSE ? 9 : 10;   // partC-Größe: 9er(9) bei DCM, Distanzhülse(10) bei Euromac
-        const partAIsCore = !flipSE;     // partA ist die 9er-Einheit bei Euromac (Bestückungs-Sicht)
+        // v1.99.146 Jan-Spec 2026-06-16: SE-Anordnung IDENTISCH für beide Maschinen
+        //   9er-LINKS · SR-mittig · Distanzhülse-RECHTS
+        //   Obermesser drückt von LINKS gegen den Schneidring an die 9er-Einheit.
+        //   Bei DCM kommt Obermesser von links → 9er muss links sein (= gleich wie Euromac).
+        const flipSE = false;
+        const partA = 9;    // 9 mm Einheit (LR-LINKS)
+        const partB = 1;    // Schneidring (FEST 1 mm)
+        const partC = 10;   // Distanzhülse (LR-RECHTS, variabel)
+        const partAIsCore = true;
         const aPx = (partA / SE_LEN) * w;
         const bPx = (partB / SE_LEN) * w;
         const cPx = (partC / SE_LEN) * w;
