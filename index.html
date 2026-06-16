@@ -6534,7 +6534,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.150";
+  const APP_VERSION = "v1.99.151";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -10692,11 +10692,15 @@ audio.team-player-audio::-webkit-media-controls-panel {
       return { cuts, mrLeft, mrRight: mrLeft + job.mr };
     }
     // Score-Funktion mit Tie-Breaker:
+    //   0. Hart: Konflikte gegen bereits-platzierte Cuts (TOD — 1e9 Penalty)
     //   1. Primär: max common Cuts (DESC)
     //   2. Sekundär: min |Δ| (weniger MR-Versatz bevorzugt)
     //   3. Tertiär: min |besL - totalRest/2| (Symmetrie bevorzugt wenn alles andere gleich)
-    function scoreLayout(common, d, bL, totalRest) {
-      return common * 1e6 - Math.abs(d) * 100 - Math.abs(bL - totalRest/2);
+    // v1.99.151: conflicts-Term ergänzt. Vorher wählte Engine common=5/conflicts=1
+    // statt common=0/conflicts=0 → SE-Überlappung 10mm → Master nicht buildbar →
+    // Folger fälschlich als "nicht kombinierbar" markiert (DCM-Cluster Bug).
+    function scoreLayout(common, conflicts, d, bL, totalRest) {
+      return common * 1e6 - conflicts * 1e9 - Math.abs(d) * 100 - Math.abs(bL - totalRest/2);
     }
     // v1.99.41: Engine respektiert BESAEUMUNG_MIN_SOFT — wenn die 2D-Grid-Search
     // freigelassen wird (besL = 0), produziert sie unsichere Layouts (Trim einseitig
@@ -10704,6 +10708,20 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // erzwingt mindestens minBes auf beiden Seiten — fällt unter Symmetrie zurück
     // wenn totalRest < 2 × minBes.
     const minBes = getMachine().BESAEUMUNG_MIN_SOFT || 0;
+    // v1.99.151: existingCuts wachsen mit jeder Iteration. Bei Job-i Grid-Search
+    // werden Konflikte gegen ALLE schon platzierten Jobs (0..i-1) gezählt.
+    const _SE_CONFLICT = getMachine().SCHNEIDEEINHEIT;
+    const existingCuts = ref.cuts.slice();
+    function countConflicts(testCuts) {
+      let conflicts = 0;
+      for (const c of testCuts) {
+        for (const ec of existingCuts) {
+          const dd = Math.abs(c - ec);
+          if (dd > tol && dd < _SE_CONFLICT) conflicts++;
+        }
+      }
+      return conflicts;
+    }
     for (let i = 1; i < validJobs.length; i++) {
       const job = validJobs[i];
       // Sicherer Search-Range: besL ∈ [minBes, totalRest - minBes].
@@ -10716,8 +10734,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
       const initCuts = rebuildCutsWithAsym(job, 0, initBesL).cuts;
       let initCommon = 0;
       for (const c of initCuts) if (ref.cuts.some(r => Math.abs(c-r) < tol)) initCommon++;
+      const initConflicts = countConflicts(initCuts);
       let bestDelta = 0, bestBesL = initBesL;
-      let bestScore = scoreLayout(initCommon, 0, initBesL, job.totalRest);
+      let bestScore = scoreLayout(initCommon, initConflicts, 0, initBesL, job.totalRest);
       // v1.99.65: Bounds-Check — Engine versuchte für A4 (haupt=120mm) den
       // versatz=-43 (max common cuts mit Primary), aber A4 würde links über
       // Park-L hinausschieben → Master-Welle 'passt nicht in 1000mm Bereich'.
@@ -10740,7 +10759,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
           for (const c of test.cuts) {
             if (ref.cuts.some(r => Math.abs(c - r) < tol)) common++;
           }
-          const s = scoreLayout(common, d, bL, job.totalRest);
+          const conflicts = countConflicts(test.cuts);
+          const s = scoreLayout(common, conflicts, d, bL, job.totalRest);
           if (s > bestScore) {
             bestScore = s; bestDelta = d; bestBesL = bL;
           }
@@ -10755,6 +10775,8 @@ audio.team-player-audio::-webkit-media-controls-panel {
       job.besaeumungL = bestBesL;
       job.besaeumungR = job.totalRest - bestBesL;
       job.asymmetric = Math.abs(bestBesL - job.totalRest/2) > 0.05;
+      // v1.99.151: für die Konflikt-Penalty der nächsten Iteration die finalen Cuts ergänzen
+      for (const c of job.cuts) existingCuts.push(c);
     }
 
     // Union aller Cuts (mit Toleranz für deckungsgleiche Positionen)
