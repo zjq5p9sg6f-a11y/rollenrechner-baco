@@ -1380,137 +1380,7 @@ header.bar {
 }
 .welle-head-actions { display: flex; gap: 8px; }
 
-/* ============== v1.95 Werker-Rechenweg · Transparenz-Card ============== */
-.werker-formel {
-  position: relative;
-  background:
-    linear-gradient(180deg, rgba(255,138,0,0.055), rgba(255,138,0,0) 60%),
-    linear-gradient(135deg, rgba(0,212,255,0.025), transparent 50%),
-    rgba(18,18,18,0.94);
-  border: 1px solid rgba(255,138,0,0.30);
-  border-radius: 12px;
-  padding: 14px 22px 16px;
-  margin: 14px 0 0;
-  /* v1.95 Tron-Polish: Doppel-Glow (orange-Akzent + dezent-cyan) */
-  box-shadow:
-    0 14px 36px -18px rgba(0,0,0,0.6),
-    0 0 0 1px rgba(0,212,255,0.06),
-    0 0 36px -16px rgba(255,138,0,0.32),
-    inset 0 1px 0 rgba(255,255,255,0.025);
-}
-.werker-formel::before {
-  /* Neon-Streifen am Top-Edge */
-  content: "";
-  position: absolute;
-  top: 0; left: 18px; right: 18px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, #ff8a00 50%, transparent 100%);
-  opacity: 0.7;
-  pointer-events: none;
-}
-.werker-formel[aria-hidden="true"] {
-  opacity: 0.45;
-  filter: grayscale(0.4);
-}
-.wf-head {
-  display: flex; justify-content: space-between; align-items: baseline;
-  margin-bottom: 12px;
-  gap: 12px; flex-wrap: wrap;
-}
-.wf-eyebrow {
-  font-size: 10.5px; font-weight: 800;
-  letter-spacing: 0.14em; text-transform: uppercase;
-  color: #ff8a00;
-}
-.wf-result-tag {
-  font-size: 10.5px; font-weight: 700;
-  letter-spacing: 0.06em;
-  color: #d8d8d8; opacity: 0.85;
-  padding: 3px 9px;
-  border: 1px solid rgba(255,138,0,0.32);
-  border-radius: 999px;
-  background: rgba(255,138,0,0.05);
-}
-.wf-equation {
-  display: flex; align-items: center; justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  padding: 6px 0 4px;
-}
-.wf-term {
-  display: flex; flex-direction: column; align-items: center;
-  min-width: 130px;
-  padding: 10px 14px 8px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 10px;
-  transition: transform 200ms ease, border-color 200ms ease;
-}
-.wf-term:hover { transform: translateY(-1px); }
-.wf-term-a { border-color: rgba(0,230,118,0.22); }
-.wf-term-b { border-color: rgba(66,165,245,0.22); }
-.wf-term-result {
-  border-color: rgba(255,138,0,0.45);
-  background: rgba(255,138,0,0.06);
-  box-shadow: 0 0 28px -10px rgba(255,138,0,0.35);
-}
-.wf-val {
-  font-size: 32px; font-weight: 900; line-height: 1;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
-  display: flex; align-items: baseline; gap: 4px;
-  margin-bottom: 4px;
-}
-.wf-term-a .wf-val { color: #00e676; }
-.wf-term-b .wf-val { color: #42a5f5; }
-.wf-term-result .wf-val { color: #ff8a00; }
-.wf-unit {
-  font-size: 13px; font-weight: 700;
-  color: #b0b0b0; opacity: 0.78;
-}
-.wf-lbl {
-  font-size: 11px; font-weight: 800;
-  letter-spacing: 0.10em; text-transform: uppercase;
-  color: #f0f0f0;
-  margin-bottom: 2px;
-}
-.wf-sub {
-  font-size: 10px; font-weight: 500;
-  color: #a8a8a8;
-  letter-spacing: 0.02em;
-  text-align: center;
-  line-height: 1.3;
-}
-.wf-op {
-  font-size: 28px; font-weight: 700;
-  color: #d8d8d8; opacity: 0.55;
-  padding: 0 2px;
-  line-height: 1;
-}
-.wf-foot {
-  display: flex; gap: 8px; align-items: flex-start;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed rgba(255,255,255,0.08);
-  font-size: 11px;
-  color: #a8a8a8;
-  line-height: 1.45;
-}
-.wf-foot-icon {
-  flex-shrink: 0;
-  color: #ff8a00;
-  font-weight: 800;
-  font-size: 12px;
-  margin-top: 1px;
-}
-@media (max-width: 720px) {
-  .wf-equation { gap: 8px; }
-  .wf-term { min-width: 0; padding: 8px 10px 6px; flex: 1; }
-  .wf-val { font-size: 22px; }
-  .wf-op { font-size: 20px; }
-}
-@media print { .werker-formel { display: none; } }
+/* v1.99.148: Werker-Rechenweg-CSS entfernt (Card ENTFERNT — verwirrte Tool-Math vs Werker-Math). */
 
 /* ============== v1.94 Hero-KPI-Strip · Carlon-Thermal-Dashboard-Style ============== */
 .kpi-hero {
@@ -6241,40 +6111,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
         </table>
       </div>
 
-      <!-- v1.95 Werker-Rechenweg · transparente Schritt-für-Schritt-Formel zur 1. Schneidkante -->
-      <div class="werker-formel" id="werkerFormel" aria-hidden="true">
-        <div class="wf-head">
-          <span class="wf-eyebrow">Werker-Rechenweg · So entsteht der Wert</span>
-          <span class="wf-result-tag" id="wfResultTag">1. Schneidkante v. rechts</span>
-        </div>
-        <div class="wf-equation">
-          <div class="wf-term wf-term-a">
-            <div class="wf-val"><span id="wfTermA">—</span><span class="wf-unit">mm</span></div>
-            <div class="wf-lbl">Welle-Mitte</div>
-            <div class="wf-sub" id="wfTermASub">vom rechten Wellenrand</div>
-          </div>
-          <div class="wf-op">−</div>
-          <div class="wf-term wf-term-b">
-            <div class="wf-val"><span id="wfTermB">—</span><span class="wf-unit">mm</span></div>
-            <div class="wf-lbl">½ Stack</div>
-            <div class="wf-sub" id="wfTermBSub">(Nutzen × Schmal) / 2</div>
-          </div>
-          <div class="wf-op">=</div>
-          <div class="wf-term wf-term-result">
-            <div class="wf-val"><span id="wfTermResult">—</span><span class="wf-unit">mm</span></div>
-            <div class="wf-lbl">Abstand</div>
-            <div class="wf-sub">v. rechtem Wellenrand</div>
-          </div>
-        </div>
-        <div class="wf-foot" id="wfFoot">
-          <span class="wf-foot-icon">ℹ</span>
-          <span id="wfFootText">
-            Das Tool rechnet identisch zum Werker — nur dass es mit 0,5-mm-Präzision
-            zwischenwerte beibehält statt zu runden. Bei DCM kommt 3 mm Asymm. dazu
-            (Schneidring 10 + Übergang 3 + Nutmesser 7).
-          </span>
-        </div>
-      </div>
+      <!-- v1.99.148: Werker-Rechenweg-Box ENTFERNT — verwirrte Werker, weil Tool-Math (rechteste Cut) ≠ Werker-Mental-Math (½ MR-Breite). KPI 1. Schneidkante reicht. -->
 
       <!-- v1.94 Hero-KPI-Strip · 3 Top-Werker-KPIs direkt über der Welle -->
       <div class="kpi-hero" id="kpiHero" aria-live="polite">
@@ -6697,7 +6534,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.146";
+  const APP_VERSION = "v1.99.149";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -8953,7 +8790,12 @@ audio.team-player-audio::-webkit-media-controls-panel {
     // v1.99.60: Werker-Anlege-Maß für JEDEN Auftrag im Cluster — pro Job eine
     // farbige Bracket gestapelt (gleiche Farben wie Tracks-Spuren unten). Werker
     // prüft pro Auftrag VOR dem Schneiden ob die jeweilige MR korrekt aufliegt.
+    // v1.99.147: bei DCM wird ab letzter Park-Ring-Innen-Kante gemessen (nicht ab
+    // Welle-Rand), damit der Werker konsistent mit dem Werker-Mass arbeiten kann.
     {
+      const isDCMMach = (M.id === "DCM");
+      const parkOffset = isDCMMach ? (M.PARK_TOTAL || 0) : 0;
+      const xParkInner = isDCMMach ? xAt(M.WELLE - parkOffset) : null;
       const mrJobs = [];
       if (d.isMaster && d.validJobs && d.validJobs.length > 0) {
         d.validJobs.forEach((jw, i) => {
@@ -8974,8 +8816,10 @@ audio.team-player-audio::-webkit-media-controls-panel {
       mrJobs.forEach((mj, idx) => {
         if (mj.mrEnd == null || !(mj.mrEnd > 0) || !(mj.mrEnd < M.WELLE)) return;
         const xMr = xAt(mj.mrEnd);
-        const xRight = W - padX;
-        const distMrMm = M.WELLE - mj.mrEnd;
+        // v1.99.147: bei DCM endet die Bracket an der Park-Ring-Innen-Kante (= Werker-Anlage),
+        // bei Euromac am rechten Wellenrand.
+        const xRight = isDCMMach ? xParkInner : (W - padX);
+        const distMrMm = M.WELLE - mj.mrEnd - parkOffset;
         const mrY = dimMrYStart + idx * MR_BRACKET_SPACING;  // v1.99.72: Spacing 13→20
 
         // Vertikale Guide-Linie: kurzer Default-Stub für Anchor-Andeutung
@@ -9020,9 +8864,14 @@ audio.team-player-audio::-webkit-media-controls-panel {
         svgW(g, "path", { d: `M${xRight} ${mrY} L${xRight - 5} ${mrY - 2.5} L${xRight - 5} ${mrY + 2.5} Z`,
           fill: mj.color });
         // Label-Box ÜBER der Bemaßungs-Linie mit 5px Luft
-        const lblTxt = mj.slotLabel
-          ? `${fmtW(distMrMm, 1)} mm · MR-Bahn ${isMirroredView ? "l" : "r"}. ${mj.slotLabel}`
-          : `${fmtW(distMrMm, 1)} mm · MR-Bahn ${directionLabel}`;
+        // v1.99.148: "MR-Bahn" → "Anker-Distanzh." umbenannt. Hintergrund: Werker
+        // baute oft eine dummy-SE an die MR-Kante (= seine alte Anlage), die kein
+        // Obermesser hat und Mehrfachbestückung blockiert. Stattdessen soll er
+        // die rechte Distanzhülsen-Kante (= MR-Kante bei no-trim) als Orientierung
+        // nutzen — Stift-Strich, keine SE. Maß bleibt geometrisch identisch.
+        const mrBezugBase = isDCMMach ? `ab Park-R` : directionLabel;
+        const slot = mj.slotLabel ? ` · ${mj.slotLabel}` : "";
+        const lblTxt = `${fmtW(distMrMm, 1)} mm · Anker-Distanzh. ${mrBezugBase}${slot}`;
         const lblW = lblTxt.length * 5.2 + 14;
         let lblCx = (xMr + xRight) / 2;
         lblCx = Math.max(padX + lblW / 2 + 4, Math.min(W - padX - lblW / 2 - 4, lblCx));
@@ -12372,130 +12221,11 @@ audio.team-player-audio::-webkit-media-controls-panel {
     });
   }
 
-  // v1.95: Werker-Rechenweg-Card — zeigt die Formel transparent damit Werker
-  // sofort sieht ob die Tool-Rechnung mit seiner Kopfrechnung übereinstimmt.
-  function updateWerkerFormel(d, out) {
-    const formelEl = document.getElementById("werkerFormel");
-    if (!formelEl) return;
-    const aEl = document.getElementById("wfTermA");
-    const aSubEl = document.getElementById("wfTermASub");
-    const bEl = document.getElementById("wfTermB");
-    const bSubEl = document.getElementById("wfTermBSub");
-    const rEl = document.getElementById("wfTermResult");
-    const footEl = document.getElementById("wfFootText");
-
-    if (!d || !d.ok || !out) {
-      formelEl.setAttribute("aria-hidden", "true");
-      if (aEl) aEl.textContent = "—";
-      if (bEl) bEl.textContent = "—";
-      if (rEl) rEl.textContent = "—";
-      return;
-    }
-
-    const M = getMachine();
-    const aMm = M.WELLE - M.WELLE_MITTE;  // Welle-Mitte vom rechten Wellenrand
-    const asymmMm = M.SCHNITT_OFFSET - M.SCHNEIDEEINHEIT / 2;
-
-    // v1.95: Master-Welle-Modus erkennen (mehrere Aufträge auf EINER Welle).
-    // Im Master-Mode passt die einfache "Nutzen × Schmal / 2"-Formel nicht mehr —
-    // die rechteste Cut wird durch ALLE Aufträge bestimmt, nicht nur Primary.
-    const isMaster = !!(d && (d.isMaster || (d.validJobs && d.validJobs.length >= 2)));
-
-    // Tatsächliche rechteste Cut aus layoutLR (identisch zu KPI-Hero-Logik)
-    let rightmostCut = null;
-    let cur = 0;
-    for (const seg of (d.layoutLR || [])) {
-      if (seg.kind === "schneid" || seg.kind === "neben") {
-        const cutMm = cur + M.SCHNITT_OFFSET;
-        if (rightmostCut == null || cutMm > rightmostCut) rightmostCut = cutMm;
-      } else if (seg.kind === "buchse" && Array.isArray(seg.cuts)) {
-        for (const r of seg.cuts) {
-          const cutMm = cur + r;
-          if (rightmostCut == null || cutMm > rightmostCut) rightmostCut = cutMm;
-        }
-      }
-      cur += seg.breite;
-    }
-    const realWerkerMass = rightmostCut != null ? (M.WELLE - rightmostCut) : null;
-
-    formelEl.setAttribute("aria-hidden", "false");
-
-    if (isMaster && realWerkerMass != null) {
-      // Master-Modus: B = halbe Master-Stack-Breite (effektiv, aus den ECHTEN Cuts)
-      // halbStackMaster = (rightmost_cut - WELLE_MITTE) = aMm - werkerMass
-      const halfStackMaster = aMm - realWerkerMass;
-      if (aEl) aEl.textContent = fmtW(aMm, 1);
-      if (aSubEl) aSubEl.textContent = M.id === "EUROMAC"
-        ? `vom rechten Wellenrand (asymm. 650/670)`
-        : `vom rechten Wellenrand`;
-      if (bEl) bEl.textContent = fmtW(halfStackMaster, 1);
-      if (bSubEl) bSubEl.textContent = `Master · rechteste Cut v. Welle-Mitte · ${(d.validJobs && d.validJobs.length) || "n"} Aufträge`;
-      if (rEl) rEl.textContent = fmtW(realWerkerMass, 1);
-      if (footEl) {
-        const jobCount = (d.validJobs && d.validJobs.length) || "mehrere";
-        footEl.innerHTML =
-          `<strong>Master-Welle mit ${jobCount} Aufträgen</strong> — die einfache "Nutzen × Schmal / 2"-Formel ` +
-          `gilt nur für 1 Auftrag. Hier bestimmt die <em>weiteste Cut über alle Aufträge</em> die 1. Schneidkante. ` +
-          `Das Tool berechnet die effektive Master-Halb-Stack-Breite aus dem gemeinsamen Cut-Layout.`;
-      }
-      return;
-    }
-
-    // Single-Mode: Werker-Formel basiert auf ECHTER rechtester Cut (statt vereinfachter
-    // "N × Schmal / 2"-Annahme). Diese stimmt nur MIT Trim — bei Trim=0 sind es nur N−1
-    // innere Cuts, was die Werker-Formel um eine Schmal-Breite überschätzt.
-    const N  = out.nutzen || d.N || 0;
-    const haupt = out.schmal || d.haupt || 0;
-    const restMM = (out.restMM != null) ? out.restMM : (d.restMM != null ? d.restMM : 0);
-    const hasTrim = restMM > 0.5;  // > 0.5 mm Trim insgesamt → Trim-Cuts da
-
-    let halfStack, bSubTxt, resultMm;
-    if (realWerkerMass != null) {
-      // Echter Wert aus dem Cut-Layout
-      halfStack = aMm - realWerkerMass;
-      resultMm = realWerkerMass;
-      if (hasTrim) {
-        // Mit Trim: die Werker-Vereinfachung "N × Schmal / 2" stimmt exakt
-        // weil Trim-Cuts an den MR-Außen-Kanten existieren → ½ Stack = ½ MR-Material
-        bSubTxt = `≈ ${N} × ${fmtW(haupt, 1)} mm / 2 (mit Trim)`;
-      } else {
-        // Kein Trim: rechteste Cut ist letzter INNERER Cut, nicht MR-Außen-Kante
-        // → halbStack-Wert ist die echte Distanz Welle-Mitte zur letzten Cut
-        bSubTxt = `rechteste Cut v. Welle-Mitte · ${N - 1} innere Cuts (kein Trim)`;
-      }
-    } else {
-      // Fallback wenn kein Cut-Layout: klassische Berechnung
-      halfStack = N * haupt / 2;
-      resultMm = aMm - halfStack - asymmMm;
-      bSubTxt = `${N} × ${fmtW(haupt, 1)} mm / 2`;
-    }
-
-    if (aEl) aEl.textContent = fmtW(aMm, 1);
-    if (aSubEl) aSubEl.textContent = M.id === "EUROMAC"
-      ? `vom rechten Wellenrand (asymm. 650/670)`
-      : `vom rechten Wellenrand`;
-    if (bEl) bEl.textContent = fmtW(halfStack, 1);
-    if (bSubEl) bSubEl.textContent = bSubTxt;
-    if (rEl) rEl.textContent = fmtW(resultMm, 1);
-
-    if (footEl) {
-      const baseDcmHint = Math.abs(asymmMm) > 0.05
-        ? `Bei <strong>${M.label}</strong> kommt eine asymmetrische SE-Korrektur dazu: ` +
-          `Schneidring ${(M.SE_SORTIMENT && M.SE_SORTIMENT[0] && M.SE_SORTIMENT[0].composition) || "Schneidring+Nutmesser"} ` +
-          `→ Cut sitzt ${Math.abs(asymmMm).toFixed(0)} mm rechts der SE-Mitte. `
-        : `<strong>${M.label}</strong> hat eine symmetrische SE (Cut = SE-Mitte). `;
-      if (hasTrim) {
-        footEl.innerHTML = baseDcmHint +
-          `Werker-Vereinfachung "Nutzen × Schmal / 2" passt hier 1:1 ` +
-          `(Trim ${fmtW(restMM, 1)} mm verteilt sich auf 2 Besäumungs-SE).`;
-      } else {
-        footEl.innerHTML = baseDcmHint +
-          `<strong style="color:#ff8a00">Bei voller MR-Ausnutzung (kein Trim) entstehen nur N−1 innere Cuts</strong> ` +
-          `zwischen N Schmalrollen — die Werker-Vereinfachung "N × Schmal / 2" überschätzt um 1 Schmal-Breite. ` +
-          `Tool nutzt die tatsächliche rechteste Cut-Position: ${fmtW(resultMm, 1)} mm.`;
-      }
-    }
-  }
+  // v1.99.148: Werker-Rechenweg-Card ENTFERNT — Tool-Math (rechteste Cut) und
+  // Werker-Mental-Math (½ MR-Breite) ergaben verschiedene Werte (501 vs 380).
+  // Werker war verwirrt. KPI "1. Schneidkante v. rechts" allein reicht.
+  // Function bleibt als no-op damit bestehende Caller nicht crashen.
+  function updateWerkerFormel(_d, _out) { /* removed */ }
 
   // v1.94: KPI-Hero-Strip Update (3 Tiles über der Welle)
   function updateKpiHero(d, out) {
@@ -15875,20 +15605,9 @@ audio.team-player-audio::-webkit-media-controls-panel {
     const PRINT_VERSION = APP_VERSION;  // v1.99.103.1: shared mit Debug-Snapshot
     const genTime = new Date().toLocaleString("de-DE", { dateStyle: "short", timeStyle: "short" });
 
-    // v1.95 Print-Polish: Werker-Mass + Material-Ausnutzung als Top-KPIs
-    // v1.99.56: Bei Cluster ('Master · ... Aufträge' in wfTermBSub) → Master-
-    // Werke-Wert nehmen (wfTermResult), nicht Primary-only. PDF-Audit
-    // 2026-06-05 zeigte Inkonsistenz: KPI 433mm (Primary) vs Werker-Card
-    // 300mm (Master) → Werker-Verwirrung.
+    // v1.99.148: Werker-Card entfernt — pmWerkerMass jetzt direkt aus welleData.layoutLR.
+    // Master + Single beide aus Layout-Cuts berechnet (= rechteste Cut über alle Aufträge).
     let pmWerkerMass = null;
-    const wfRText = (document.getElementById("wfTermResult") || {}).textContent || "";
-    const wfBSubText = (document.getElementById("wfTermBSub") || {}).textContent || "";
-    const isClusterMode = wfBSubText.toLowerCase().includes("master");
-    if (isClusterMode) {
-      // Cluster aktiv: Master-Welle-Wert aus UI-Werker-Card nehmen
-      const parsed = parseFloat(wfRText.replace(/\./g, "").replace(",", "."));
-      if (isFinite(parsed)) pmWerkerMass = parsed;
-    }
     if (pmWerkerMass == null && welleData.layoutLR) {
       // Single-Job-Fallback: Primary aus Layout berechnen
       let cur = 0, rightmost = null;
@@ -16340,46 +16059,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
 
     // Escape-Helper für alle folgenden Sections (v1.99.38: bereits oben definiert)
 
-    // === Werker-Rechenweg · So entsteht der Wert ===
-    // Werte aus dem UI-Werker-Formel-Block lesen (updateWerkerFormel wurde schon
-    // durch calc() ausgeführt). Falls Block leer (—), Section überspringen.
-    const wfA = (document.getElementById("wfTermA") || {}).textContent || "—";
-    const wfR = (document.getElementById("wfTermResult") || {}).textContent || "—";
-    if (wfA !== "—" && wfR !== "—") {
-      const wfASub = (document.getElementById("wfTermASub") || {}).textContent || "";
-      const wfB    = (document.getElementById("wfTermB") || {}).textContent || "—";
-      const wfBSub = (document.getElementById("wfTermBSub") || {}).textContent || "";
-      // v1.99.56: Mid-Label semantisch korrekt — '½ Stack' nur bei Single-Job,
-      // 'Master-Cut' bei Cluster (wfBSub enthält 'Master · ...').
-      const wfBLbl = wfBSub.toLowerCase().includes("master") ? "Master-Cut" : "½ Stack";
-      const werkerFormelHtml = `
-        <div class="pm-werker-formel">
-          <div class="pm-wf-head">● Werker-Rechenweg · So entsteht der Wert</div>
-          <table class="pm-wf-table">
-            <tr>
-              <td class="pm-wf-term">
-                <div class="pm-wf-val"><strong>${escape(wfA)}</strong> mm</div>
-                <div class="pm-wf-lbl">Welle-Mitte</div>
-                <div class="pm-wf-sub">${escape(wfASub)}</div>
-              </td>
-              <td class="pm-wf-op">−</td>
-              <td class="pm-wf-term">
-                <div class="pm-wf-val"><strong>${escape(wfB)}</strong> mm</div>
-                <div class="pm-wf-lbl">${wfBLbl}</div>
-                <div class="pm-wf-sub">${escape(wfBSub)}</div>
-              </td>
-              <td class="pm-wf-op">=</td>
-              <td class="pm-wf-term pm-wf-term-result">
-                <div class="pm-wf-val"><strong>${escape(wfR)}</strong> mm</div>
-                <div class="pm-wf-lbl">1. Schneidkante v. rechts</div>
-                <div class="pm-wf-sub">v. rechtem Wellenrand</div>
-              </td>
-            </tr>
-          </table>
-        </div>
-      `;
-      root.insertAdjacentHTML("beforeend", werkerFormelHtml);
-    }
+    // v1.99.148: Werker-Rechenweg-Section im Print ENTFERNT (siehe UI-Begründung oben).
 
     // === Stückliste als Tabelle ===
     const totalParts = welleData.holliste.reduce((s, h) => s + h.anz, 0);
@@ -16701,18 +16381,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
          58mm zu quetschen. Bei Cluster (4+ jobs) wäre fix-58mm → preserveAspectRatio
          hätte Breite auf ~120mm geshrinkt. max-height 120mm cappt Mega-Cluster (10+). */
       .pm-svg-wrap svg { display: block; width: 190mm; height: auto; max-height: 120mm; border: 1px solid #999; border-radius: 2mm; background: #fff; }
-      /* === Werker-Rechenweg · kompakte Card === */
-      .pm-werker-formel { margin: 0 0 3mm 0; padding: 2mm 3mm; border: 1.3px solid #000; border-radius: 1mm; background: #fff; page-break-inside: avoid !important; break-inside: avoid !important; }
-      .pm-wf-head { font-size: 8pt; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: #000; margin-bottom: 1.5mm; }
-      .pm-wf-table { width: 100%; border-collapse: collapse; }
-      .pm-wf-table td { vertical-align: middle; padding: 0.5mm 1mm; }
-      .pm-wf-term { text-align: center; }
-      .pm-wf-term-result { background: #f4f4f4; border-radius: 1mm; }
-      .pm-wf-val { font-size: 11.5pt; font-weight: 800; color: #000; font-variant-numeric: tabular-nums; line-height: 1.1; }
-      .pm-wf-val strong { color: #000; font-weight: 800; }
-      .pm-wf-lbl { font-size: 7.5pt; font-weight: 700; color: #000; letter-spacing: 0.02em; margin-top: 0.5mm; }
-      .pm-wf-sub { font-size: 6.5pt; color: #555; margin-top: 0.3mm; line-height: 1.2; }
-      .pm-wf-op { font-size: 14pt; font-weight: 800; color: #000; width: 6mm; text-align: center; }
+      /* v1.99.148: pm-werker-formel CSS entfernt (Print-Section ebenfalls weg). */
       /* === Sections === */
       .pm-section { margin: 0 0 4mm 0; page-break-inside: auto; }
       .pm-section-title { font-size: 10.5pt; font-weight: 800; color: #000; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 2.5mm 0; padding: 0 0 1.5mm 0; border-bottom: 1.5px solid #000; page-break-after: avoid; break-after: avoid; }
