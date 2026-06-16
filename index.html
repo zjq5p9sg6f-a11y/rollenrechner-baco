@@ -6534,7 +6534,7 @@ audio.team-player-audio::-webkit-media-controls-panel {
   let lastMaster = null;
   // v1.99.103.1: globale Version-Konstante (PRINT_VERSION ist nur in
   // buildPrintMaster-Scope, Debug-Snapshot brauchte aber globalen Zugriff)
-  const APP_VERSION = "v1.99.149";
+  const APP_VERSION = "v1.99.150";
 
   // ---------- localStorage ----------
   const LS_KEYS = {
@@ -15660,17 +15660,17 @@ audio.team-player-audio::-webkit-media-controls-panel {
         <div class="pm-kpi pm-kpi-mass">
           <div class="pm-kpi-val">${pmWerkerMass != null ? fmtHalf(pmWerkerMass, 1) : "—"}<span class="pm-kpi-unit">mm</span></div>
           <div class="pm-kpi-lbl">1. Schneidkante v. rechts</div>
-          <div class="pm-kpi-sub">${isClusterMode ? "Master-Welle · rechteste Cut über alle Aufträge" : "vom rechten Wellenrand · inkl. Park-R"}</div>
+          <div class="pm-kpi-sub">${isMasterPrint ? "Master-Welle · rechteste Cut über alle Aufträge" : "vom rechten Wellenrand · inkl. Park-R"}</div>
         </div>
         <div class="pm-kpi">
           <div class="pm-kpi-val">${pmYield > 0 ? fmtHalf(pmYield, 1) : "—"}<span class="pm-kpi-unit">%</span></div>
           <div class="pm-kpi-lbl">Material-Ausnutzung</div>
-          <div class="pm-kpi-sub">${isClusterMode ? `Primary · ${fmtHalf(pmTrim, 1)} mm Trim/Rest · andere Aufträge variieren` : `${fmtHalf(pmTrim, 1)} mm Trim/Rest von ${pmMr} mm MR`}</div>
+          <div class="pm-kpi-sub">${isMasterPrint ? `Primary · ${fmtHalf(pmTrim, 1)} mm Trim/Rest · andere Aufträge variieren` : `${fmtHalf(pmTrim, 1)} mm Trim/Rest von ${pmMr} mm MR`}</div>
         </div>
         <div class="pm-kpi">
           <div class="pm-kpi-val">${N}<span class="pm-kpi-unit">Stk.</span></div>
           <div class="pm-kpi-lbl">Schmalrollen pro MR</div>
-          <div class="pm-kpi-sub">${isClusterMode ? `Primary · andere Aufträge siehe Cluster-Tabelle` : `je ${out.schmal} mm Haupt-Schmal`}</div>
+          <div class="pm-kpi-sub">${isMasterPrint ? `Primary · andere Aufträge siehe Cluster-Tabelle` : `je ${out.schmal} mm Haupt-Schmal`}</div>
         </div>
       </div>
     `;
